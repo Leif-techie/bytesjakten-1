@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  currentOperator   String
+  contractEndDate   DateTime
+  minDataGB         Int
+  networkPreference String   @default("any")
+  unsubscribeToken  String   @unique @default(cuid())
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  notifications     NotificationLog[]
+}
+
+model Campaign {
+  id            String   @id @default(cuid())
+  operator      String
+  name          String
+  dataGB        Int
+  campaignPrice Int
+  regularPrice  Int
+  campaignStart DateTime
+  campaignEnd   DateTime
+  url           String
+  network       String   @default("any")
+  noBinding     Boolean  @default(true)
+  active        Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  @@index([active, dataGB])
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  sentAt    DateTime @default(now())
+  campaignId String?
+
+  @@index([userId, type])
+}
+
+model SystemMeta {
+  id        String   @id @default("singleton")
+  lastCampaignUpdate DateTime?
+}

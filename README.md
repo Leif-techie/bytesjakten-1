@@ -1,36 +1,132 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bytesjakten
 
-## Getting Started
+**Betala mindre för mobilabonnemang – byt smartare.**
 
-First, run the development server:
+Bytesjakten är en gratis webbapp som hjälper användare betala så lite som möjligt för mobilabonnemang genom att utnyttja kampanjer utan bindningstid.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Vad appen gör
+
+- Bevakar **kampanjer för mobilabonnemang** utan bindningstid
+- Visar bästa erbjudandet utifrån dina val (GB, nätverk, operatör)
+- Räknar ut besparing jämfört med ordinarie pris hela året
+- Mejlar dig **en vecka innan bindningstiden går ut**, med länk till ny kampanj och Kivra
+
+> Tanken: behåll abonnemanget under kampanjperioden, byt sedan innan ordinarie pris börjar gälla.
+
+## Snabbstart (Windows)
+
+```powershell
+cd bytesjakten
+copy .env.example .env
+.\scripts\setup.ps1      # Första gången
+.\scripts\start.ps1      # Starta appen
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Öppna **http://localhost:3000** – admin finns på **http://localhost:3000/admin**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Steg för steg
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Mejl (Resend)
 
-## Learn More
+1. Skapa konto på [resend.com](https://resend.com) (gratis nivå räcker)
+2. Kopiera API-nyckeln till `.env`:
+   ```
+   RESEND_API_KEY=re_xxxxxxxx
+   EMAIL_FROM="Bytesjakten <onboarding@resend.dev>"
+   ```
+3. För test: `onboarding@resend.dev` fungerar direkt – mejl går bara till din egen adress
+4. För produktion: verifiera din domän i Resend och ändra `EMAIL_FROM`
 
-To learn more about Next.js, take a look at the following resources:
+Testa mejl via admin-panelen → **Skicka testmejl**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Admin-lösenord
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Sätt i `.env`:
 
-## Deploy on Vercel
+```
+ADMIN_SECRET=ditt-hemliga-losenord
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Logga in på `/admin` för att:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Se registrerade användare
+- Lägga till/redigera kampanjer manuellt
+- Uppdatera kampanjer och köra mejlutskick
+- Skicka testmejl
+
+### 3. Kampanjer
+
+Kampanjer uppdateras automatiskt kl **07:00** varje dag. Du kan också:
+
+- **Admin** → "Uppdatera kampanjer" (fyller på från seed-data)
+- **Admin** → "Lägg till kampanj" (manuellt med riktiga priser och länkar)
+
+Tips: Kolla operatörernas sidor regelbundet och lägg till kampanjer utan bindningstid via admin.
+
+### 4. Automatisering kl 07:00
+
+**Alternativ A – Servern körs dygnet runt**
+
+`start.ps1` sätter `ENABLE_LOCAL_CRON=true` – då körs uppdatering + mejl automatiskt kl 07:00.
+
+**Alternativ B – Windows Task Scheduler**
+
+Kör som administratör:
+
+```powershell
+.\scripts\install-scheduler.ps1
+```
+
+Detta schemalägger `cron-daily.ps1` kl 07:00 även om appen inte kör.
+
+**Manuell körning:**
+
+```powershell
+npm run cron
+```
+
+### 5. Publicera på internet (valfritt)
+
+Deploy till [Vercel](https://vercel.com):
+
+1. Pusha till GitHub
+2. Importera projektet i Vercel
+3. Sätt miljövariabler: `RESEND_API_KEY`, `ADMIN_SECRET`, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`
+4. Vercel Cron körs automatiskt kl 07:00 (konfigurerat i `vercel.json`)
+
+## Användarflöde
+
+1. Användaren besöker landningssidan
+2. Väljer data, nätverk, operatör och slutdatum
+3. Registrerar sig med e-post (gratis)
+4. En vecka innan abonnemanget går ut → automatiskt mejl med:
+   - Bästa kampanjen hos annat telebolag
+   - Länk till Kivra
+   - Avregistreringslänk
+
+## Miljövariabler
+
+| Variabel | Beskrivning |
+|----------|-------------|
+| `DATABASE_URL` | SQLite (lokal) |
+| `RESEND_API_KEY` | Mejl via Resend |
+| `EMAIL_FROM` | Avsändaradress |
+| `NEXT_PUBLIC_APP_URL` | Publik URL |
+| `ADMIN_SECRET` | Lösenord för /admin |
+| `CRON_SECRET` | Säkerhet för cron-API |
+| `ENABLE_LOCAL_CRON` | Cron kl 07:00 när servern kör |
+
+Kopiera `.env.example` till `.env` och fyll i värdena.
+
+## Kommandon
+
+| Kommando | Beskrivning |
+|----------|-------------|
+| `npm run dev` | Utvecklingsläge |
+| `npm run prod` | Produktion lokalt (bygger + startar) |
+| `npm run setup` | Första gången setup |
+| `npm run cron` | Kör kampanjuppdatering + mejl manuellt |
+
+## Teknik
+
+Next.js 16 · SQLite · Prisma · Resend · Tailwind CSS

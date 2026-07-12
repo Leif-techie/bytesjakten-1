@@ -4,23 +4,39 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
+    "prod": "powershell -ExecutionPolicy Bypass -File scripts/start.ps1",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx scripts/run-cron.ts",
+    "cron": "tsx scripts/run-cron.ts",
+    "cron:run": "curl -X POST http://localhost:3000/api/cron -H \"Authorization: Bearer dev-secret-change-me\""
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "^17.4.2",
     "next": "16.2.10",
+    "node-cron": "^4.6.0",
+    "prisma": "^7.8.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "resend": "^6.17.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
+    "tsx": "^4.23.0",
     "typescript": "^5"
   }
 }
