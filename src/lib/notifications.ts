@@ -7,6 +7,7 @@ export async function processUserNotifications(): Promise<{
   processed: number;
   sent: number;
   skipped: number;
+  failures: { email: string; error: string }[];
 }> {
   const now = new Date();
   const users = await db.user.findMany({ where: { active: true } });
@@ -14,6 +15,7 @@ export async function processUserNotifications(): Promise<{
 
   let sent = 0;
   let skipped = 0;
+  const failures: { email: string; error: string }[] = [];
 
   for (const user of users) {
     if (!shouldNotifyUser(user.contractEndDate, now)) {
@@ -71,11 +73,15 @@ export async function processUserNotifications(): Promise<{
       });
       sent++;
     } else {
+      failures.push({
+        email: user.email,
+        error: result.error ?? "Okänt mejlfel",
+      });
       skipped++;
     }
   }
 
-  return { processed: users.length, sent, skipped };
+  return { processed: users.length, sent, skipped, failures };
 }
 
 export async function registerUser(data: {

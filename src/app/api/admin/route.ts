@@ -3,7 +3,7 @@ import { verifyAdmin } from "@/lib/admin-auth";
 import { getAdminStats } from "@/lib/admin";
 import { updateCampaigns } from "@/lib/seed-campaigns";
 import { processUserNotifications } from "@/lib/notifications";
-import { sendSwitchReminderEmail } from "@/lib/email";
+import { sendSwitchReminderEmail, getEmailConfigStatus } from "@/lib/email";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -98,7 +98,13 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  return NextResponse.json({ stats, campaigns, users: usersWithStatus, notifications });
+  return NextResponse.json({
+    stats,
+    campaigns,
+    users: usersWithStatus,
+    notifications,
+    emailConfig: getEmailConfigStatus(),
+  });
 }
 
 export async function POST(request: NextRequest) {

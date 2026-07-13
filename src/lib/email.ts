@@ -12,6 +12,22 @@ function unsubscribeUrl(token: string): string {
   return `${APP_URL}/avregistrera?token=${token}`;
 }
 
+export function getEmailConfigStatus() {
+  const fromEmail = FROM_EMAIL;
+  const testModeOnly = fromEmail.includes("@resend.dev");
+
+  return {
+    resendConfigured: Boolean(process.env.RESEND_API_KEY),
+    fromEmail,
+    testModeOnly,
+    note: !process.env.RESEND_API_KEY
+      ? "RESEND_API_KEY saknas – inga mejl skickas."
+      : testModeOnly
+        ? "Testläge: med onboarding@resend.dev kan mejl bara skickas till e-postadressen du registrerade Resend med. Verifiera en egen domän för att skicka till alla användare."
+        : "Mejl är konfigurerade för produktion.",
+  };
+}
+
 type SwitchEmailParams = {
   email: string;
   operator: string;
@@ -84,9 +100,13 @@ export async function sendSwitchReminderEmail(
   `;
 
   if (!resend) {
-    console.log("[email] RESEND_API_KEY saknas – loggar mejl till:", email);
-    console.log("[email] Ämne:", subject);
-    return { success: true, id: "dev-mode" };
+    const message = "RESEND_API_KEY saknas – mejlet skickades inte.";
+    console.error("[email]", message, email);
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, error: message };
+    }
+    console.log("[email] Dev-läge – ämne:", subject);
+    return { success: false, error: message };
   }
 
   try {
@@ -98,15 +118,16 @@ export async function sendSwitchReminderEmail(
     });
 
     if (error) {
+      console.error("[email] Resend-fel:", error.message, "till:", email);
       return { success: false, error: error.message };
     }
 
+    console.log("[email] Skickat till", email, "id:", data?.id);
     return { success: true, id: data?.id };
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : "Okänt fel",
-    };
+    const message = err instanceof Error ? err.message : "Okänt fel";
+    console.error("[email] Undantag:", message, "till:", email);
+    return { success: false, error: message };
   }
 }
 
@@ -114,13 +135,14 @@ export async function sendWelcomeEmail(
   email: string,
   contractEndDate: Date,
   unsubscribeToken: string
-): Promise<{ success: boolean }> {
+): Promise<{ success: boolean; error?: string }> {
   if (!resend) {
-    console.log("[email] Välkomstmejl till:", email);
-    return { success: true };
+    const message = "RESEND_API_KEY saknas – välkomstmejl skickades inte.";
+    console.error("[email]", message, email);
+    return { success: false, error: message };
   }
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
     subject: "Välkommen till Bytesjakten – vi håller koll åt dig",
@@ -135,6 +157,10 @@ export async function sendWelcomeEmail(
       </div>
     `,
   });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
 
   return { success: true };
 }

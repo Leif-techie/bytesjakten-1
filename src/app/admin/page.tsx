@@ -50,6 +50,13 @@ type NotificationEntry = {
   campaignPrice: number | null;
 };
 
+type EmailConfig = {
+  resendConfigured: boolean;
+  fromEmail: string;
+  testModeOnly: boolean;
+  note: string;
+};
+
 const NOTIFICATION_LABELS: Record<string, string> = {
   switch_reminder: "Påminnelse om byte",
 };
@@ -108,7 +115,9 @@ export default function AdminPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [notifications, setNotifications] = useState<NotificationEntry[]>([]);
+  const [emailConfig, setEmailConfig] = useState<EmailConfig | null>(null);
   const [message, setMessage] = useState("");
+  const [messageIsError, setMessageIsError] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [newCampaign, setNewCampaign] = useState(emptyCampaign);
 
@@ -124,6 +133,7 @@ export default function AdminPage() {
     setCampaigns(data.campaigns);
     setUsers(data.users);
     setNotifications(data.notifications ?? []);
+    setEmailConfig(data.emailConfig ?? null);
   }, []);
 
   useEffect(() => {
@@ -148,13 +158,40 @@ export default function AdminPage() {
 
   async function runAction(action: string, extra?: Record<string, string>) {
     setMessage("");
+    setMessageIsError(false);
     const res = await fetch("/api/admin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, ...extra }),
     });
     const data = await res.json();
-    setMessage(res.ok ? "Klart!" : data.error ?? "Fel");
+
+    if (action === "run_notifications" && data.result) {
+      const { sent, skipped, failures } = data.result;
+      if (failures?.length) {
+        setMessageIsError(true);
+        setMessage(
+          `Skickade ${sent} mejl. ${failures.length} misslyckades: ${failures
+            .map((f: { email: string; error: string }) => `${f.email} (${f.error})`)
+            .join("; ")}`
+        );
+      } else if (sent === 0) {
+        setMessage(`Inga mejl skickades (${skipped} hoppades över – t.ex. fel tidsfönster eller redan skickat).`);
+      } else {
+        setMessage(`Skickade ${sent} mejl.`);
+      }
+    } else if (action === "test_email") {
+      if (data.success) {
+        setMessage("Testmejl skickat! Kolla inkorgen (och skräppost).");
+      } else {
+        setMessageIsError(true);
+        setMessage(data.error ?? "Testmejl misslyckades.");
+      }
+    } else {
+      setMessage(res.ok ? "Klart!" : data.error ?? "Fel");
+      setMessageIsError(!res.ok);
+    }
+
     if (res.ok) loadData();
   }
 
@@ -233,7 +270,27 @@ export default function AdminPage() {
         </div>
 
         {message && (
-          <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-2 text-emerald-700">{message}</p>
+          <p
+            className={`mt-4 rounded-lg px-4 py-2 ${
+              messageIsError
+                ? "bg-red-50 text-red-700"
+                : "bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            {message}
+          </p>
+        )}
+
+        {emailConfig && (!emailConfig.resendConfigured || emailConfig.testModeOnly) && (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="font-semibold">Mejlkonfiguration</p>
+            <p className="mt-1">{emailConfig.note}</p>
+            <p className="mt-2 text-xs text-amber-800">
+              Avsändare: {emailConfig.fromEmail}
+              {!emailConfig.resendConfigured && " · Lägg till RESEND_API_KEY i Render → Environment"}
+              {emailConfig.testModeOnly && " · Verifiera domän på resend.com/domains och sätt EMAIL_FROM"}
+            </p>
+          </div>
         )}
 
         {stats && (
