@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
-    "start": "next start",
+    "build": "prisma generate && next build",
+    "start": "prisma migrate deploy && next start",
     "lint": "eslint",
     "setup": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
     "prod": "powershell -ExecutionPolicy Bypass -File scripts/start.ps1",
