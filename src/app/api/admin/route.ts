@@ -25,10 +25,80 @@ export async function GET(request: NextRequest) {
       contractEndDate: true,
       minDataGB: true,
       createdAt: true,
+      notifications: {
+        where: { type: "switch_reminder" },
+        orderBy: { sentAt: "desc" },
+        take: 1,
+        select: { sentAt: true, campaignId: true },
+      },
+      _count: { select: { notifications: true } },
     },
   });
 
-  return NextResponse.json({ stats, campaigns, users });
+  const notificationLogs = await db.notificationLog.findMany({
+    orderBy: { sentAt: "desc" },
+    take: 50,
+    include: {
+      user: {
+        select: { email: true, currentOperator: true },
+      },
+    },
+  });
+
+  const campaignIds = [
+    ...new Set(
+      notificationLogs
+        .map((log) => log.campaignId)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const notifiedCampaigns = campaignIds.length
+    ? await db.campaign.findMany({
+        where: { id: { in: campaignIds } },
+        select: { id: true, operator: true, name: true, campaignPrice: true },
+      })
+    : [];
+
+  const campaignMap = Object.fromEntries(
+    notifiedCampaigns.map((campaign) => [campaign.id, campaign])
+  );
+
+  const usersWithStatus = users.map((user) => {
+    const lastNotification = user.notifications[0] ?? null;
+    const lastCampaign = lastNotification?.campaignId
+      ? campaignMap[lastNotification.campaignId]
+      : null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      currentOperator: user.currentOperator,
+      contractEndDate: user.contractEndDate,
+      minDataGB: user.minDataGB,
+      createdAt: user.createdAt,
+      notificationCount: user._count.notifications,
+      lastNotificationAt: lastNotification?.sentAt ?? null,
+      lastCampaignOperator: lastCampaign?.operator ?? null,
+      lastCampaignName: lastCampaign?.name ?? null,
+    };
+  });
+
+  const notifications = notificationLogs.map((log) => {
+    const campaign = log.campaignId ? campaignMap[log.campaignId] : null;
+    return {
+      id: log.id,
+      type: log.type,
+      sentAt: log.sentAt,
+      email: log.user.email,
+      currentOperator: log.user.currentOperator,
+      campaignOperator: campaign?.operator ?? null,
+      campaignName: campaign?.name ?? null,
+      campaignPrice: campaign?.campaignPrice ?? null,
+    };
+  });
+
+  return NextResponse.json({ stats, campaigns, users: usersWithStatus, notifications });
 }
 
 export async function POST(request: NextRequest) {

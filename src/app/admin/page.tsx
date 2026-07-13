@@ -33,7 +33,60 @@ type User = {
   currentOperator: string;
   contractEndDate: string;
   minDataGB: number;
+  notificationCount: number;
+  lastNotificationAt: string | null;
+  lastCampaignOperator: string | null;
+  lastCampaignName: string | null;
 };
+
+type NotificationEntry = {
+  id: string;
+  type: string;
+  sentAt: string;
+  email: string;
+  currentOperator: string;
+  campaignOperator: string | null;
+  campaignName: string | null;
+  campaignPrice: number | null;
+};
+
+const NOTIFICATION_LABELS: Record<string, string> = {
+  switch_reminder: "Påminnelse om byte",
+};
+
+function daysUntil(date: string) {
+  const ms = new Date(date).getTime() - Date.now();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
+
+function getMailStatus(user: User) {
+  if (user.lastNotificationAt) {
+    return {
+      label: "Mejl skickat",
+      className: "bg-emerald-100 text-emerald-700",
+    };
+  }
+
+  const days = daysUntil(user.contractEndDate);
+  if (days >= 6 && days <= 8) {
+    return {
+      label: "Bör få mejl nu",
+      className: "bg-amber-100 text-amber-800",
+    };
+  }
+
+  if (days > 8) {
+    return {
+      label: `Mejl om ${days - 7} dagar`,
+      className: "bg-zinc-100 text-zinc-600",
+    };
+  }
+
+  return {
+    label: "Fönster passerat",
+    className: "bg-zinc-100 text-zinc-500",
+  };
+}
 
 const emptyCampaign = {
   operator: "Hallon",
@@ -54,6 +107,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [notifications, setNotifications] = useState<NotificationEntry[]>([]);
   const [message, setMessage] = useState("");
   const [testEmail, setTestEmail] = useState("");
   const [newCampaign, setNewCampaign] = useState(emptyCampaign);
@@ -69,6 +123,7 @@ export default function AdminPage() {
     setStats(data.stats);
     setCampaigns(data.campaigns);
     setUsers(data.users);
+    setNotifications(data.notifications ?? []);
   }, []);
 
   useEffect(() => {
@@ -350,28 +405,107 @@ export default function AdminPage() {
 
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">Aktiva användare ({users.length})</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Mejl skickas automatiskt 6–8 dagar före slutdatum, med kampanj hos annat telebolag.
+          </p>
           <table className="mt-4 w-full text-left text-sm">
             <thead>
               <tr className="border-b text-zinc-500">
                 <th className="py-2 pr-4">E-post</th>
                 <th className="py-2 pr-4">Operatör</th>
                 <th className="py-2 pr-4">Data</th>
-                <th className="py-2">Slutdatum</th>
+                <th className="py-2 pr-4">Slutdatum</th>
+                <th className="py-2 pr-4">Mejlstatus</th>
+                <th className="py-2 pr-4">Senaste kampanj i mejl</th>
+                <th className="py-2">Antal mejl</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-b border-zinc-100">
-                  <td className="py-2 pr-4">{u.email}</td>
-                  <td className="py-2 pr-4">{u.currentOperator}</td>
-                  <td className="py-2 pr-4">{u.minDataGB} GB</td>
-                  <td className="py-2">
-                    {new Date(u.contractEndDate).toLocaleDateString("sv-SE")}
-                  </td>
-                </tr>
-              ))}
+              {users.map((u) => {
+                const status = getMailStatus(u);
+                return (
+                  <tr key={u.id} className="border-b border-zinc-100">
+                    <td className="py-2 pr-4">{u.email}</td>
+                    <td className="py-2 pr-4">{u.currentOperator}</td>
+                    <td className="py-2 pr-4">{u.minDataGB} GB</td>
+                    <td className="py-2 pr-4">
+                      {new Date(u.contractEndDate).toLocaleDateString("sv-SE")}
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+                        {status.label}
+                      </span>
+                      {u.lastNotificationAt && (
+                        <p className="mt-1 text-xs text-zinc-400">
+                          {new Date(u.lastNotificationAt).toLocaleString("sv-SE")}
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-2 pr-4">
+                      {u.lastCampaignName ? (
+                        <>
+                          <p className="font-medium">{u.lastCampaignOperator}</p>
+                          <p className="text-xs text-zinc-500">{u.lastCampaignName}</p>
+                        </>
+                      ) : (
+                        <span className="text-zinc-400">–</span>
+                      )}
+                    </td>
+                    <td className="py-2">{u.notificationCount}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+        </section>
+
+        <section className="mt-10 overflow-x-auto">
+          <h2 className="text-lg font-bold">Mejlhistorik ({notifications.length})</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Senaste skickade mejl med kampanj hos annat telebolag.
+          </p>
+          {notifications.length === 0 ? (
+            <p className="mt-4 text-sm text-zinc-400">Inga mejl har skickats ännu.</p>
+          ) : (
+            <table className="mt-4 w-full text-left text-sm">
+              <thead>
+                <tr className="border-b text-zinc-500">
+                  <th className="py-2 pr-4">Skickat</th>
+                  <th className="py-2 pr-4">E-post</th>
+                  <th className="py-2 pr-4">Nuvarande operatör</th>
+                  <th className="py-2 pr-4">Typ</th>
+                  <th className="py-2">Kampanj i mejlet</th>
+                </tr>
+              </thead>
+              <tbody>
+                {notifications.map((n) => (
+                  <tr key={n.id} className="border-b border-zinc-100">
+                    <td className="py-2 pr-4 whitespace-nowrap">
+                      {new Date(n.sentAt).toLocaleString("sv-SE")}
+                    </td>
+                    <td className="py-2 pr-4">{n.email}</td>
+                    <td className="py-2 pr-4">{n.currentOperator}</td>
+                    <td className="py-2 pr-4">
+                      {NOTIFICATION_LABELS[n.type] ?? n.type}
+                    </td>
+                    <td className="py-2">
+                      {n.campaignName ? (
+                        <>
+                          <p className="font-medium">{n.campaignOperator}</p>
+                          <p className="text-xs text-zinc-500">
+                            {n.campaignName}
+                            {n.campaignPrice != null ? ` · ${n.campaignPrice} kr/mån` : ""}
+                          </p>
+                        </>
+                      ) : (
+                        <span className="text-zinc-400">–</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
       </div>
     </>
