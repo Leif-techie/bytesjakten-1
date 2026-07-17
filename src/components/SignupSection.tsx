@@ -67,7 +67,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
             <CheckIcon /> Länk till bästa erbjudandet
           </li>
           <li className="mt-2 flex items-center gap-2">
-            <CheckIcon /> Uppdateras varje morgon kl 07:00
+            <CheckIcon /> Vi håller koll åt dig
           </li>
         </ul>
 
