@@ -11,6 +11,7 @@ import {
 } from "@/components/PreferencesForm";
 import { BestOfferCard } from "@/components/BestOfferCard";
 import { SignupSection } from "@/components/SignupSection";
+import { EsimGuide } from "@/components/EsimGuide";
 import { KivraSection } from "@/components/KivraSection";
 import { Footer } from "@/components/Footer";
 import { daysUntil } from "@/lib/campaigns";
@@ -88,6 +89,7 @@ export default function HomePage() {
           loading={loading}
         />
         <SignupSection preferences={preferences} />
+        <EsimGuide />
         <KivraSection />
       </main>
       <Footer />
