@@ -210,12 +210,18 @@ export default function AdminPage() {
     }
   }
 
-  async function toggleCampaign(id: string, active: boolean) {
-    await fetch("/api/admin/campaigns", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, active: !active }),
+  async function deleteCampaign(id: string) {
+    const res = await fetch(`/api/admin/campaigns?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setMessageIsError(true);
+      setMessage(data.error ?? "Kunde inte ta bort kampanjen.");
+      return;
+    }
+    setMessageIsError(false);
+    setMessage("Kampanj borttagen.");
     loadData();
   }
 
@@ -448,10 +454,10 @@ export default function AdminPage() {
                   </td>
                   <td className="py-2">
                     <button
-                      onClick={() => toggleCampaign(c.id, c.active)}
-                      className="text-emerald-600 hover:underline"
+                      onClick={() => deleteCampaign(c.id)}
+                      className="text-red-600 hover:underline"
                     >
-                      {c.active ? "Inaktivera" : "Aktivera"}
+                      Ta bort
                     </button>
                   </td>
                 </tr>
