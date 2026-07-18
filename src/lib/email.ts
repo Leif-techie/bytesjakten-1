@@ -170,24 +170,3 @@ export async function sendSwitchReminderEmail(
 
   return sendMailerooEmail({ to: email, subject, html });
 }
-
-export async function sendWelcomeEmail(
-  email: string,
-  contractEndDate: Date,
-  unsubscribeToken: string
-): Promise<{ success: boolean; error?: string }> {
-  return sendMailerooEmail({
-    to: email,
-    subject: "Välkommen till Bytesjakten – vi håller koll åt dig",
-    html: `
-      <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
-        <h1 style="color: #16a34a;">Välkommen!</h1>
-        <p>Du är nu registrerad på Bytesjakten. Vi bevakar kampanjer utan bindningstid 
-        och mejlar dig en vecka innan ditt abonnemang går ut (${formatDate(contractEndDate)}).</p>
-        <p>Du behöver inte göra något mer – vi hörs när det är dags att byta.</p>
-        <p style="color: #666; font-size: 14px;">Alltid gratis. 
-        <a href="${unsubscribeUrl(unsubscribeToken)}">Avregistrera</a> när som helst.</p>
-      </div>
-    `,
-  });
-}

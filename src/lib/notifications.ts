@@ -1,87 +1,45 @@
 import { db } from "./db";
-import { findBestCampaign, shouldNotifyUser } from "./campaigns";
-import { sendSwitchReminderEmail, sendWelcomeEmail } from "./email";
+import { findBestCampaign } from "./campaigns";
+import { sendSwitchReminderEmail } from "./email";
 import { getActiveCampaigns } from "./seed-campaigns";
 
-export async function processUserNotifications(): Promise<{
-  processed: number;
-  sent: number;
-  skipped: number;
-  failures: { email: string; error: string }[];
-}> {
-  const now = new Date();
-  const users = await db.user.findMany({ where: { active: true } });
-  const campaigns = await db.campaign.findMany({ where: { active: true, noBinding: true } });
-
-  let sent = 0;
-  let skipped = 0;
-  const failures: { email: string; error: string }[] = [];
-
-  for (const user of users) {
-    if (!shouldNotifyUser(user.contractEndDate, now)) {
-      skipped++;
-      continue;
-    }
-
-    const alreadySent = await db.notificationLog.findFirst({
-      where: {
-        userId: user.id,
-        type: "switch_reminder",
-        sentAt: {
-          gte: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14),
-        },
-      },
-    });
-
-    if (alreadySent) {
-      skipped++;
-      continue;
-    }
-
-    const best = findBestCampaign(
-      campaigns,
-      user.minDataGB,
-      user.networkPreference,
-      user.currentOperator,
-      now
-    );
-
-    if (!best) {
-      skipped++;
-      continue;
-    }
-
-    const result = await sendSwitchReminderEmail({
-      email: user.email,
-      operator: best.operator,
-      campaignName: best.name,
-      campaignPrice: best.campaignPrice,
-      regularPrice: best.regularPrice,
-      campaignUrl: best.url,
-      contractEndDate: user.contractEndDate,
-      network: best.network ?? "any",
-      unsubscribeToken: user.unsubscribeToken,
-    });
-
-    if (result.success) {
-      await db.notificationLog.create({
-        data: {
-          userId: user.id,
-          type: "switch_reminder",
-          campaignId: best.id,
-        },
-      });
-      sent++;
-    } else {
-      failures.push({
-        email: user.email,
-        error: result.error ?? "Okänt mejlfel",
-      });
-      skipped++;
-    }
+export async function sendManualSwitchEmail(
+  userId: string,
+  campaignId: string
+): Promise<{ success: boolean; error?: string }> {
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user || !user.active) {
+    return { success: false, error: "Användaren hittades inte." };
   }
 
-  return { processed: users.length, sent, skipped, failures };
+  const campaign = await db.campaign.findUnique({ where: { id: campaignId } });
+  if (!campaign) {
+    return { success: false, error: "Kampanjen hittades inte." };
+  }
+
+  const result = await sendSwitchReminderEmail({
+    email: user.email,
+    operator: campaign.operator,
+    campaignName: campaign.name,
+    campaignPrice: campaign.campaignPrice,
+    regularPrice: campaign.regularPrice,
+    campaignUrl: campaign.url,
+    contractEndDate: user.contractEndDate,
+    network: campaign.network ?? "any",
+    unsubscribeToken: user.unsubscribeToken,
+  });
+
+  if (result.success) {
+    await db.notificationLog.create({
+      data: {
+        userId: user.id,
+        type: "switch_reminder",
+        campaignId: campaign.id,
+      },
+    });
+  }
+
+  return { success: result.success, error: result.error };
 }
 
 export async function registerUser(data: {
@@ -107,7 +65,7 @@ export async function registerUser(data: {
   }
 
   const user = await db.user.create({ data });
-  await sendWelcomeEmail(data.email, data.contractEndDate, user.unsubscribeToken);
+  // Inga automatiska mejl – utskick sker manuellt via admin.
   return { userId: user.id, isNew: true };
 }
 
