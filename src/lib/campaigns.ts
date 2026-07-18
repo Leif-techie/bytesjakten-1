@@ -10,6 +10,11 @@ export type CampaignInput = {
   network?: string;
 };
 
+/** CTA-länk för erbjudandet (affiliatelänk) – används på sajten och i mejl. */
+export function getCampaignAffiliateUrl(campaign: { url: string }): string {
+  return campaign.url.trim();
+}
+
 export type CampaignWithSavings = CampaignInput & {
   id: string;
   annualSavings: number;

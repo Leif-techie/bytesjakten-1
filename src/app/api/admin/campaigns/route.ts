@@ -27,6 +27,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Fyll i alla obligatoriska fält." }, { status: 400 });
   }
 
+  const affiliateUrl = String(url).trim();
+  if (!/^https?:\/\//i.test(affiliateUrl)) {
+    return NextResponse.json(
+      { error: "Affiliatelänken måste börja med http:// eller https://." },
+      { status: 400 }
+    );
+  }
+
   if (!OPERATORS.includes(operator)) {
     return NextResponse.json({ error: "Ogiltig operatör." }, { status: 400 });
   }
@@ -44,7 +52,7 @@ export async function POST(request: NextRequest) {
       regularPrice: Number(regularPrice),
       campaignStart: start,
       campaignEnd: end,
-      url,
+      url: affiliateUrl,
       network: network ?? "any",
       noBinding: true,
       active: now >= start && now <= end,
@@ -64,6 +72,17 @@ export async function PATCH(request: NextRequest) {
 
   if (!id) {
     return NextResponse.json({ error: "ID saknas." }, { status: 400 });
+  }
+
+  if (data.url !== undefined) {
+    const affiliateUrl = String(data.url).trim();
+    if (!affiliateUrl || !/^https?:\/\//i.test(affiliateUrl)) {
+      return NextResponse.json(
+        { error: "Affiliatelänken måste börja med http:// eller https://." },
+        { status: 400 }
+      );
+    }
+    data.url = affiliateUrl;
   }
 
   const campaign = await db.campaign.update({

@@ -177,7 +177,7 @@ export async function sendSwitchReminderEmail(
       </div>
 
       <p style="margin: 24px 0;">
-        <a href="${campaignUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+        <a href="${campaignUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
           Beställ kampanjen hos ${operator} →
         </a>
       </p>
