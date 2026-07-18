@@ -51,7 +51,7 @@ type NotificationEntry = {
 };
 
 type EmailConfig = {
-  resendConfigured: boolean;
+  emailConfigured: boolean;
   fromEmail: string;
   testModeOnly: boolean;
   note: string;
@@ -287,14 +287,14 @@ export default function AdminPage() {
           </p>
         )}
 
-        {emailConfig && (!emailConfig.resendConfigured || emailConfig.testModeOnly) && (
+        {emailConfig && (!emailConfig.emailConfigured || emailConfig.testModeOnly) && (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <p className="font-semibold">Mejlkonfiguration</p>
             <p className="mt-1">{emailConfig.note}</p>
             <p className="mt-2 text-xs text-amber-800">
               Avsändare: {emailConfig.fromEmail}
-              {!emailConfig.resendConfigured && " · Lägg till RESEND_API_KEY i Render → Environment"}
-              {emailConfig.testModeOnly && " · Verifiera domän på resend.com/domains och sätt EMAIL_FROM"}
+              {!emailConfig.emailConfigured && " · Lägg till MAILEROO_API_KEY i miljövariablerna"}
+              {emailConfig.testModeOnly && " · Verifiera domän i Maileroo och sätt EMAIL_FROM"}
             </p>
           </div>
         )}
