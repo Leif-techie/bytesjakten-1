@@ -61,6 +61,20 @@ const NOTIFICATION_LABELS: Record<string, string> = {
   switch_reminder: "Påminnelse om byte",
 };
 
+/** Antal hela dagar kvar till slutdatum (0 = idag, negativt = passerat). */
+function daysUntil(date: string) {
+  const end = new Date(date);
+  const start = new Date();
+  end.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function isDueWithin10Days(date: string) {
+  const days = daysUntil(date);
+  return days >= 0 && days <= 10;
+}
+
 function getMailStatus(user: User) {
   if (user.lastNotificationAt) {
     return {
@@ -464,89 +478,143 @@ export default function AdminPage() {
           <h2 className="text-lg font-bold">Aktiva användare ({users.length})</h2>
           <p className="mt-1 text-sm text-zinc-500">
             Skicka mejl manuellt: välj erbjudande per användare och klicka Skicka mejl.
+            Användare med högst 10 dagar kvar till byte visas överst och markeras.
           </p>
-          <table className="mt-4 w-full text-left text-sm">
-            <thead>
-              <tr className="border-b text-zinc-500">
-                <th className="py-2 pr-4">E-post</th>
-                <th className="py-2 pr-4">Operatör</th>
-                <th className="py-2 pr-4">Data</th>
-                <th className="py-2 pr-4">Slutdatum</th>
-                <th className="py-2 pr-4">Mejlstatus</th>
-                <th className="py-2 pr-4">Senaste kampanj i mejl</th>
-                <th className="py-2 pr-4">Erbjudande</th>
-                <th className="py-2">Skicka</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => {
-                const status = getMailStatus(u);
-                const selectable = campaigns.filter((c) => c.active);
-                return (
-                  <tr key={u.id} className="border-b border-zinc-100">
-                    <td className="py-2 pr-4">{u.email}</td>
-                    <td className="py-2 pr-4">{u.currentOperator}</td>
-                    <td className="py-2 pr-4">{u.minDataGB} GB</td>
-                    <td className="py-2 pr-4">
-                      {new Date(u.contractEndDate).toLocaleDateString("sv-SE")}
-                    </td>
-                    <td className="py-2 pr-4">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
-                        {status.label}
+          {(() => {
+            const dueSoon = users
+              .filter((u) => isDueWithin10Days(u.contractEndDate))
+              .sort((a, b) => daysUntil(a.contractEndDate) - daysUntil(b.contractEndDate));
+            const others = users.filter((u) => !isDueWithin10Days(u.contractEndDate));
+            const selectable = campaigns.filter((c) => c.active);
+
+            function renderUserRow(u: User, highlight: boolean) {
+              const status = getMailStatus(u);
+              const days = daysUntil(u.contractEndDate);
+              return (
+                <tr
+                  key={u.id}
+                  className={`border-b border-zinc-100 ${
+                    highlight ? "bg-amber-50" : ""
+                  }`}
+                >
+                  <td className="py-2 pr-4 font-medium">{u.email}</td>
+                  <td className="py-2 pr-4">{u.currentOperator}</td>
+                  <td className="py-2 pr-4">{u.minDataGB} GB</td>
+                  <td className="py-2 pr-4">
+                    <div>{new Date(u.contractEndDate).toLocaleDateString("sv-SE")}</div>
+                    {highlight && (
+                      <span className="mt-1 inline-block rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                        {days === 0
+                          ? "Byter i dag"
+                          : days === 1
+                            ? "1 dag kvar"
+                            : `${days} dagar kvar`}
                       </span>
-                      {u.lastNotificationAt && (
-                        <p className="mt-1 text-xs text-zinc-400">
-                          {new Date(u.lastNotificationAt).toLocaleString("sv-SE")}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-2 pr-4">
-                      {u.lastCampaignName ? (
-                        <>
-                          <p className="font-medium">{u.lastCampaignOperator}</p>
-                          <p className="text-xs text-zinc-500">{u.lastCampaignName}</p>
-                        </>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+                      {status.label}
+                    </span>
+                    {u.lastNotificationAt && (
+                      <p className="mt-1 text-xs text-zinc-400">
+                        {new Date(u.lastNotificationAt).toLocaleString("sv-SE")}
+                      </p>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {u.lastCampaignName ? (
+                      <>
+                        <p className="font-medium">{u.lastCampaignOperator}</p>
+                        <p className="text-xs text-zinc-500">{u.lastCampaignName}</p>
+                      </>
+                    ) : (
+                      <span className="text-zinc-400">–</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    <select
+                      value={campaignChoice[u.id] ?? ""}
+                      onChange={(e) =>
+                        setCampaignChoice((prev) => ({ ...prev, [u.id]: e.target.value }))
+                      }
+                      className="max-w-[220px] rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
+                    >
+                      {selectable.length === 0 ? (
+                        <option value="">Inga aktiva kampanjer</option>
                       ) : (
-                        <span className="text-zinc-400">–</span>
+                        selectable.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.operator} – {c.name} ({c.campaignPrice} kr)
+                          </option>
+                        ))
                       )}
-                    </td>
-                    <td className="py-2 pr-4">
-                      <select
-                        value={campaignChoice[u.id] ?? ""}
-                        onChange={(e) =>
-                          setCampaignChoice((prev) => ({ ...prev, [u.id]: e.target.value }))
-                        }
-                        className="max-w-[220px] rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
-                      >
-                        {selectable.length === 0 ? (
-                          <option value="">Inga aktiva kampanjer</option>
-                        ) : (
-                          selectable.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.operator} – {c.name} ({c.campaignPrice} kr)
-                            </option>
-                          ))
-                        )}
-                      </select>
-                    </td>
-                    <td className="py-2">
-                      <button
-                        onClick={() => sendEmailToUser(u.id)}
-                        disabled={
-                          sendingUserId === u.id ||
-                          !campaignChoice[u.id] ||
-                          selectable.length === 0
-                        }
-                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-                      >
-                        {sendingUserId === u.id ? "Skickar..." : "Skicka mejl"}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </select>
+                  </td>
+                  <td className="py-2">
+                    <button
+                      onClick={() => sendEmailToUser(u.id)}
+                      disabled={
+                        sendingUserId === u.id ||
+                        !campaignChoice[u.id] ||
+                        selectable.length === 0
+                      }
+                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                    >
+                      {sendingUserId === u.id ? "Skickar..." : "Skicka mejl"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            }
+
+            const tableHead = (
+              <thead>
+                <tr className="border-b text-zinc-500">
+                  <th className="py-2 pr-4">E-post</th>
+                  <th className="py-2 pr-4">Operatör</th>
+                  <th className="py-2 pr-4">Data</th>
+                  <th className="py-2 pr-4">Slutdatum</th>
+                  <th className="py-2 pr-4">Mejlstatus</th>
+                  <th className="py-2 pr-4">Senaste kampanj i mejl</th>
+                  <th className="py-2 pr-4">Erbjudande</th>
+                  <th className="py-2">Skicka</th>
+                </tr>
+              </thead>
+            );
+
+            return (
+              <>
+                <div className="mt-6">
+                  <h3 className="text-base font-semibold text-amber-900">
+                    Byter inom 10 dagar ({dueSoon.length})
+                  </h3>
+                  {dueSoon.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">Ingen användare i det här fönstret just nu.</p>
+                  ) : (
+                    <table className="mt-3 w-full text-left text-sm">
+                      {tableHead}
+                      <tbody>{dueSoon.map((u) => renderUserRow(u, true))}</tbody>
+                    </table>
+                  )}
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-base font-semibold text-zinc-800">
+                    Övriga användare ({others.length})
+                  </h3>
+                  {others.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">Inga övriga aktiva användare.</p>
+                  ) : (
+                    <table className="mt-3 w-full text-left text-sm">
+                      {tableHead}
+                      <tbody>{others.map((u) => renderUserRow(u, false))}</tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </section>
 
         <section className="mt-10 overflow-x-auto">
