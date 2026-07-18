@@ -51,7 +51,7 @@ type NotificationEntry = {
 };
 
 type EmailConfig = {
-  resendConfigured: boolean;
+  emailConfigured: boolean;
   fromEmail: string;
   testModeOnly: boolean;
   note: string;
@@ -61,9 +61,18 @@ const NOTIFICATION_LABELS: Record<string, string> = {
   switch_reminder: "Påminnelse om byte",
 };
 
+/** Antal hela dagar kvar till slutdatum (0 = idag, negativt = passerat). */
 function daysUntil(date: string) {
-  const ms = new Date(date).getTime() - Date.now();
-  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+  const end = new Date(date);
+  const start = new Date();
+  end.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function isDueWithin10Days(date: string) {
+  const days = daysUntil(date);
+  return days >= 0 && days <= 10;
 }
 
 function getMailStatus(user: User) {
@@ -74,24 +83,9 @@ function getMailStatus(user: User) {
     };
   }
 
-  const days = daysUntil(user.contractEndDate);
-  if (days >= 6 && days <= 8) {
-    return {
-      label: "Bör få mejl nu",
-      className: "bg-amber-100 text-amber-800",
-    };
-  }
-
-  if (days > 8) {
-    return {
-      label: `Mejl om ${days - 7} dagar`,
-      className: "bg-zinc-100 text-zinc-600",
-    };
-  }
-
   return {
-    label: "Fönster passerat",
-    className: "bg-zinc-100 text-zinc-500",
+    label: "Inget mejl ännu",
+    className: "bg-zinc-100 text-zinc-600",
   };
 }
 
@@ -120,6 +114,8 @@ export default function AdminPage() {
   const [messageIsError, setMessageIsError] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [newCampaign, setNewCampaign] = useState(emptyCampaign);
+  const [campaignChoice, setCampaignChoice] = useState<Record<string, string>>({});
+  const [sendingUserId, setSendingUserId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     const res = await fetch("/api/admin");
@@ -134,6 +130,19 @@ export default function AdminPage() {
     setUsers(data.users);
     setNotifications(data.notifications ?? []);
     setEmailConfig(data.emailConfig ?? null);
+    setCampaignChoice((prev) => {
+      const next = { ...prev };
+      const activeCampaigns = (data.campaigns as Campaign[]).filter((c) => c.active);
+      for (const user of data.users as User[]) {
+        if (!next[user.id] && activeCampaigns.length > 0) {
+          const preferred =
+            activeCampaigns.find((c) => c.operator !== user.currentOperator) ??
+            activeCampaigns[0];
+          next[user.id] = preferred.id;
+        }
+      }
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -166,33 +175,38 @@ export default function AdminPage() {
     });
     const data = await res.json();
 
-    if (action === "run_notifications" && data.result) {
-      const { sent, skipped, failures } = data.result;
-      if (failures?.length) {
-        setMessageIsError(true);
-        setMessage(
-          `Skickade ${sent} mejl. ${failures.length} misslyckades: ${failures
-            .map((f: { email: string; error: string }) => `${f.email} (${f.error})`)
-            .join("; ")}`
-        );
-      } else if (sent === 0) {
-        setMessage(`Inga mejl skickades (${skipped} hoppades över – t.ex. fel tidsfönster eller redan skickat).`);
-      } else {
-        setMessage(`Skickade ${sent} mejl.`);
-      }
-    } else if (action === "test_email") {
+    if (action === "test_email" || action === "send_user_email") {
       if (data.success) {
-        setMessage("Testmejl skickat! Kolla inkorgen (och skräppost).");
+        setMessage(
+          action === "test_email"
+            ? "Testmejl skickat! Kolla inkorgen (och skräppost)."
+            : "Mejl skickat till användaren."
+        );
       } else {
         setMessageIsError(true);
-        setMessage(data.error ?? "Testmejl misslyckades.");
+        setMessage(data.error ?? "Mejlet kunde inte skickas.");
       }
     } else {
       setMessage(res.ok ? "Klart!" : data.error ?? "Fel");
       setMessageIsError(!res.ok);
     }
 
-    if (res.ok) loadData();
+    if (res.ok || data.success) loadData();
+  }
+
+  async function sendEmailToUser(userId: string) {
+    const campaignId = campaignChoice[userId];
+    if (!campaignId) {
+      setMessageIsError(true);
+      setMessage("Välj ett erbjudande innan du skickar.");
+      return;
+    }
+    setSendingUserId(userId);
+    try {
+      await runAction("send_user_email", { userId, campaignId });
+    } finally {
+      setSendingUserId(null);
+    }
   }
 
   async function addCampaign(e: React.FormEvent) {
@@ -287,14 +301,14 @@ export default function AdminPage() {
           </p>
         )}
 
-        {emailConfig && (!emailConfig.resendConfigured || emailConfig.testModeOnly) && (
+        {emailConfig && (!emailConfig.emailConfigured || emailConfig.testModeOnly) && (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <p className="font-semibold">Mejlkonfiguration</p>
             <p className="mt-1">{emailConfig.note}</p>
             <p className="mt-2 text-xs text-amber-800">
               Avsändare: {emailConfig.fromEmail}
-              {!emailConfig.resendConfigured && " · Lägg till RESEND_API_KEY i Render → Environment"}
-              {emailConfig.testModeOnly && " · Verifiera domän på resend.com/domains och sätt EMAIL_FROM"}
+              {!emailConfig.emailConfigured && " · Lägg till MAILEROO_API_KEY i miljövariablerna"}
+              {emailConfig.testModeOnly && " · Verifiera domän i Maileroo och sätt EMAIL_FROM"}
             </p>
           </div>
         )}
@@ -326,12 +340,6 @@ export default function AdminPage() {
             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white"
           >
             Uppdatera kampanjer
-          </button>
-          <button
-            onClick={() => runAction("run_notifications")}
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium"
-          >
-            Kör mejlutskick nu
           </button>
           <div className="flex gap-2">
             <input
@@ -469,57 +477,144 @@ export default function AdminPage() {
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">Aktiva användare ({users.length})</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Mejl skickas automatiskt 6–8 dagar före slutdatum, med kampanj hos annat telebolag.
+            Skicka mejl manuellt: välj erbjudande per användare och klicka Skicka mejl.
+            Användare med högst 10 dagar kvar till byte visas överst och markeras.
           </p>
-          <table className="mt-4 w-full text-left text-sm">
-            <thead>
-              <tr className="border-b text-zinc-500">
-                <th className="py-2 pr-4">E-post</th>
-                <th className="py-2 pr-4">Operatör</th>
-                <th className="py-2 pr-4">Data</th>
-                <th className="py-2 pr-4">Slutdatum</th>
-                <th className="py-2 pr-4">Mejlstatus</th>
-                <th className="py-2 pr-4">Senaste kampanj i mejl</th>
-                <th className="py-2">Antal mejl</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => {
-                const status = getMailStatus(u);
-                return (
-                  <tr key={u.id} className="border-b border-zinc-100">
-                    <td className="py-2 pr-4">{u.email}</td>
-                    <td className="py-2 pr-4">{u.currentOperator}</td>
-                    <td className="py-2 pr-4">{u.minDataGB} GB</td>
-                    <td className="py-2 pr-4">
-                      {new Date(u.contractEndDate).toLocaleDateString("sv-SE")}
-                    </td>
-                    <td className="py-2 pr-4">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
-                        {status.label}
+          {(() => {
+            const dueSoon = users
+              .filter((u) => isDueWithin10Days(u.contractEndDate))
+              .sort((a, b) => daysUntil(a.contractEndDate) - daysUntil(b.contractEndDate));
+            const others = users.filter((u) => !isDueWithin10Days(u.contractEndDate));
+            const selectable = campaigns.filter((c) => c.active);
+
+            function renderUserRow(u: User, highlight: boolean) {
+              const status = getMailStatus(u);
+              const days = daysUntil(u.contractEndDate);
+              return (
+                <tr
+                  key={u.id}
+                  className={`border-b border-zinc-100 ${
+                    highlight ? "bg-amber-50" : ""
+                  }`}
+                >
+                  <td className="py-2 pr-4 font-medium">{u.email}</td>
+                  <td className="py-2 pr-4">{u.currentOperator}</td>
+                  <td className="py-2 pr-4">{u.minDataGB} GB</td>
+                  <td className="py-2 pr-4">
+                    <div>{new Date(u.contractEndDate).toLocaleDateString("sv-SE")}</div>
+                    {highlight && (
+                      <span className="mt-1 inline-block rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                        {days === 0
+                          ? "Byter i dag"
+                          : days === 1
+                            ? "1 dag kvar"
+                            : `${days} dagar kvar`}
                       </span>
-                      {u.lastNotificationAt && (
-                        <p className="mt-1 text-xs text-zinc-400">
-                          {new Date(u.lastNotificationAt).toLocaleString("sv-SE")}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-2 pr-4">
-                      {u.lastCampaignName ? (
-                        <>
-                          <p className="font-medium">{u.lastCampaignOperator}</p>
-                          <p className="text-xs text-zinc-500">{u.lastCampaignName}</p>
-                        </>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+                      {status.label}
+                    </span>
+                    {u.lastNotificationAt && (
+                      <p className="mt-1 text-xs text-zinc-400">
+                        {new Date(u.lastNotificationAt).toLocaleString("sv-SE")}
+                      </p>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {u.lastCampaignName ? (
+                      <>
+                        <p className="font-medium">{u.lastCampaignOperator}</p>
+                        <p className="text-xs text-zinc-500">{u.lastCampaignName}</p>
+                      </>
+                    ) : (
+                      <span className="text-zinc-400">–</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    <select
+                      value={campaignChoice[u.id] ?? ""}
+                      onChange={(e) =>
+                        setCampaignChoice((prev) => ({ ...prev, [u.id]: e.target.value }))
+                      }
+                      className="max-w-[220px] rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
+                    >
+                      {selectable.length === 0 ? (
+                        <option value="">Inga aktiva kampanjer</option>
                       ) : (
-                        <span className="text-zinc-400">–</span>
+                        selectable.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.operator} – {c.name} ({c.campaignPrice} kr)
+                          </option>
+                        ))
                       )}
-                    </td>
-                    <td className="py-2">{u.notificationCount}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </select>
+                  </td>
+                  <td className="py-2">
+                    <button
+                      onClick={() => sendEmailToUser(u.id)}
+                      disabled={
+                        sendingUserId === u.id ||
+                        !campaignChoice[u.id] ||
+                        selectable.length === 0
+                      }
+                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                    >
+                      {sendingUserId === u.id ? "Skickar..." : "Skicka mejl"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            }
+
+            const tableHead = (
+              <thead>
+                <tr className="border-b text-zinc-500">
+                  <th className="py-2 pr-4">E-post</th>
+                  <th className="py-2 pr-4">Operatör</th>
+                  <th className="py-2 pr-4">Data</th>
+                  <th className="py-2 pr-4">Slutdatum</th>
+                  <th className="py-2 pr-4">Mejlstatus</th>
+                  <th className="py-2 pr-4">Senaste kampanj i mejl</th>
+                  <th className="py-2 pr-4">Erbjudande</th>
+                  <th className="py-2">Skicka</th>
+                </tr>
+              </thead>
+            );
+
+            return (
+              <>
+                <div className="mt-6">
+                  <h3 className="text-base font-semibold text-amber-900">
+                    Byter inom 10 dagar ({dueSoon.length})
+                  </h3>
+                  {dueSoon.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">Ingen användare i det här fönstret just nu.</p>
+                  ) : (
+                    <table className="mt-3 w-full text-left text-sm">
+                      {tableHead}
+                      <tbody>{dueSoon.map((u) => renderUserRow(u, true))}</tbody>
+                    </table>
+                  )}
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-base font-semibold text-zinc-800">
+                    Övriga användare ({others.length})
+                  </h3>
+                  {others.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">Inga övriga aktiva användare.</p>
+                  ) : (
+                    <table className="mt-3 w-full text-left text-sm">
+                      {tableHead}
+                      <tbody>{others.map((u) => renderUserRow(u, false))}</tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </section>
 
         <section className="mt-10 overflow-x-auto">

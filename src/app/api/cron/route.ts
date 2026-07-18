@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateCampaigns } from "@/lib/seed-campaigns";
-import { processUserNotifications } from "@/lib/notifications";
 
 export const runtime = "nodejs";
 
@@ -12,6 +11,7 @@ function verifyCronSecret(request: NextRequest): boolean {
   return authHeader === `Bearer ${secret}`;
 }
 
+/** Optional campaign refresh only – no automatic emails. */
 export async function POST(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -19,12 +19,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const campaignResult = await updateCampaigns();
-    const notificationResult = await processUserNotifications();
 
     return NextResponse.json({
       success: true,
       campaigns: campaignResult,
-      notifications: notificationResult,
+      notifications: { skipped: true, reason: "Mejl skickas endast manuellt via admin." },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

@@ -1,16 +1,11 @@
 import "dotenv/config";
 import { updateCampaigns } from "../src/lib/seed-campaigns";
-import { processUserNotifications } from "../src/lib/notifications";
 
 async function main() {
-  console.log("[cron] Startar daglig körning...");
+  console.log("[cron] Uppdaterar kampanjer (inga automatiska mejl)...");
   const campaigns = await updateCampaigns();
   console.log("[cron] Kampanjer:", campaigns);
-
-  const notifications = await processUserNotifications();
-  console.log("[cron] Mejl:", notifications);
-
-  console.log("[cron] Klart!");
+  console.log("[cron] Klart! (mejlutskick sker manuellt via /admin)");
 }
 
 main()

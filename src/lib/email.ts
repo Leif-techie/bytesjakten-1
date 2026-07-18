@@ -1,30 +1,50 @@
-import { Resend } from "resend";
 import { APP_URL, KIVRA_URL } from "./constants";
 import { formatDate, formatSEK, getNetworkLabel } from "./campaigns";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-
-const FROM_EMAIL = process.env.EMAIL_FROM ?? "Bytesjakten <onboarding@resend.dev>";
+const MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails";
+const API_KEY = process.env.MAILEROO_API_KEY?.trim() || "";
+const FROM_EMAIL = process.env.EMAIL_FROM ?? "Bytesjakten <hej@bytesjakten.se>";
 
 function unsubscribeUrl(token: string): string {
   return `${APP_URL}/avregistrera?token=${token}`;
 }
 
+function parseFromAddress(raw: string): { address: string; display_name?: string } {
+  const match = raw.match(/^(.*?)\s*<([^>]+)>\s*$/);
+  if (match) {
+    const displayName = match[1].replace(/^["']|["']$/g, "").trim();
+    return {
+      address: match[2].trim(),
+      ...(displayName ? { display_name: displayName } : {}),
+    };
+  }
+  return { address: raw.trim() };
+}
+
+function htmlToPlain(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function getEmailConfigStatus() {
   const fromEmail = FROM_EMAIL;
-  const testModeOnly = fromEmail.includes("@resend.dev");
+  const configured = Boolean(API_KEY);
 
   return {
-    resendConfigured: Boolean(process.env.RESEND_API_KEY),
+    emailConfigured: configured,
     fromEmail,
-    testModeOnly,
-    note: !process.env.RESEND_API_KEY
-      ? "RESEND_API_KEY saknas – inga mejl skickas."
-      : testModeOnly
-        ? "Testläge: med onboarding@resend.dev kan mejl bara skickas till e-postadressen du registrerade Resend med. Verifiera en egen domän för att skicka till alla användare."
-        : "Mejl är konfigurerade för produktion.",
+    testModeOnly: false,
+    note: !configured
+      ? "MAILEROO_API_KEY saknas – inga mejl skickas."
+      : "Mejl skickas via Maileroo. Verifiera din domän (t.ex. bytesjakten.se) i Maileroo-dashboarden och sätt EMAIL_FROM till en adress på den domänen.",
   };
 }
 
@@ -39,6 +59,55 @@ type SwitchEmailParams = {
   network: string;
   unsubscribeToken: string;
 };
+
+async function sendMailerooEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  if (!API_KEY) {
+    const message = "MAILEROO_API_KEY saknas – mejlet skickades inte.";
+    console.error("[email]", message, params.to);
+    return { success: false, error: message };
+  }
+
+  try {
+    const response = await fetch(MAILEROO_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: parseFromAddress(FROM_EMAIL),
+        to: [{ address: params.to }],
+        subject: params.subject,
+        html: params.html,
+        plain: htmlToPlain(params.html),
+      }),
+    });
+
+    const data = (await response.json()) as {
+      success?: boolean;
+      message?: string;
+      data?: { reference_id?: string; id?: string };
+    };
+
+    if (!response.ok || !data.success) {
+      const message = data.message ?? `Maileroo HTTP ${response.status}`;
+      console.error("[email] Maileroo-fel:", message, "till:", params.to);
+      return { success: false, error: message };
+    }
+
+    const id = data.data?.reference_id ?? data.data?.id;
+    console.log("[email] Skickat till", params.to, "id:", id);
+    return { success: true, id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Okänt fel";
+    console.error("[email] Undantag:", message, "till:", params.to);
+    return { success: false, error: message };
+  }
+}
 
 export async function sendSwitchReminderEmail(
   params: SwitchEmailParams
@@ -99,68 +168,5 @@ export async function sendSwitchReminderEmail(
     </div>
   `;
 
-  if (!resend) {
-    const message = "RESEND_API_KEY saknas – mejlet skickades inte.";
-    console.error("[email]", message, email);
-    if (process.env.NODE_ENV === "production") {
-      return { success: false, error: message };
-    }
-    console.log("[email] Dev-läge – ämne:", subject);
-    return { success: false, error: message };
-  }
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: email,
-      subject,
-      html,
-    });
-
-    if (error) {
-      console.error("[email] Resend-fel:", error.message, "till:", email);
-      return { success: false, error: error.message };
-    }
-
-    console.log("[email] Skickat till", email, "id:", data?.id);
-    return { success: true, id: data?.id };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Okänt fel";
-    console.error("[email] Undantag:", message, "till:", email);
-    return { success: false, error: message };
-  }
-}
-
-export async function sendWelcomeEmail(
-  email: string,
-  contractEndDate: Date,
-  unsubscribeToken: string
-): Promise<{ success: boolean; error?: string }> {
-  if (!resend) {
-    const message = "RESEND_API_KEY saknas – välkomstmejl skickades inte.";
-    console.error("[email]", message, email);
-    return { success: false, error: message };
-  }
-
-  const { error } = await resend.emails.send({
-    from: FROM_EMAIL,
-    to: email,
-    subject: "Välkommen till Bytesjakten – vi håller koll åt dig",
-    html: `
-      <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
-        <h1 style="color: #16a34a;">Välkommen!</h1>
-        <p>Du är nu registrerad på Bytesjakten. Vi bevakar kampanjer utan bindningstid 
-        och mejlar dig en vecka innan ditt abonnemang går ut (${formatDate(contractEndDate)}).</p>
-        <p>Du behöver inte göra något mer – vi hörs när det är dags att byta.</p>
-        <p style="color: #666; font-size: 14px;">Alltid gratis. 
-        <a href="${unsubscribeUrl(unsubscribeToken)}">Avregistrera</a> när som helst.</p>
-      </div>
-    `,
-  });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  return { success: true };
+  return sendMailerooEmail({ to: email, subject, html });
 }

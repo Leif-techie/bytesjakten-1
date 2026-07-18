@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { getAdminStats } from "@/lib/admin";
 import { updateCampaigns } from "@/lib/seed-campaigns";
-import { processUserNotifications } from "@/lib/notifications";
+import { sendManualSwitchEmail } from "@/lib/notifications";
 import { sendSwitchReminderEmail, getEmailConfigStatus } from "@/lib/email";
 import { db } from "@/lib/db";
 
@@ -120,9 +120,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, result });
   }
 
-  if (action === "run_notifications") {
-    const result = await processUserNotifications();
-    return NextResponse.json({ success: true, result });
+  if (action === "send_user_email") {
+    const { userId, campaignId } = body;
+    if (!userId || !campaignId) {
+      return NextResponse.json(
+        { error: "Välj användare och kampanj." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualSwitchEmail(userId, campaignId);
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
   }
 
   if (action === "test_email") {

@@ -26,16 +26,16 @@ copy .env.example .env
 
 ## Steg för steg
 
-### 1. Mejl (Resend)
+### 1. Mejl (Maileroo)
 
-1. Skapa konto på [resend.com](https://resend.com) (gratis nivå räcker)
-2. Kopiera API-nyckeln till `.env`:
+1. Skapa konto på [maileroo.com](https://maileroo.com) (gratis nivå räcker)
+2. Lägg till och verifiera din domän (t.ex. `bytesjakten.se`) – DNS hos One.com
+3. Skapa en **Sending Key** och kopiera den till `.env`:
    ```
-   RESEND_API_KEY=re_xxxxxxxx
-   EMAIL_FROM="Bytesjakten <onboarding@resend.dev>"
+   MAILEROO_API_KEY=din-nyckel
+   EMAIL_FROM="Bytesjakten <hej@bytesjakten.se>"
    ```
-3. För test: `onboarding@resend.dev` fungerar direkt – mejl går bara till din egen adress
-4. För produktion: verifiera din domän i Resend och ändra `EMAIL_FROM`
+4. Avsändaradressen i `EMAIL_FROM` måste höra till en verifierad domän i Maileroo
 
 Testa mejl via admin-panelen → **Skicka testmejl**.
 
@@ -53,37 +53,19 @@ Logga in på `/admin` för att:
 - Lägga till/redigera kampanjer manuellt
 - Uppdatera kampanjer och köra mejlutskick
 - Skicka testmejl
+- Skicka mejl till respektive användare med valt erbjudande
 
 ### 3. Kampanjer
 
-Kampanjer uppdateras automatiskt kl **07:00** varje dag. Du kan också:
+Hantera kampanjer manuellt via admin:
 
-- **Admin** → "Uppdatera kampanjer" (fyller på från seed-data)
-- **Admin** → "Lägg till kampanj" (manuellt med riktiga priser och länkar)
+- **Admin** → "Lägg till kampanj"
+- **Admin** → "Ta bort" på en rad
+- **Admin** → "Uppdatera kampanjer" (valfritt – fyller på från seed-data)
 
-Tips: Kolla operatörernas sidor regelbundet och lägg till kampanjer utan bindningstid via admin.
+### 4. Mejlutskick
 
-### 4. Automatisering kl 07:00
-
-**Alternativ A – Servern körs dygnet runt**
-
-`start.ps1` sätter `ENABLE_LOCAL_CRON=true` – då körs uppdatering + mejl automatiskt kl 07:00.
-
-**Alternativ B – Windows Task Scheduler**
-
-Kör som administratör:
-
-```powershell
-.\scripts\install-scheduler.ps1
-```
-
-Detta schemalägger `cron-daily.ps1` kl 07:00 även om appen inte kör.
-
-**Manuell körning:**
-
-```powershell
-npm run cron
-```
+Mejl skickas **endast manuellt**. Under **Aktiva användare** i admin: välj erbjudande per rad och klicka **Skicka mejl**.
 
 ### 5. Publicera på internet (valfritt)
 
@@ -91,16 +73,15 @@ Deploy till [Vercel](https://vercel.com):
 
 1. Pusha till GitHub
 2. Importera projektet i Vercel
-3. Sätt miljövariabler: `RESEND_API_KEY`, `ADMIN_SECRET`, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`
-4. Vercel Cron körs automatiskt kl 07:00 (konfigurerat i `vercel.json`)
+3. Sätt miljövariabler: `MAILEROO_API_KEY`, `EMAIL_FROM`, `ADMIN_SECRET`, `NEXT_PUBLIC_APP_URL`
 
 ## Användarflöde
 
 1. Användaren besöker landningssidan
 2. Väljer data, nätverk, operatör och slutdatum
 3. Registrerar sig med e-post (gratis)
-4. En vecka innan abonnemanget går ut → automatiskt mejl med:
-   - Bästa kampanjen hos annat telebolag
+4. Du skickar mejl manuellt via admin när det är dags, med valt erbjudande:
+   - Kampanj hos annat telebolag
    - Länk till Kivra
    - Avregistreringslänk
 
@@ -109,12 +90,11 @@ Deploy till [Vercel](https://vercel.com):
 | Variabel | Beskrivning |
 |----------|-------------|
 | `DATABASE_URL` | SQLite (lokal) |
-| `RESEND_API_KEY` | Mejl via Resend |
+| `MAILEROO_API_KEY` | Mejl via Maileroo |
 | `EMAIL_FROM` | Avsändaradress |
 | `NEXT_PUBLIC_APP_URL` | Publik URL |
 | `ADMIN_SECRET` | Lösenord för /admin |
-| `CRON_SECRET` | Säkerhet för cron-API |
-| `ENABLE_LOCAL_CRON` | Cron kl 07:00 när servern kör |
+| `CRON_SECRET` | Säkerhet för cron-API (valfritt) |
 
 Kopiera `.env.example` till `.env` och fyll i värdena.
 
@@ -125,8 +105,8 @@ Kopiera `.env.example` till `.env` och fyll i värdena.
 | `npm run dev` | Utvecklingsläge |
 | `npm run prod` | Produktion lokalt (bygger + startar) |
 | `npm run setup` | Första gången setup |
-| `npm run cron` | Kör kampanjuppdatering + mejl manuellt |
+| `npm run cron` | Kör kampanjuppdatering (inga mejl) |
 
 ## Teknik
 
-Next.js 16 · SQLite · Prisma · Resend · Tailwind CSS
+Next.js 16 · SQLite · Prisma · Maileroo · Tailwind CSS
