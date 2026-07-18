@@ -1,5 +1,6 @@
 import {
   formatSEK,
+  getCampaignAffiliateUrl,
   getCampaignPeriodLabel,
   getNetworkLabel,
 } from "@/lib/campaigns";
@@ -104,9 +105,9 @@ export function BestOfferCard({ campaign, loading }: BestOfferCardProps) {
           <div className="flex flex-col items-center justify-center gap-4 border-t border-zinc-100 p-6 md:border-l md:border-t-0">
             <span className="text-4xl">🏷️</span>
             <a
-              href={campaign.url}
+              href={getCampaignAffiliateUrl(campaign)}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="sponsored noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700"
             >
               Beställ nu

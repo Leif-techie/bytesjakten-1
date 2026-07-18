@@ -118,6 +118,8 @@ export default function AdminPage() {
   const [campaignChoice, setCampaignChoice] = useState<Record<string, string>>({});
   const [sendingUserId, setSendingUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [affiliateDrafts, setAffiliateDrafts] = useState<Record<string, string>>({});
+  const [savingAffiliateId, setSavingAffiliateId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     const res = await fetch("/api/admin");
@@ -132,6 +134,11 @@ export default function AdminPage() {
     setUsers(data.users);
     setNotifications(data.notifications ?? []);
     setEmailConfig(data.emailConfig ?? null);
+    setAffiliateDrafts(
+      Object.fromEntries(
+        ((data.campaigns as Campaign[]) ?? []).map((c) => [c.id, c.url])
+      )
+    );
     setCampaignChoice((prev) => {
       const next = { ...prev };
       const activeCampaigns = (data.campaigns as Campaign[]).filter((c) => c.active);
@@ -267,6 +274,35 @@ export default function AdminPage() {
     loadData();
   }
 
+  async function saveAffiliateUrl(id: string) {
+    const url = (affiliateDrafts[id] ?? "").trim();
+    if (!url || !/^https?:\/\//i.test(url)) {
+      setMessageIsError(true);
+      setMessage("Affiliatelänken måste börja med http:// eller https://.");
+      return;
+    }
+    setSavingAffiliateId(id);
+    setMessage("");
+    setMessageIsError(false);
+    try {
+      const res = await fetch("/api/admin/campaigns", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, url }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessageIsError(true);
+        setMessage(data.error ?? "Kunde inte spara affiliatelänken.");
+        return;
+      }
+      setMessage("Affiliatelänk sparad.");
+      loadData();
+    } finally {
+      setSavingAffiliateId(null);
+    }
+  }
+
   if (authed === null) {
     return (
       <>
@@ -388,6 +424,9 @@ export default function AdminPage() {
 
         <section className="mt-10">
           <h2 className="text-lg font-bold">Lägg till kampanj</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Affiliatelänken används både på hemsidan (Beställ nu) och i mejlutskick.
+          </p>
           <form onSubmit={addCampaign} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <select
               value={newCampaign.operator}
@@ -432,10 +471,10 @@ export default function AdminPage() {
             />
             <input
               type="url"
-              placeholder="https://..."
+              placeholder="Affiliatelänk (https://...)"
               value={newCampaign.url}
               onChange={(e) => setNewCampaign({ ...newCampaign, url: e.target.value })}
-              className="rounded-lg border border-zinc-300 px-3 py-2"
+              className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
               required
             />
             <input
@@ -467,37 +506,66 @@ export default function AdminPage() {
 
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">Kampanjer ({campaigns.length})</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Affiliatelänken går till operatörens erbjudande via dig – samma länk används på hemsidan och i mejl.
+          </p>
           <table className="mt-4 w-full text-left text-sm">
             <thead>
               <tr className="border-b text-zinc-500">
                 <th className="py-2 pr-4">Operatör</th>
                 <th className="py-2 pr-4">Namn</th>
                 <th className="py-2 pr-4">Pris</th>
+                <th className="py-2 pr-4">Affiliatelänk</th>
                 <th className="py-2 pr-4">Status</th>
                 <th className="py-2">Åtgärd</th>
               </tr>
             </thead>
             <tbody>
-              {campaigns.map((c) => (
-                <tr key={c.id} className="border-b border-zinc-100">
-                  <td className="py-2 pr-4">{c.operator}</td>
-                  <td className="py-2 pr-4">{c.name}</td>
-                  <td className="py-2 pr-4">{c.campaignPrice} kr</td>
-                  <td className="py-2 pr-4">
-                    <span className={c.active ? "text-emerald-600" : "text-zinc-400"}>
-                      {c.active ? "Aktiv" : "Inaktiv"}
-                    </span>
-                  </td>
-                  <td className="py-2">
-                    <button
-                      onClick={() => deleteCampaign(c.id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Ta bort
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {campaigns.map((c) => {
+                const draft = affiliateDrafts[c.id] ?? c.url;
+                const dirty = draft.trim() !== c.url;
+                return (
+                  <tr key={c.id} className="border-b border-zinc-100">
+                    <td className="py-2 pr-4">{c.operator}</td>
+                    <td className="py-2 pr-4">{c.name}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap">{c.campaignPrice} kr</td>
+                    <td className="py-2 pr-4 min-w-[280px]">
+                      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+                        <input
+                          type="url"
+                          value={draft}
+                          onChange={(e) =>
+                            setAffiliateDrafts((prev) => ({ ...prev, [c.id]: e.target.value }))
+                          }
+                          className="w-full min-w-0 flex-1 rounded-lg border border-zinc-300 px-2 py-1.5 text-xs"
+                          placeholder="https://..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => saveAffiliateUrl(c.id)}
+                          disabled={!dirty || savingAffiliateId === c.id}
+                          className="shrink-0 rounded-lg border border-zinc-300 px-2 py-1.5 text-xs font-medium disabled:opacity-40"
+                        >
+                          {savingAffiliateId === c.id ? "Sparar..." : "Spara"}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span className={c.active ? "text-emerald-600" : "text-zinc-400"}>
+                        {c.active ? "Aktiv" : "Inaktiv"}
+                      </span>
+                    </td>
+                    <td className="py-2">
+                      <button
+                        onClick={() => deleteCampaign(c.id)}
+                        className="text-red-600 hover:underline"
+                      >
+                        Ta bort
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </section>

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { findBestCampaign } from "./campaigns";
+import { findBestCampaign, getCampaignAffiliateUrl } from "./campaigns";
 import { sendSwitchReminderEmail } from "./email";
 import { getActiveCampaigns } from "./seed-campaigns";
 
@@ -23,7 +23,7 @@ export async function sendManualSwitchEmail(
     campaignName: campaign.name,
     campaignPrice: campaign.campaignPrice,
     regularPrice: campaign.regularPrice,
-    campaignUrl: campaign.url,
+    campaignUrl: getCampaignAffiliateUrl(campaign),
     contractEndDate: user.contractEndDate,
     network: campaign.network ?? "any",
     unsubscribeToken: user.unsubscribeToken,
