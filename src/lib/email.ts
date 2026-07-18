@@ -1,5 +1,6 @@
 import { APP_URL, KIVRA_URL } from "./constants";
 import { formatDate, formatSEK, getNetworkLabel } from "./campaigns";
+import { ESIM_GUIDE_STEPS } from "./esim-guide";
 
 const MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails";
 const API_KEY = process.env.MAILEROO_API_KEY?.trim() || "";
@@ -7,6 +8,10 @@ const FROM_EMAIL = process.env.EMAIL_FROM ?? "Bytesjakten <hej@bytesjakten.se>";
 
 function unsubscribeUrl(token: string): string {
   return `${APP_URL}/avregistrera?token=${token}`;
+}
+
+function esimGuideUrl(): string {
+  return `${APP_URL}/#esim`;
 }
 
 function parseFromAddress(raw: string): { address: string; display_name?: string } {
@@ -32,6 +37,35 @@ function htmlToPlain(html: string): string {
     .replace(/&gt;/g, ">")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+function renderEsimGuideHtml(): string {
+  const steps = ESIM_GUIDE_STEPS.map(
+    (step, index) => `
+      <tr>
+        <td style="vertical-align: top; padding: 0 12px 14px 0; width: 28px;">
+          <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700;">${index + 1}</span>
+        </td>
+        <td style="padding: 0 0 14px 0;">
+          <p style="margin: 0 0 4px; font-weight: 600; color: #18181b;">${step.title}</p>
+          <p style="margin: 0; color: #52525b; font-size: 14px; line-height: 1.5;">${step.body}</p>
+        </td>
+      </tr>`
+  ).join("");
+
+  return `
+    <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;" />
+    <h3 style="font-size: 16px; margin: 0 0 8px;">Byt med eSIM – så gör du</h3>
+    <p style="color: #666; font-size: 14px; margin: 0 0 16px;">
+      Med eSIM byter du operatör utan att vänta på ett plastkort:
+    </p>
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+      ${steps}
+    </table>
+    <p style="margin: 8px 0 0;">
+      <a href="${esimGuideUrl()}" style="color: #16a34a; font-weight: 600;">Läs hela eSIM-guiden på Bytesjakten →</a>
+    </p>
+  `;
 }
 
 export function getEmailConfigStatus() {
@@ -147,6 +181,8 @@ export async function sendSwitchReminderEmail(
           Beställ kampanjen hos ${operator} →
         </a>
       </p>
+
+      ${renderEsimGuideHtml()}
 
       <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;" />
 
