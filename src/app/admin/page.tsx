@@ -30,6 +30,7 @@ type Campaign = {
 type User = {
   id: string;
   email: string;
+  active: boolean;
   currentOperator: string;
   contractEndDate: string;
   minDataGB: number;
@@ -116,6 +117,7 @@ export default function AdminPage() {
   const [newCampaign, setNewCampaign] = useState(emptyCampaign);
   const [campaignChoice, setCampaignChoice] = useState<Record<string, string>>({});
   const [sendingUserId, setSendingUserId] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     const res = await fetch("/api/admin");
@@ -206,6 +208,32 @@ export default function AdminPage() {
       await runAction("send_user_email", { userId, campaignId });
     } finally {
       setSendingUserId(null);
+    }
+  }
+
+  async function deleteUserRow(userId: string, email: string) {
+    if (!window.confirm(`Ta bort användaren ${email}? Detta går inte att ångra.`)) {
+      return;
+    }
+    setDeletingUserId(userId);
+    setMessage("");
+    setMessageIsError(false);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_user", userId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setMessageIsError(true);
+        setMessage(data.error ?? "Kunde inte ta bort användaren.");
+        return;
+      }
+      setMessage("Användaren borttagen.");
+      loadData();
+    } finally {
+      setDeletingUserId(null);
     }
   }
 
@@ -475,34 +503,57 @@ export default function AdminPage() {
         </section>
 
         <section className="mt-10 overflow-x-auto">
-          <h2 className="text-lg font-bold">Aktiva användare ({users.length})</h2>
+          <h2 className="text-lg font-bold">
+            Användare ({users.filter((u) => u.active).length} aktiva
+            {users.some((u) => !u.active)
+              ? `, ${users.filter((u) => !u.active).length} avregistrerade`
+              : ""}
+            )
+          </h2>
           <p className="mt-1 text-sm text-zinc-500">
             Skicka mejl manuellt: välj erbjudande per användare och klicka Skicka mejl.
             Användare med högst 10 dagar kvar till byte visas överst och markeras.
+            Avregistrerade visas med överstruken e-post.
           </p>
           {(() => {
-            const dueSoon = users
+            const activeUsers = users.filter((u) => u.active);
+            const unsubscribed = users.filter((u) => !u.active);
+            const dueSoon = activeUsers
               .filter((u) => isDueWithin10Days(u.contractEndDate))
               .sort((a, b) => daysUntil(a.contractEndDate) - daysUntil(b.contractEndDate));
-            const others = users.filter((u) => !isDueWithin10Days(u.contractEndDate));
+            const others = activeUsers.filter((u) => !isDueWithin10Days(u.contractEndDate));
             const selectable = campaigns.filter((c) => c.active);
 
             function renderUserRow(u: User, highlight: boolean) {
               const status = getMailStatus(u);
               const days = daysUntil(u.contractEndDate);
+              const unsubscribedUser = !u.active;
               return (
                 <tr
                   key={u.id}
                   className={`border-b border-zinc-100 ${
-                    highlight ? "bg-amber-50" : ""
+                    unsubscribedUser ? "bg-zinc-50" : highlight ? "bg-amber-50" : ""
                   }`}
                 >
-                  <td className="py-2 pr-4 font-medium">{u.email}</td>
+                  <td className="py-2 pr-4 font-medium">
+                    <span
+                      className={
+                        unsubscribedUser ? "text-zinc-500 line-through" : undefined
+                      }
+                    >
+                      {u.email}
+                    </span>
+                    {unsubscribedUser && (
+                      <span className="ml-2 inline-block rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                        Avregistrerad
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 pr-4">{u.currentOperator}</td>
                   <td className="py-2 pr-4">{u.minDataGB} GB</td>
                   <td className="py-2 pr-4">
                     <div>{new Date(u.contractEndDate).toLocaleDateString("sv-SE")}</div>
-                    {highlight && (
+                    {highlight && !unsubscribedUser && (
                       <span className="mt-1 inline-block rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">
                         {days === 0
                           ? "Byter i dag"
@@ -533,36 +584,51 @@ export default function AdminPage() {
                     )}
                   </td>
                   <td className="py-2 pr-4">
-                    <select
-                      value={campaignChoice[u.id] ?? ""}
-                      onChange={(e) =>
-                        setCampaignChoice((prev) => ({ ...prev, [u.id]: e.target.value }))
-                      }
-                      className="max-w-[220px] rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
-                    >
-                      {selectable.length === 0 ? (
-                        <option value="">Inga aktiva kampanjer</option>
-                      ) : (
-                        selectable.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.operator} – {c.name} ({c.campaignPrice} kr)
-                          </option>
-                        ))
-                      )}
-                    </select>
+                    {unsubscribedUser ? (
+                      <span className="text-zinc-400">–</span>
+                    ) : (
+                      <select
+                        value={campaignChoice[u.id] ?? ""}
+                        onChange={(e) =>
+                          setCampaignChoice((prev) => ({ ...prev, [u.id]: e.target.value }))
+                        }
+                        className="max-w-[220px] rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
+                      >
+                        {selectable.length === 0 ? (
+                          <option value="">Inga aktiva kampanjer</option>
+                        ) : (
+                          selectable.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.operator} – {c.name} ({c.campaignPrice} kr)
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    )}
                   </td>
                   <td className="py-2">
-                    <button
-                      onClick={() => sendEmailToUser(u.id)}
-                      disabled={
-                        sendingUserId === u.id ||
-                        !campaignChoice[u.id] ||
-                        selectable.length === 0
-                      }
-                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-                    >
-                      {sendingUserId === u.id ? "Skickar..." : "Skicka mejl"}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {!unsubscribedUser && (
+                        <button
+                          onClick={() => sendEmailToUser(u.id)}
+                          disabled={
+                            sendingUserId === u.id ||
+                            !campaignChoice[u.id] ||
+                            selectable.length === 0
+                          }
+                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                        >
+                          {sendingUserId === u.id ? "Skickar..." : "Skicka mejl"}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteUserRow(u.id, u.email)}
+                        disabled={deletingUserId === u.id}
+                        className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+                      >
+                        {deletingUserId === u.id ? "Tar bort..." : "Ta bort"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -578,7 +644,7 @@ export default function AdminPage() {
                   <th className="py-2 pr-4">Mejlstatus</th>
                   <th className="py-2 pr-4">Senaste kampanj i mejl</th>
                   <th className="py-2 pr-4">Erbjudande</th>
-                  <th className="py-2">Skicka</th>
+                  <th className="py-2">Åtgärder</th>
                 </tr>
               </thead>
             );
@@ -601,7 +667,7 @@ export default function AdminPage() {
 
                 <div className="mt-8">
                   <h3 className="text-base font-semibold text-zinc-800">
-                    Övriga användare ({others.length})
+                    Övriga aktiva ({others.length})
                   </h3>
                   {others.length === 0 ? (
                     <p className="mt-2 text-sm text-zinc-400">Inga övriga aktiva användare.</p>
@@ -612,6 +678,21 @@ export default function AdminPage() {
                     </table>
                   )}
                 </div>
+
+                {unsubscribed.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-base font-semibold text-zinc-600">
+                      Avregistrerade ({unsubscribed.length})
+                    </h3>
+                    <p className="mt-1 text-sm text-zinc-400">
+                      Har klickat Avregistrera i mejlet. E-postadressen visas överstruken.
+                    </p>
+                    <table className="mt-3 w-full text-left text-sm">
+                      {tableHead}
+                      <tbody>{unsubscribed.map((u) => renderUserRow(u, false))}</tbody>
+                    </table>
+                  </div>
+                )}
               </>
             );
           })()}

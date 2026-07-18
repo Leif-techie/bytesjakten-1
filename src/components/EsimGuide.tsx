@@ -1,29 +1,4 @@
-const STEPS = [
-  {
-    title: "Kolla att telefonen har eSIM",
-    body: "De flesta nyare iPhone och Android-telefoner stödjer eSIM. På iPhone: Inställningar → Allmänt → Om – leta efter ”E-SIM” eller ”Digitalt SIM”. På Android står det oftast under Inställningar → Nätverk och internet → SIM-kort.",
-  },
-  {
-    title: "Beställ nytt abonnemang med eSIM",
-    body: "Välj eSIM hos den nya operatören och ange att du vill flytta med ditt nummer (nummerportering). Du behöver inte besöka en butik.",
-  },
-  {
-    title: "Ta emot QR-kod eller aktiveringskod",
-    body: "Operatören skickar vanligtvis en QR-kod eller aktiveringskod via mejl eller i sin app. Ha den redo innan du börjar installera.",
-  },
-  {
-    title: "Installera eSIM i telefonen",
-    body: "iPhone: Inställningar → Mobilnät → Lägg till eSIM → skanna QR-koden. Android: Inställningar → Nätverk och internet → SIM → Lägg till eSIM → skanna QR-koden. Följ stegen på skärmen.",
-  },
-  {
-    title: "Aktivera och vänta in nummerflytten",
-    body: "När eSIM är installerat aktiveras den nya linjen. Nummerflytten tar oftast några minuter upp till några timmar. Under tiden kan du behålla det gamla SIM-kortet tills det nya fungerar.",
-  },
-  {
-    title: "Kontrollera att allt funkar – sen är du klar",
-    body: "Testa att ringa, ta emot SMS och surfa på det nya abonnemanget. När det fungerar kan du ta bort eller inaktivera det gamla SIM/eSIM. Spara gärna fakturor i Kivra.",
-  },
-];
+import { ESIM_GUIDE_STEPS } from "@/lib/esim-guide";
 
 export function EsimGuide() {
   return (
@@ -36,7 +11,7 @@ export function EsimGuide() {
         </p>
 
         <ol className="mt-10 space-y-8">
-          {STEPS.map((step, index) => (
+          {ESIM_GUIDE_STEPS.map((step, index) => (
             <li key={step.title} className="flex gap-4 sm:gap-5">
               <span
                 aria-hidden

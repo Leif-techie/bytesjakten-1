@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
-import { getAdminStats } from "@/lib/admin";
+import { deleteUser, getAdminStats } from "@/lib/admin";
 import { updateCampaigns } from "@/lib/seed-campaigns";
 import { sendManualSwitchEmail } from "@/lib/notifications";
 import { sendSwitchReminderEmail, getEmailConfigStatus } from "@/lib/email";
@@ -16,11 +16,11 @@ export async function GET(request: NextRequest) {
   const stats = await getAdminStats();
   const campaigns = await db.campaign.findMany({ orderBy: [{ operator: "asc" }, { dataGB: "asc" }] });
   const users = await db.user.findMany({
-    where: { active: true },
-    orderBy: { contractEndDate: "asc" },
+    orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
     select: {
       id: true,
       email: true,
+      active: true,
       currentOperator: true,
       contractEndDate: true,
       minDataGB: true,
@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
     return {
       id: user.id,
       email: user.email,
+      active: user.active,
       currentOperator: user.currentOperator,
       contractEndDate: user.contractEndDate,
       minDataGB: user.minDataGB,
@@ -134,6 +135,20 @@ export async function POST(request: NextRequest) {
       success: result.success,
       error: result.error,
     });
+  }
+
+  if (action === "delete_user") {
+    const { userId } = body;
+    if (!userId) {
+      return NextResponse.json({ error: "Användare saknas." }, { status: 400 });
+    }
+
+    const success = await deleteUser(userId);
+    if (!success) {
+      return NextResponse.json({ error: "Användaren hittades inte." }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
   }
 
   if (action === "test_email") {
