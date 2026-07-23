@@ -124,6 +124,7 @@ export function getNetworkLabel(value: string): string {
     any: "Spelar ingen roll",
     telia: "Telia",
     telenor: "Telenor",
+    tele2: "Tele2",
     tre: "Tre",
   };
   return labels[value] ?? value;

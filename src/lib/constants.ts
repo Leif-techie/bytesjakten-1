@@ -16,6 +16,7 @@ export const NETWORK_OPTIONS = [
   { value: "any", label: "Spelar ingen roll" },
   { value: "telia", label: "Telia" },
   { value: "telenor", label: "Telenor" },
+  { value: "tele2", label: "Tele2" },
   { value: "tre", label: "Tre" },
 ] as const;
 

@@ -61,7 +61,7 @@ Hantera kampanjer manuellt via admin:
 
 - **Admin** → "Lägg till kampanj"
 - **Admin** → "Ta bort" på en rad
-- **Admin** → "Uppdatera kampanjer" (valfritt – fyller på från seed-data)
+- **Admin** → "Uppdatera kampanjer" (ersätter alla kampanjer med aktuell seed-lista utan bindningstid; skriv över med Addrevenue-länkar efteråt)
 
 ### 4. Mejlutskick
 

@@ -13,145 +13,206 @@ type SeedCampaign = {
   network: string;
 };
 
+/** Rolling window so refreshed seed campaigns stay active after "Uppdatera kampanjer". */
+function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date } {
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + monthsOpen);
+  end.setDate(0); // last day of the final open month
+  return { start, end };
+}
+
+/**
+ * Current no-binding campaigns from operator sites (snapshot).
+ * Checked against hallon.se, vimla.se, comviq.se (utan bindning), fello.se — Jul 2026.
+ * Replace `url` with Addrevenue tracking links in admin after refresh.
+ */
 function buildCampaigns(now: Date): SeedCampaign[] {
-  const year = now.getFullYear();
-  const julyStart = new Date(year, 6, 1);
-  const novEnd = new Date(year, 10, 30);
-  const springStart = new Date(year, 2, 1);
-  const springEnd = new Date(year, 5, 30);
+  const { start, end } = campaignWindow(now, 4);
 
   return [
-    {
-      operator: "Telia",
-      name: "Telia – 25 GB",
-      dataGB: 25,
-      campaignPrice: 39,
-      regularPrice: 259,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.telia.se/privat/mobil/mobilabonnemang/",
-      network: "telia",
-    },
+    // Hallon – Tres nät, ingen bindningstid (dubbel surf-kampanj)
     {
       operator: "Hallon",
-      name: "Hallon – 25 GB",
-      dataGB: 25,
-      campaignPrice: 49,
-      regularPrice: 199,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
+      name: "Hallon – 5 GB",
+      dataGB: 5,
+      campaignPrice: 29,
+      regularPrice: 109,
+      campaignStart: start,
+      campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
-    },
-    {
-      operator: "Comviq",
-      name: "Comviq – 25 GB",
-      dataGB: 25,
-      campaignPrice: 59,
-      regularPrice: 229,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.comviq.se/",
-      network: "telenor",
-    },
-    {
-      operator: "Telenor",
-      name: "Telenor – 25 GB",
-      dataGB: 25,
-      campaignPrice: 69,
-      regularPrice: 249,
-      campaignStart: springStart,
-      campaignEnd: springEnd,
-      url: "https://www.telenor.se/privat/mobil/mobilabonnemang/",
-      network: "telenor",
-    },
-    {
-      operator: "Tre",
-      name: "Tre – 25 GB",
-      dataGB: 25,
-      campaignPrice: 79,
-      regularPrice: 269,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.tre.se/privat/mobil/mobilabonnemang/",
-      network: "tre",
-    },
-    {
-      operator: "Vimla",
-      name: "Vimla – 25 GB",
-      dataGB: 25,
-      campaignPrice: 55,
-      regularPrice: 189,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.vimla.se/",
-      network: "telenor",
-    },
-    {
-      operator: "Fello",
-      name: "Fello – 25 GB",
-      dataGB: 25,
-      campaignPrice: 45,
-      regularPrice: 179,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.fello.se/",
-      network: "telenor",
-    },
-    {
-      operator: "Telia",
-      name: "Telia – 10 GB",
-      dataGB: 10,
-      campaignPrice: 29,
-      regularPrice: 199,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.telia.se/privat/mobil/mobilabonnemang/",
-      network: "telia",
     },
     {
       operator: "Hallon",
       name: "Hallon – 10 GB",
       dataGB: 10,
       campaignPrice: 39,
-      regularPrice: 149,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
+      regularPrice: 159,
+      campaignStart: start,
+      campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
     },
     {
-      operator: "Comviq",
-      name: "Comviq – 40 GB",
-      dataGB: 40,
-      campaignPrice: 79,
-      regularPrice: 279,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.comviq.se/",
+      operator: "Hallon",
+      name: "Hallon – 25 GB",
+      dataGB: 25,
+      campaignPrice: 49,
+      regularPrice: 259,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 50 GB",
+      dataGB: 50,
+      campaignPrice: 59,
+      regularPrice: 309,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 100 GB",
+      dataGB: 100,
+      campaignPrice: 69,
+      regularPrice: 359,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+    },
+
+    // Vimla – Telenors nät, ingen bindningstid
+    {
+      operator: "Vimla",
+      name: "Vimla – 5 GB",
+      dataGB: 5,
+      campaignPrice: 20,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
       network: "telenor",
     },
     {
-      operator: "Halebop",
-      name: "Halebop – 25 GB",
+      operator: "Vimla",
+      name: "Vimla – 10 GB",
+      dataGB: 10,
+      campaignPrice: 20,
+      regularPrice: 170,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla – 15 GB",
+      dataGB: 15,
+      campaignPrice: 20,
+      regularPrice: 210,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla – 25 GB",
       dataGB: 25,
-      campaignPrice: 52,
-      regularPrice: 219,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.halebop.se/",
+      campaignPrice: 20,
+      regularPrice: 260,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla – 100 GB",
+      dataGB: 100,
+      campaignPrice: 20,
+      regularPrice: 370,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+    },
+
+    // Comviq – Tele2-nät, utan bindningstid (halva priset i 6 mån)
+    {
+      operator: "Comviq",
+      name: "Comviq – 5 GB",
+      dataGB: 5,
+      campaignPrice: 59,
+      regularPrice: 129,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
+      network: "tele2",
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq – 20 GB",
+      dataGB: 20,
+      campaignPrice: 109,
+      regularPrice: 229,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
+      network: "tele2",
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq – 100 GB",
+      dataGB: 100,
+      campaignPrice: 179,
+      regularPrice: 359,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
+      network: "tele2",
+    },
+
+    // Fello – Telias nät, ingen bindningstid
+    {
+      operator: "Fello",
+      name: "Fello – 5 GB",
+      dataGB: 5,
+      campaignPrice: 20,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
     },
     {
-      operator: "Chilimobil",
-      name: "Chilimobil – 25 GB",
-      dataGB: 25,
-      campaignPrice: 42,
-      regularPrice: 169,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.chilimobil.se/",
-      network: "telenor",
+      operator: "Fello",
+      name: "Fello – 10 GB",
+      dataGB: 10,
+      campaignPrice: 20,
+      regularPrice: 180,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+    },
+    {
+      operator: "Fello",
+      name: "Fello – 20 GB",
+      dataGB: 20,
+      campaignPrice: 20,
+      regularPrice: 230,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
     },
   ];
 }
@@ -160,36 +221,18 @@ export async function updateCampaigns(): Promise<{ updated: number; active: numb
   const now = new Date();
   const seedData = buildCampaigns(now);
 
-  await db.campaign.updateMany({ data: { active: false } });
+  // Full replace so old demo rows do not linger as inactive clutter.
+  await db.campaign.deleteMany({});
 
   let updated = 0;
   for (const item of seedData) {
-    const existing = await db.campaign.findFirst({
-      where: {
-        operator: item.operator,
-        name: item.name,
-        dataGB: item.dataGB,
+    await db.campaign.create({
+      data: {
+        ...item,
+        noBinding: true,
+        active: now >= item.campaignStart && now <= item.campaignEnd,
       },
     });
-
-    if (existing) {
-      await db.campaign.update({
-        where: { id: existing.id },
-        data: {
-          ...item,
-          noBinding: true,
-          active: now >= item.campaignStart && now <= item.campaignEnd,
-        },
-      });
-    } else {
-      await db.campaign.create({
-        data: {
-          ...item,
-          noBinding: true,
-          active: now >= item.campaignStart && now <= item.campaignEnd,
-        },
-      });
-    }
     updated++;
   }
 
