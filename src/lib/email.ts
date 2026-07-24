@@ -206,3 +206,89 @@ export async function sendSwitchReminderEmail(
 
   return sendMailerooEmail({ to: email, subject, html });
 }
+
+type PrefsConfirmationParams = {
+  email: string;
+  currentOperator: string;
+  contractEndDate: Date;
+  minDataGB: number;
+  networkPreference: string;
+  unsubscribeToken: string;
+  kind: "register" | "update";
+};
+
+export async function sendPrefsConfirmationEmail(
+  params: PrefsConfirmationParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    currentOperator,
+    contractEndDate,
+    minDataGB,
+    networkPreference,
+    unsubscribeToken,
+    kind,
+  } = params;
+
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten – din registrering är klar"
+    : "Dina uppgifter på Bytesjakten är uppdaterade";
+
+  const intro = isNew
+    ? "Tack för att du registrerade dig! Vi har sparat dina uppgifter och håller koll åt dig."
+    : "Vi har uppdaterat dina uppgifter. Så här ser de ut nu:";
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #16a34a; font-size: 24px;">${isNew ? "Välkommen till Bytesjakten!" : "Uppgifter uppdaterade"}</h1>
+      <p>${intro}</p>
+
+      <div style="background: #f4f4f5; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Dina uppgifter</p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">E-post</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nuvarande operatör</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${currentOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Abonnemanget går ut</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${formatDate(contractEndDate)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Minsta data</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${minDataGB} GB</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nätpreferens</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getNetworkLabel(networkPreference)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
+        När det närmar sig dags att byta skickar vi dig ett mejl med ett aktuellt erbjudande utan bindningstid.
+        Vill du ändra något? Fyll i formuläret på Bytesjakten igen med samma e-postadress.
+      </p>
+
+      <p style="margin: 24px 0;">
+        <a href="${APP_URL}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+          Till Bytesjakten →
+        </a>
+      </p>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} på
+        <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}

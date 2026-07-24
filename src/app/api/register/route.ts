@@ -54,9 +54,14 @@ export async function POST(request: NextRequest) {
       success: true,
       userId: result.userId,
       isNew: result.isNew,
+      emailSent: result.emailSent,
       message: result.isNew
-        ? "Registrerad! Vi mejlar dig en vecka innan det är dags att byta."
-        : "Dina uppgifter är uppdaterade.",
+        ? result.emailSent
+          ? "Registrerad! Vi har skickat en bekräftelse till din e-post."
+          : "Registrerad! Vi mejlar dig när det är dags att byta."
+        : result.emailSent
+          ? "Dina uppgifter är uppdaterade. Vi har skickat en bekräftelse till din e-post."
+          : "Dina uppgifter är uppdaterade.",
     });
   } catch (error) {
     console.error("Register error:", error);

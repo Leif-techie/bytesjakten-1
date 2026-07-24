@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { findBestCampaign, getCampaignAffiliateUrl } from "./campaigns";
-import { sendSwitchReminderEmail } from "./email";
+import { sendPrefsConfirmationEmail, sendSwitchReminderEmail } from "./email";
 import { getActiveCampaigns } from "./seed-campaigns";
 
 export async function sendManualSwitchEmail(
@@ -48,25 +48,59 @@ export async function registerUser(data: {
   contractEndDate: Date;
   minDataGB: number;
   networkPreference: string;
-}): Promise<{ userId: string; isNew: boolean }> {
+}): Promise<{ userId: string; isNew: boolean; emailSent: boolean }> {
   const existing = await db.user.findUnique({ where: { email: data.email } });
 
   if (existing) {
-    await db.user.update({
+    const updated = await db.user.update({
       where: { id: existing.id },
       data: {
         currentOperator: data.currentOperator,
         contractEndDate: data.contractEndDate,
         minDataGB: data.minDataGB,
         networkPreference: data.networkPreference,
+        active: true,
       },
     });
-    return { userId: existing.id, isNew: false };
+
+    const emailResult = await sendPrefsConfirmationEmail({
+      email: updated.email,
+      currentOperator: updated.currentOperator,
+      contractEndDate: updated.contractEndDate,
+      minDataGB: updated.minDataGB,
+      networkPreference: updated.networkPreference,
+      unsubscribeToken: updated.unsubscribeToken,
+      kind: "update",
+    });
+
+    if (emailResult.success) {
+      await db.notificationLog.create({
+        data: { userId: updated.id, type: "prefs_update_confirmation" },
+      });
+    }
+
+    return { userId: updated.id, isNew: false, emailSent: emailResult.success };
   }
 
   const user = await db.user.create({ data });
-  // Inga automatiska mejl – utskick sker manuellt via admin.
-  return { userId: user.id, isNew: true };
+
+  const emailResult = await sendPrefsConfirmationEmail({
+    email: user.email,
+    currentOperator: user.currentOperator,
+    contractEndDate: user.contractEndDate,
+    minDataGB: user.minDataGB,
+    networkPreference: user.networkPreference,
+    unsubscribeToken: user.unsubscribeToken,
+    kind: "register",
+  });
+
+  if (emailResult.success) {
+    await db.notificationLog.create({
+      data: { userId: user.id, type: "registration_confirmation" },
+    });
+  }
+
+  return { userId: user.id, isNew: true, emailSent: emailResult.success };
 }
 
 export async function getPersonalizedOffer(
