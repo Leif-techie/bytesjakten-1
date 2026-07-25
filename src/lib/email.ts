@@ -10,6 +10,15 @@ function unsubscribeUrl(token: string): string {
   return `${APP_URL}/avregistrera?token=${token}`;
 }
 
+function switchCompleteUrl(token: string, operator?: string): string {
+  const url = new URL(`${APP_URL}/byte-klart`);
+  url.searchParams.set("token", token);
+  if (operator) {
+    url.searchParams.set("operator", operator);
+  }
+  return url.toString();
+}
+
 function esimGuideUrl(): string {
   return `${APP_URL}/#esim`;
 }
@@ -181,6 +190,15 @@ export async function sendSwitchReminderEmail(
           Beställ kampanjen hos ${operator} →
         </a>
       </p>
+
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 8px 0 24px;">
+        <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+          När bytet har gått igenom: berätta till oss så sätter vi datum för nästa påminnelse.
+        </p>
+        <a href="${switchCompleteUrl(unsubscribeToken, operator)}" style="display: inline-block; background: #fff; color: #16a34a; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #16a34a;">
+          Klicka här när bytet har gått igenom
+        </a>
+      </div>
 
       ${renderEsimGuideHtml()}
 

@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { sendPrefsConfirmationEmail } from "./email";
 
 export async function unsubscribeUser(token: string): Promise<boolean> {
   const user = await db.user.findUnique({ where: { unsubscribeToken: token } });
@@ -10,6 +11,60 @@ export async function unsubscribeUser(token: string): Promise<boolean> {
   });
 
   return true;
+}
+
+export async function getUserByToken(token: string) {
+  return db.user.findUnique({ where: { unsubscribeToken: token } });
+}
+
+export async function completeSwitch(params: {
+  token: string;
+  currentOperator: string;
+  contractEndDate: Date;
+}): Promise<{ success: boolean; error?: string }> {
+  const user = await db.user.findUnique({
+    where: { unsubscribeToken: params.token },
+  });
+  if (!user) {
+    return { success: false, error: "Ogiltig länk." };
+  }
+
+  const updated = await db.user.update({
+    where: { id: user.id },
+    data: {
+      currentOperator: params.currentOperator,
+      contractEndDate: params.contractEndDate,
+      active: true,
+    },
+  });
+
+  const emailResult = await sendPrefsConfirmationEmail({
+    email: updated.email,
+    currentOperator: updated.currentOperator,
+    contractEndDate: updated.contractEndDate,
+    minDataGB: updated.minDataGB,
+    networkPreference: updated.networkPreference,
+    unsubscribeToken: updated.unsubscribeToken,
+    kind: "update",
+  });
+
+  await db.notificationLog.create({
+    data: {
+      userId: updated.id,
+      type: "switch_complete",
+    },
+  });
+
+  if (emailResult.success) {
+    await db.notificationLog.create({
+      data: {
+        userId: updated.id,
+        type: "prefs_update_confirmation",
+      },
+    });
+  }
+
+  return { success: true };
 }
 
 export async function deleteUser(userId: string): Promise<boolean> {
