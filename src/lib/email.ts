@@ -295,7 +295,10 @@ export async function sendPrefsConfirmationEmail(
       </div>
 
       <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
-        Du får ett mejl en vecka innan ditt kampanjabonnemang går – så att du hela tiden kan ligga på kampanjpris. Billigt värre! Om du behöver ändra dina uppgifter så fyll i på sidan igen så uppdateras dem.
+        Du får ett mejl en vecka innan ditt mobilabonnemang går ut – så att du hela tiden har det billigaste mobilabonnemanget. Om du behöver ändra uppgifter så fyll i sidan igen så uppdateras din profil.
+      </p>
+      <p style="color: #18181b; font-size: 15px; font-weight: 600; line-height: 1.5;">
+        Byt smartare. Betala mindre – Bytesjakten
       </p>
 
       <p style="margin: 24px 0;">
