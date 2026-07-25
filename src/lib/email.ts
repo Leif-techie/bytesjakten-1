@@ -298,7 +298,7 @@ export async function sendPrefsConfirmationEmail(
         Du får ett mejl en vecka innan ditt mobilabonnemang går ut – så att du hela tiden har det billigaste mobilabonnemanget. Om du behöver ändra uppgifter så fyll i sidan igen så uppdateras din profil.
       </p>
       <p style="color: #18181b; font-size: 15px; font-weight: 600; line-height: 1.5;">
-        Byt smartare. Betala mindre – Bytesjakten
+        Byt smartare - Betala mindre - Bytesjakten
       </p>
 
       <p style="margin: 24px 0;">
