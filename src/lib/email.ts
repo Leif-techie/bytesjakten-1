@@ -295,8 +295,7 @@ export async function sendPrefsConfirmationEmail(
       </div>
 
       <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
-        När det närmar sig dags att byta skickar vi dig ett mejl med ett aktuellt erbjudande utan bindningstid.
-        Vill du ändra något? Fyll i formuläret på Bytesjakten igen med samma e-postadress.
+        Du får ett mejl en vecka innan ditt kampanjabonnemang går – så att du hela tiden kan ligga på kampanjpris. Billigt värre! Om du behöver ändra dina uppgifter så fyll i på sidan igen så uppdateras dem.
       </p>
 
       <p style="margin: 24px 0;">
