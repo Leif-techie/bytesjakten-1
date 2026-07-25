@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, currentOperator, contractEndDate, minDataGB, networkPreference } = body;
+    const { email, currentOperator, contractEndDate, minDataGB, networkPreference, isStudent } =
+      body;
 
     if (!email || !currentOperator || !contractEndDate || !minDataGB) {
       return NextResponse.json(
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
       contractEndDate: endDate,
       minDataGB: Number(minDataGB),
       networkPreference: networkPreference ?? "any",
+      isStudent: Boolean(isStudent),
     });
 
     return NextResponse.json({

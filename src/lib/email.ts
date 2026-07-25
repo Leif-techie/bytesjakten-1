@@ -231,6 +231,7 @@ type PrefsConfirmationParams = {
   contractEndDate: Date;
   minDataGB: number;
   networkPreference: string;
+  isStudent?: boolean;
   unsubscribeToken: string;
   kind: "register" | "update";
 };
@@ -244,6 +245,7 @@ export async function sendPrefsConfirmationEmail(
     contractEndDate,
     minDataGB,
     networkPreference,
+    isStudent = false,
     unsubscribeToken,
     kind,
   } = params;
@@ -284,6 +286,10 @@ export async function sendPrefsConfirmationEmail(
           <tr>
             <td style="padding: 6px 0; color: #71717a;">Nätpreferens</td>
             <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getNetworkLabel(networkPreference)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Studentabonnemang</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${isStudent ? "Ja" : "Nej"}</td>
           </tr>
         </table>
       </div>

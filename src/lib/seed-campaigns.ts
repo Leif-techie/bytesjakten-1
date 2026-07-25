@@ -11,6 +11,7 @@ type SeedCampaign = {
   campaignEnd: Date;
   url: string;
   network: string;
+  isStudent: boolean;
 };
 
 /** Rolling window so refreshed seed campaigns stay active after "Uppdatera kampanjer". */
@@ -24,13 +25,13 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Checked against hallon.se, vimla.se, comviq.se (utan bindning), fello.se — Jul 2026.
+ * Regular + student plans (Hallon, Vimla, Comviq, Fello) — Jul 2026.
  * Replace `url` with Addrevenue tracking links in admin after refresh.
  */
 function buildCampaigns(now: Date): SeedCampaign[] {
   const { start, end } = campaignWindow(now, 4);
 
-  return [
+  const regular: SeedCampaign[] = [
     // Hallon – Tres nät, ingen bindningstid (dubbel surf-kampanj)
     {
       operator: "Hallon",
@@ -42,6 +43,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
+      isStudent: false,
     },
     {
       operator: "Hallon",
@@ -53,6 +55,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
+      isStudent: false,
     },
     {
       operator: "Hallon",
@@ -64,6 +67,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
+      isStudent: false,
     },
     {
       operator: "Hallon",
@@ -75,6 +79,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
+      isStudent: false,
     },
     {
       operator: "Hallon",
@@ -86,6 +91,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
+      isStudent: false,
     },
 
     // Vimla – Telenors nät, ingen bindningstid
@@ -99,6 +105,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.vimla.se/bestall/",
       network: "telenor",
+      isStudent: false,
     },
     {
       operator: "Vimla",
@@ -110,6 +117,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.vimla.se/bestall/",
       network: "telenor",
+      isStudent: false,
     },
     {
       operator: "Vimla",
@@ -121,6 +129,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.vimla.se/bestall/",
       network: "telenor",
+      isStudent: false,
     },
     {
       operator: "Vimla",
@@ -132,6 +141,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.vimla.se/bestall/",
       network: "telenor",
+      isStudent: false,
     },
     {
       operator: "Vimla",
@@ -143,6 +153,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.vimla.se/bestall/",
       network: "telenor",
+      isStudent: false,
     },
 
     // Comviq – Tele2-nät, utan bindningstid (halva priset i 6 mån)
@@ -156,6 +167,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
       network: "tele2",
+      isStudent: false,
     },
     {
       operator: "Comviq",
@@ -167,6 +179,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
       network: "tele2",
+      isStudent: false,
     },
     {
       operator: "Comviq",
@@ -178,6 +191,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
       network: "tele2",
+      isStudent: false,
     },
 
     // Fello – Telias nät, ingen bindningstid
@@ -191,6 +205,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
+      isStudent: false,
     },
     {
       operator: "Fello",
@@ -202,6 +217,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
+      isStudent: false,
     },
     {
       operator: "Fello",
@@ -213,8 +229,207 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       campaignEnd: end,
       url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
+      isStudent: false,
     },
   ];
+
+  // Student plans (Hallon, Vimla, Comviq, Fello) — checked Jul 2026
+  const student: SeedCampaign[] = [
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 10 GB",
+      dataGB: 10,
+      campaignPrice: 19,
+      regularPrice: 109,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 20 GB",
+      dataGB: 20,
+      campaignPrice: 29,
+      regularPrice: 159,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 50 GB",
+      dataGB: 50,
+      campaignPrice: 39,
+      regularPrice: 259,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 100 GB",
+      dataGB: 100,
+      campaignPrice: 49,
+      regularPrice: 309,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 10 GB",
+      dataGB: 20,
+      campaignPrice: 20,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/student",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 15 GB",
+      dataGB: 30,
+      campaignPrice: 20,
+      regularPrice: 160,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/student",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 25 GB",
+      dataGB: 50,
+      campaignPrice: 20,
+      regularPrice: 200,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/student",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 40 GB",
+      dataGB: 80,
+      campaignPrice: 20,
+      regularPrice: 240,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/student",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq Student – 14 GB",
+      dataGB: 14,
+      campaignPrice: 59,
+      regularPrice: 129,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang/student",
+      network: "tele2",
+      isStudent: true,
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq Student – 40 GB",
+      dataGB: 40,
+      campaignPrice: 99,
+      regularPrice: 209,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang/student",
+      network: "tele2",
+      isStudent: true,
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq Student – 100 GB",
+      dataGB: 100,
+      campaignPrice: 149,
+      regularPrice: 309,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang/student",
+      network: "tele2",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 10 GB",
+      dataGB: 10,
+      campaignPrice: 20,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/student",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 20 GB",
+      dataGB: 20,
+      campaignPrice: 20,
+      regularPrice: 160,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/student",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 30 GB",
+      dataGB: 30,
+      campaignPrice: 20,
+      regularPrice: 200,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/student",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 50 GB",
+      dataGB: 50,
+      campaignPrice: 20,
+      regularPrice: 250,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/student",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 100 GB",
+      dataGB: 100,
+      campaignPrice: 20,
+      regularPrice: 320,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/student",
+      network: "telia",
+      isStudent: true,
+    },
+  ];
+
+  return [...regular, ...student];
 }
 
 export async function updateCampaigns(): Promise<{ updated: number; active: number }> {

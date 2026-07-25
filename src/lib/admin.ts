@@ -44,6 +44,7 @@ export async function completeSwitch(params: {
     contractEndDate: updated.contractEndDate,
     minDataGB: updated.minDataGB,
     networkPreference: updated.networkPreference,
+    isStudent: updated.isStudent,
     unsubscribeToken: updated.unsubscribeToken,
     kind: "update",
   });

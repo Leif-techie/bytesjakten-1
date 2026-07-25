@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     campaignEnd,
     url,
     network,
+    isStudent,
   } = body;
 
   if (!operator || !name || !dataGB || !campaignPrice || !regularPrice || !url) {
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       url: affiliateUrl,
       network: network ?? "any",
       noBinding: true,
+      isStudent: Boolean(isStudent),
       active: now >= start && now <= end,
     },
   });
@@ -97,6 +99,7 @@ export async function PATCH(request: NextRequest) {
       ...(data.campaignEnd && { campaignEnd: new Date(data.campaignEnd) }),
       ...(data.url && { url: data.url }),
       ...(data.network && { network: data.network }),
+      ...(data.isStudent !== undefined && { isStudent: Boolean(data.isStudent) }),
       ...(data.active !== undefined && { active: Boolean(data.active) }),
     },
   });

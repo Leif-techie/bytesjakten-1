@@ -27,6 +27,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
           contractEndDate: preferences.contractEndDate,
           minDataGB: preferences.minDataGB,
           networkPreference: preferences.networkPreference,
+          isStudent: preferences.isStudent,
         }),
       });
 
@@ -73,7 +74,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
 
         <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-md">
           <p className="mb-3 text-left text-sm text-zinc-500 sm:text-center">
-            Operatör, slutdatum, databehov och nätpreferens som du fyllt i ovan följer med när du registrerar dig.
+            Operatör, slutdatum, databehov, nätpreferens och studentval som du fyllt i ovan följer med när du registrerar dig.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <input

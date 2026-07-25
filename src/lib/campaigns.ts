@@ -8,6 +8,7 @@ export type CampaignInput = {
   campaignEnd: Date;
   url: string;
   network?: string;
+  isStudent?: boolean;
 };
 
 /** CTA-länk för erbjudandet (affiliatelänk) – används på sajten och i mejl. */
@@ -85,12 +86,16 @@ export function findBestCampaign<T extends CampaignInput & { id: string; active?
   minDataGB: number,
   networkPreference: string,
   excludeOperator?: string,
-  now = new Date()
+  options: { isStudent?: boolean; now?: Date } = {}
 ): (T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }) | null {
+  const now = options.now ?? new Date();
+  const wantStudent = Boolean(options.isStudent);
+
   const eligible = campaigns
     .filter(
       (c) =>
         isCampaignActive(c, now) &&
+        Boolean(c.isStudent) === wantStudent &&
         c.dataGB >= minDataGB &&
         matchesNetwork(c.network ?? "any", networkPreference) &&
         (!excludeOperator || c.operator.toLowerCase() !== excludeOperator.toLowerCase())

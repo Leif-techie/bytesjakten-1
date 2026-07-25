@@ -43,6 +43,7 @@ export default function HomePage() {
         minDataGB: String(prefs.minDataGB),
         network: prefs.networkPreference,
         currentOperator: prefs.currentOperator,
+        isStudent: String(prefs.isStudent),
       });
       const res = await fetch(`/api/campaigns?${params}`);
       const data = await res.json();

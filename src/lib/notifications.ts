@@ -48,8 +48,10 @@ export async function registerUser(data: {
   contractEndDate: Date;
   minDataGB: number;
   networkPreference: string;
+  isStudent?: boolean;
 }): Promise<{ userId: string; isNew: boolean; emailSent: boolean }> {
   const existing = await db.user.findUnique({ where: { email: data.email } });
+  const isStudent = Boolean(data.isStudent);
 
   if (existing) {
     const updated = await db.user.update({
@@ -59,6 +61,7 @@ export async function registerUser(data: {
         contractEndDate: data.contractEndDate,
         minDataGB: data.minDataGB,
         networkPreference: data.networkPreference,
+        isStudent,
         active: true,
       },
     });
@@ -69,6 +72,7 @@ export async function registerUser(data: {
       contractEndDate: updated.contractEndDate,
       minDataGB: updated.minDataGB,
       networkPreference: updated.networkPreference,
+      isStudent: updated.isStudent,
       unsubscribeToken: updated.unsubscribeToken,
       kind: "update",
     });
@@ -82,7 +86,16 @@ export async function registerUser(data: {
     return { userId: updated.id, isNew: false, emailSent: emailResult.success };
   }
 
-  const user = await db.user.create({ data });
+  const user = await db.user.create({
+    data: {
+      email: data.email,
+      currentOperator: data.currentOperator,
+      contractEndDate: data.contractEndDate,
+      minDataGB: data.minDataGB,
+      networkPreference: data.networkPreference,
+      isStudent,
+    },
+  });
 
   const emailResult = await sendPrefsConfirmationEmail({
     email: user.email,
@@ -90,6 +103,7 @@ export async function registerUser(data: {
     contractEndDate: user.contractEndDate,
     minDataGB: user.minDataGB,
     networkPreference: user.networkPreference,
+    isStudent: user.isStudent,
     unsubscribeToken: user.unsubscribeToken,
     kind: "register",
   });
@@ -106,17 +120,15 @@ export async function registerUser(data: {
 export async function getPersonalizedOffer(
   minDataGB: number,
   networkPreference: string,
-  currentOperator: string
+  currentOperator: string,
+  isStudent = false
 ) {
   await getActiveCampaigns();
   const campaigns = await db.campaign.findMany({
     where: { active: true, noBinding: true },
   });
 
-  return findBestCampaign(
-    campaigns,
-    minDataGB,
-    networkPreference,
-    currentOperator
-  );
+  return findBestCampaign(campaigns, minDataGB, networkPreference, currentOperator, {
+    isStudent,
+  });
 }

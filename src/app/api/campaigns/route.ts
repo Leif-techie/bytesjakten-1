@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const minDataGB = Number(searchParams.get("minDataGB") ?? 25);
     const networkPreference = searchParams.get("network") ?? "any";
     const currentOperator = searchParams.get("currentOperator") ?? "";
+    const isStudent = searchParams.get("isStudent") === "true";
     const bestOnly = searchParams.get("best") === "true";
 
     const campaigns = await getActiveCampaigns();
@@ -21,7 +22,8 @@ export async function GET(request: NextRequest) {
         campaigns,
         minDataGB,
         networkPreference,
-        currentOperator || undefined
+        currentOperator || undefined,
+        { isStudent }
       );
       return NextResponse.json({ campaign: best });
     }

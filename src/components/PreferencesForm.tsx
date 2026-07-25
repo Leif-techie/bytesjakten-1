@@ -8,6 +8,7 @@ export type UserPreferences = {
   networkPreference: string;
   currentOperator: string;
   contractEndDate: string;
+  isStudent: boolean;
 };
 
 type PreferencesFormProps = {
@@ -90,6 +91,26 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
           />
         </PreferenceCard>
       </div>
+
+      <label className="mx-auto mt-4 flex max-w-6xl cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+        <input
+          type="checkbox"
+          checked={preferences.isStudent}
+          onChange={(e) => update({ isStudent: e.target.checked })}
+          className="h-5 w-5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+        />
+        <span className="text-xl" aria-hidden>
+          🖕
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-zinc-900">
+            Studentabonnemang
+          </span>
+          <span className="block text-xs text-zinc-500">
+            Visa studentpriser från Hallon, Vimla, Comviq och Fello
+          </span>
+        </span>
+      </label>
     </section>
   );
 }
@@ -124,4 +145,5 @@ export const defaultPreferences: UserPreferences = {
   networkPreference: "any",
   currentOperator: "Telia",
   contractEndDate: "2026-08-31",
+  isStudent: false,
 };

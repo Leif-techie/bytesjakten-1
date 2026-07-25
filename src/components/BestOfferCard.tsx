@@ -54,7 +54,8 @@ export function BestOfferCard({ campaign, loading }: BestOfferCardProps) {
             Inga aktiva kampanjer utan bindningstid matchar dina val just nu.
           </p>
           <p className="mt-2 text-sm text-zinc-400">
-            Registrera dig så mejlar vi dig när något bra dyker upp.
+            Prova att ändra data/nät, eller bocka i/ur studentabonnemang. Registrera dig så mejlar
+            vi dig när något bra dyker upp.
           </p>
         </div>
       </section>
