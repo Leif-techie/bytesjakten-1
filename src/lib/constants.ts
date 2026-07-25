@@ -10,7 +10,9 @@ export const OPERATORS = [
   "Chilimobil",
 ] as const;
 
-export const DATA_OPTIONS = [5, 10, 14, 15, 20, 25, 30, 40, 50, 60, 80, 100, 200] as const;
+export const DATA_OPTIONS = [
+  5, 10, 14, 15, 20, 25, 30, 40, 50, 60, 80, 100, 160, 200,
+] as const;
 
 export const NETWORK_OPTIONS = [
   { value: "any", label: "Spelar ingen roll" },
