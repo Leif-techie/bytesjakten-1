@@ -508,7 +508,7 @@ export default function AdminPage() {
                   setNewCampaign({ ...newCampaign, isStudent: e.target.checked })
                 }
               />
-              Studentabonnemang 🖕
+              Studentabonnemang 🎯
             </label>
             <button type="submit" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white">
               Lägg till
@@ -545,7 +545,7 @@ export default function AdminPage() {
                     <td className="py-2 pr-4">
                       {c.isStudent ? (
                         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                          🖕 Student
+                          🎯 Student
                         </span>
                       ) : (
                         <span className="text-xs text-zinc-400">Standard</span>
