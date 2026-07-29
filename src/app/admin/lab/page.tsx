@@ -437,7 +437,7 @@ export default function AdminLabPage() {
           <h2 className="text-lg font-bold text-zinc-900">3. Kampanjbetyg (v1)</h2>
           <p className="mt-1 text-sm text-zinc-500">
             0–100 poäng: prisnivå (40) + rabatt vs ordinarie (30) + GB/kr (30).
-            Senaste snapshot per kampanjnamn.
+            Filtreras av valda surfsegment och studentläge. Senaste snapshot per kampanjnamn.
           </p>
           {data?.meta.scoring && (
             <p className="mt-2 text-xs text-zinc-400">
