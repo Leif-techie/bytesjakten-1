@@ -94,7 +94,7 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
         <PreferenceCard
           icon="🎯"
           label="Studentabonnemang"
-          value={preferences.isStudent ? "Ja" : "Nej"}
+          value={preferences.isStudent ? "Ja" : ""}
         >
           <label className="mt-2 flex cursor-pointer items-center gap-2">
             <input
