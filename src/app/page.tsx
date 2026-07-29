@@ -72,6 +72,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <SignupSection preferences={preferences} />
         {campaign && (
           <SavingsBar
             annualSavings={savings}
@@ -89,7 +90,6 @@ export default function HomePage() {
           }
           loading={loading}
         />
-        <SignupSection preferences={preferences} />
         <EsimGuide />
         <KivraSection />
       </main>
