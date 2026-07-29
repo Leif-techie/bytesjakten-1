@@ -117,7 +117,6 @@ export default function AdminPage() {
   const [message, setMessage] = useState("");
   const [messageIsError, setMessageIsError] = useState(false);
   const [publishingToLab, setPublishingToLab] = useState(false);
-  const [testEmail, setTestEmail] = useState("");
   const [newCampaign, setNewCampaign] = useState(emptyCampaign);
   const [campaignChoice, setCampaignChoice] = useState<Record<string, string>>({});
   const [sendingUserId, setSendingUserId] = useState<string | null>(null);
@@ -188,13 +187,9 @@ export default function AdminPage() {
     });
     const data = await res.json();
 
-    if (action === "test_email" || action === "send_user_email") {
+    if (action === "send_user_email") {
       if (data.success) {
-        setMessage(
-          action === "test_email"
-            ? "Testmejl skickat! Kolla inkorgen (och skräppost)."
-            : "Mejl skickat till användaren."
-        );
+        setMessage("Mejl skickat till användaren.");
       } else {
         setMessageIsError(true);
         setMessage(data.error ?? "Mejlet kunde inte skickas.");
@@ -449,21 +444,6 @@ export default function AdminPage() {
           >
             Uppdatera kampanjer
           </button>
-          <div className="flex gap-2">
-            <input
-              type="email"
-              placeholder="test@epost.se"
-              value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-            />
-            <button
-              onClick={() => runAction("test_email", { email: testEmail })}
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium"
-            >
-              Skicka testmejl
-            </button>
-          </div>
         </div>
 
         <section className="mt-10">

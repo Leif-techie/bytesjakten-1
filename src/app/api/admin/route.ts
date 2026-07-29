@@ -3,7 +3,7 @@ import { verifyAdmin } from "@/lib/admin-auth";
 import { deleteUser, getAdminStats } from "@/lib/admin";
 import { updateCampaigns } from "@/lib/seed-campaigns";
 import { sendManualSwitchEmail } from "@/lib/notifications";
-import { sendSwitchReminderEmail, getEmailConfigStatus } from "@/lib/email";
+import { getEmailConfigStatus } from "@/lib/email";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -149,27 +149,6 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  }
-
-  if (action === "test_email") {
-    const { email } = body;
-    if (!email) {
-      return NextResponse.json({ error: "E-post saknas." }, { status: 400 });
-    }
-
-    const result = await sendSwitchReminderEmail({
-      email,
-      operator: "Hallon",
-      campaignName: "Hallon – 25 GB (test)",
-      campaignPrice: 49,
-      regularPrice: 199,
-      campaignUrl: "https://www.hallon.se/",
-      contractEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      network: "tre",
-      unsubscribeToken: "test-token",
-    });
-
-    return NextResponse.json({ success: result.success, error: result.error });
   }
 
   return NextResponse.json({ error: "Okänd action." }, { status: 400 });
