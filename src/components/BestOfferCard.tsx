@@ -40,8 +40,8 @@ function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
   return (
     <p className="text-sm text-zinc-500">
       {count === 1
-        ? "1 aktiv kampanj i databasen just nu"
-        : `${count} aktiva kampanjer i databasen just nu`}
+        ? "baserat på dina val. Vi har 1 aktiv kampanj i databasen."
+        : `baserat på dina val. Vi har ${count} aktiva kampanjer i databasen.`}
     </p>
   );
 }
