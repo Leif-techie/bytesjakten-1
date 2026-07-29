@@ -92,24 +92,15 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
         </PreferenceCard>
       </div>
 
-      <label className="mx-auto mt-4 flex max-w-6xl cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+      <label className="mx-auto mt-4 flex max-w-xs cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 shadow-sm has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
         <input
           type="checkbox"
           checked={preferences.isStudent}
           onChange={(e) => update({ isStudent: e.target.checked })}
-          className="h-5 w-5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+          className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
         />
-        <span className="text-xl" aria-hidden>
-          🎯
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-zinc-900">
-            Studentabonnemang
-          </span>
-          <span className="block text-xs text-zinc-500">
-            Visa studentpriser från Hallon, Vimla, Comviq och Fello
-          </span>
-        </span>
+        <span className="text-base" aria-hidden>🎯</span>
+        <span className="text-sm font-medium text-zinc-900">Studentabonnemang</span>
       </label>
     </section>
   );
