@@ -90,14 +90,13 @@ export function SignupSection({ preferences }: SignupSectionProps) {
             Registrera dig gratis så mejlar vi dig en vecka innan ditt abonnemang går ut –
             med länk till bästa kampanjen hos ett annat telebolag.
           </p>
+          <p className="mt-3 text-sm text-zinc-500">
+            📶 Operatörer i våra erbjudanden: Hallon, Vimla, Comviq och Fello
+          </p>
 
           <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
             <li className="flex items-center gap-2">
               <CheckIcon /> Påminnelse en vecka innan bindningstiden går ut
-            </li>
-            <li className="mt-2 flex items-center gap-2">
-              <span className="text-emerald-600">📶</span> Operatörer i våra erbjudanden: Hallon, Vimla,
-              Comviq och Fello
             </li>
             <li className="mt-2 flex items-center gap-2">
               <CheckIcon /> Länk till bästa erbjudandet
