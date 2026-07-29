@@ -54,7 +54,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-3xl">
           ✉️
         </div>
-        <h2 className="mt-6 text-3xl font-bold text-zinc-900">Missa aldrig nästa kampanj</h2>
+        <h2 className="mt-6 text-3xl font-bold text-zinc-900">Vi ser till att du alltid ligger kvar på kampanjpris</h2>
         <p className="mt-4 text-lg text-zinc-600">
           Registrera dig gratis så mejlar vi dig en vecka innan ditt abonnemang går ut –
           med länk till bästa kampanjen hos ett annat telebolag.
