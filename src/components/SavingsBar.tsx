@@ -1,18 +1,9 @@
-import { formatSEK } from "@/lib/campaigns";
+export function SavingsBar() {
+  const campaignPrice = 49;
+  const regularPrice = 259;
+  const monthlySavings = regularPrice - campaignPrice;
+  const annualSavings = monthlySavings * 12;
 
-type SavingsBarProps = {
-  annualSavings: number;
-  campaignPrice: number;
-  referencePrice?: number;
-  campaignMonths?: number;
-};
-
-export function SavingsBar({
-  annualSavings,
-  campaignPrice,
-  referencePrice = 250,
-  campaignMonths,
-}: SavingsBarProps) {
   return (
     <section className="bg-emerald-600 px-4 py-8 sm:px-6">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
@@ -22,10 +13,10 @@ export function SavingsBar({
           </div>
           <div>
             <p className="text-2xl font-bold sm:text-3xl">
-              Du sparar {formatSEK(annualSavings)} kr/år
+              Du sparar {annualSavings.toLocaleString("sv-SE")} kr/år
             </p>
-            <p className="mt-1 text-emerald-100">
-              Jämfört med ordinarie pris {formatSEK(referencePrice)} kr/mån hela året
+            <p className="mt-1 text-sm text-emerald-100">
+              Räkneexempel: {campaignPrice} kr/mån i snitt vs {regularPrice} kr/mån ordinarie = {monthlySavings} kr/mån × 12 = {annualSavings.toLocaleString("sv-SE")} kr/år
             </p>
           </div>
         </div>
@@ -34,12 +25,10 @@ export function SavingsBar({
 
         <div className="text-center text-white sm:text-right">
           <p className="text-2xl font-bold sm:text-3xl">
-            Kampanjpris {formatSEK(campaignPrice)} kr/mån
+            Snittpris 49 kr/mån
           </p>
-          <p className="mt-1 text-emerald-100">
-            {campaignMonths
-              ? `Behåll abonnemanget ${campaignMonths} mån, byt sedan innan ordinarie pris gäller`
-              : "Under kampanjperioden"}
+          <p className="mt-1 text-sm text-emerald-100">
+            Byt till ny kampanj innan ordinarie pris gäller
           </p>
         </div>
       </div>

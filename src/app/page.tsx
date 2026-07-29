@@ -74,12 +74,7 @@ export default function HomePage() {
         <Hero />
         <SignupSection preferences={preferences} />
         {campaign && (
-          <SavingsBar
-            annualSavings={savings}
-            campaignPrice={campaignPrice}
-            referencePrice={refPrice}
-            campaignMonths={campaignMonths}
-          />
+          <SavingsBar />
         )}
         <PreferencesForm preferences={preferences} onChange={setPreferences} />
         <BestOfferCard
