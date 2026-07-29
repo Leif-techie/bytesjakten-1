@@ -101,6 +101,12 @@ export function SignupSection({ preferences }: SignupSectionProps) {
             <li className="mt-2 flex items-center gap-2">
               <CheckIcon /> Vi håller koll åt dig
             </li>
+            <li className="mt-2 flex items-center gap-2">
+              <CheckIcon /> Det tar 5 minuter att byta
+            </li>
+            <li className="mt-2 flex items-center gap-2">
+              <CheckIcon /> Alltid gratis
+            </li>
           </ul>
 
           <form onSubmit={handleEmailSubmit} className="mx-auto mt-8 max-w-md">
@@ -117,7 +123,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
                 type="submit"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700"
               >
-                Kom igång gratis →
+                Kom igång →
               </button>
             </div>
           </form>
