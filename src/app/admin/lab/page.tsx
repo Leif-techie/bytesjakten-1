@@ -140,7 +140,7 @@ export default function AdminLabPage() {
   const [data, setData] = useState<LabResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [operator, setOperator] = useState("");
-  const [studentFilter, setStudentFilter] = useState("all");
+  const [studentFilter, setStudentFilter] = useState("false");
   const [groupBy, setGroupBy] = useState<"segment" | "operator">("segment");
   const [selectedSegments, setSelectedSegments] =
     useState<GbSegmentId[]>(ALL_SEGMENT_IDS);
@@ -248,7 +248,7 @@ export default function AdminLabPage() {
 
         <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold text-zinc-900">Filter</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <select
               value={operator}
               onChange={(e) => setOperator(e.target.value)}
@@ -260,16 +260,6 @@ export default function AdminLabPage() {
                   {item}
                 </option>
               ))}
-            </select>
-
-            <select
-              value={studentFilter}
-              onChange={(e) => setStudentFilter(e.target.value)}
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            >
-              <option value="all">Alla typer</option>
-              <option value="true">Endast student</option>
-              <option value="false">Endast standard</option>
             </select>
 
             <button
@@ -287,7 +277,8 @@ export default function AdminLabPage() {
             <div>
               <h2 className="text-lg font-bold text-zinc-900">1. Prisgraf över tid</h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Snittkampanjpris per dag, uppdelat på surfsegment (eller operatör).
+                Snittkampanjpris per dag. Växla mellan utan/med studentpriser, surfsegment eller
+                operatör.
               </p>
             </div>
             <SeriesLegend
@@ -301,6 +292,32 @@ export default function AdminLabPage() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
+            <span className="mr-1 self-center text-xs font-medium uppercase tracking-wide text-zinc-400">
+              Studentpriser
+            </span>
+            {(
+              [
+                { value: "false", label: "Utan student" },
+                { value: "true", label: "Med student" },
+                { value: "all", label: "Båda" },
+              ] as const
+            ).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setStudentFilter(option.value)}
+                className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                  studentFilter === option.value
+                    ? "bg-emerald-600 text-white"
+                    : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
             <span className="mr-1 self-center text-xs font-medium uppercase tracking-wide text-zinc-400">
               Visa som
             </span>
@@ -351,6 +368,13 @@ export default function AdminLabPage() {
               );
             })}
           </div>
+
+          <p className="mt-3 text-xs text-zinc-400">
+            {studentFilter === "false" && "Grafen visar endast standardpriser (utan student)."}
+            {studentFilter === "true" && "Grafen visar endast studentpriser."}
+            {studentFilter === "all" &&
+              "Grafen blandar standard- och studentpriser i samma snitt."}
+          </p>
 
           <div className="mt-4">
             {loading ? (
