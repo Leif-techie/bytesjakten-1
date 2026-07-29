@@ -12,7 +12,10 @@ export function Header() {
               <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
             </svg>
           </div>
-          <span className="text-xl font-bold tracking-tight text-zinc-900">Bytesjakten</span>
+          <span className="text-xl font-bold tracking-tight text-zinc-900">
+            Bytesjakten
+            <span className="font-medium text-zinc-500"> | mobilabonnemang</span>
+          </span>
         </Link>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200">
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
