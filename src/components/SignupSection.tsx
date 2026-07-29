@@ -95,8 +95,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
               <CheckIcon /> Påminnelse en vecka innan bindningstiden går ut
             </li>
             <li className="mt-2 flex items-center gap-2">
-              <span className="text-emerald-600">📶</span> Operatörer i våra erbjudanden: Hallon, Vimla,
-              Comviq och Fello
+              <CheckIcon /> Operatörer i vårt erbjudande: Hallon, Vimla, Comviq och Fello
             </li>
             <li className="mt-2 flex items-center gap-2">
               <CheckIcon /> Länk till bästa erbjudandet
