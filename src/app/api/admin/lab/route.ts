@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
+import {
+  buildFrequency,
+  buildTimeline,
+  scoreCampaigns,
+} from "@/lib/campaign-lab";
 
 export const runtime = "nodejs";
 
@@ -14,7 +19,7 @@ export async function GET(request: NextRequest) {
   const isStudentParam = searchParams.get("isStudent");
   const isStudent =
     isStudentParam === "true" ? true : isStudentParam === "false" ? false : undefined;
-  const limit = Math.min(Number(searchParams.get("limit") ?? 200), 500);
+  const limit = Math.min(Number(searchParams.get("limit") ?? 500), 1000);
 
   const historyWhere = {
     ...(operator ? { operator } : {}),
@@ -44,6 +49,7 @@ export async function GET(request: NextRequest) {
         capturedAt: true,
         campaignStart: true,
         campaignEnd: true,
+        campaignId: true,
       },
     }),
     db.campaignSnapshot.groupBy({
@@ -81,6 +87,21 @@ export async function GET(request: NextRequest) {
     };
   });
 
+  const analysisRows = history.map((row) => ({
+    operator: row.operator,
+    name: row.name,
+    dataGB: row.dataGB,
+    campaignPrice: row.campaignPrice,
+    regularPrice: row.regularPrice,
+    isStudent: row.isStudent,
+    capturedAt: row.capturedAt,
+    campaignId: row.campaignId,
+  }));
+
+  const timeline = buildTimeline(analysisRows);
+  const frequency = buildFrequency(analysisRows);
+  const scores = scoreCampaigns(analysisRows);
+
   return NextResponse.json({
     meta: {
       totalSnapshots,
@@ -90,8 +111,21 @@ export async function GET(request: NextRequest) {
         isStudent: isStudent ?? null,
         limit,
       },
+      scoring: {
+        max: 100,
+        weights: {
+          price: 35,
+          discount: 25,
+          gbValue: 25,
+          rarity: 15,
+        },
+        grades: { A: "80+", B: "65–79", C: "50–64", D: "<50" },
+      },
     },
     summary,
+    timeline,
+    frequency,
+    scores,
     history,
   });
 }
