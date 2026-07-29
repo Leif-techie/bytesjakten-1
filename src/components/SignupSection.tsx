@@ -92,7 +92,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
           </p>
           <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
             <li className="flex items-center gap-2">
-              <CheckIcon /> Påminnelse en vecka innan bindningstiden går ut
+              <CheckIcon /> Påminnelse via mejl när det är dags för byte
             </li>
             <li className="mt-2 flex items-center gap-2">
               <CheckIcon /> Operatörer i vårt erbjudande: Hallon, Vimla, Comviq och Fello
