@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
-import { createCampaignSnapshot } from "@/lib/campaign-snapshots";
 import { db } from "@/lib/db";
 import { OPERATORS } from "@/lib/constants";
 
@@ -62,8 +61,6 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  await createCampaignSnapshot(campaign, "admin_create");
-
   return NextResponse.json({ campaign });
 }
 
@@ -106,8 +103,6 @@ export async function PATCH(request: NextRequest) {
       ...(data.active !== undefined && { active: Boolean(data.active) }),
     },
   });
-
-  await createCampaignSnapshot(campaign, "admin_update");
 
   return NextResponse.json({ campaign });
 }

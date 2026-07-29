@@ -5,9 +5,20 @@ import {
   buildFrequency,
   buildTimeline,
   scoreCampaigns,
+  type GbSegmentId,
+  GB_SEGMENTS,
+  filterByGbSegments,
 } from "@/lib/campaign-lab";
 
 export const runtime = "nodejs";
+
+function parseGbSegments(searchParams: URLSearchParams): GbSegmentId[] | null {
+  const raw = searchParams.getAll("segment");
+  if (raw.length === 0) return null;
+  const valid = new Set(GB_SEGMENTS.map((s) => s.id));
+  const selected = raw.filter((id): id is GbSegmentId => valid.has(id as GbSegmentId));
+  return selected.length > 0 ? selected : null;
+}
 
 export async function GET(request: NextRequest) {
   if (!verifyAdmin(request)) {
@@ -20,6 +31,9 @@ export async function GET(request: NextRequest) {
   const isStudent =
     isStudentParam === "true" ? true : isStudentParam === "false" ? false : undefined;
   const limit = Math.min(Number(searchParams.get("limit") ?? 500), 1000);
+  const groupByParam = searchParams.get("groupBy");
+  const groupBy = groupByParam === "operator" ? "operator" : "segment";
+  const selectedSegments = parseGbSegments(searchParams);
 
   const historyWhere = {
     ...(operator ? { operator } : {}),
@@ -98,7 +112,12 @@ export async function GET(request: NextRequest) {
     campaignId: row.campaignId,
   }));
 
-  const timeline = buildTimeline(analysisRows);
+  const timelineSource =
+    selectedSegments !== null
+      ? filterByGbSegments(analysisRows, selectedSegments)
+      : analysisRows;
+
+  const timeline = buildTimeline(timelineSource, groupBy);
   const frequency = buildFrequency(analysisRows);
   const scores = scoreCampaigns(analysisRows);
 
@@ -110,14 +129,16 @@ export async function GET(request: NextRequest) {
         operator: operator ?? null,
         isStudent: isStudent ?? null,
         limit,
+        groupBy,
+        segments: selectedSegments ?? GB_SEGMENTS.map((s) => s.id),
       },
+      gbSegments: GB_SEGMENTS.map((s) => ({ id: s.id, label: s.label })),
       scoring: {
         max: 100,
         weights: {
-          price: 35,
-          discount: 25,
-          gbValue: 25,
-          rarity: 15,
+          price: 40,
+          discount: 30,
+          gbValue: 30,
         },
         grades: { A: "80+", B: "65–79", C: "50–64", D: "<50" },
       },

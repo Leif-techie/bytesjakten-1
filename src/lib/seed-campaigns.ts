@@ -1,5 +1,4 @@
 import type { Campaign } from "@/generated/prisma/client";
-import { createCampaignSnapshots } from "./campaign-snapshots";
 import { db } from "./db";
 
 type SeedCampaign = {
@@ -466,20 +465,16 @@ export async function updateCampaigns(): Promise<{ updated: number; active: numb
   await db.campaign.deleteMany({});
 
   let updated = 0;
-  const createdCampaigns: Campaign[] = [];
   for (const item of seedData) {
-    const campaign = await db.campaign.create({
+    await db.campaign.create({
       data: {
         ...item,
         noBinding: true,
         active: now >= item.campaignStart && now <= item.campaignEnd,
       },
     });
-    createdCampaigns.push(campaign);
     updated++;
   }
-
-  await createCampaignSnapshots(createdCampaigns, "seed_refresh");
 
   await db.systemMeta.upsert({
     where: { id: "singleton" },

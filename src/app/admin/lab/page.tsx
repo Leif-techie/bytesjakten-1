@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
+import { GB_SEGMENTS, type GbSegmentId } from "@/lib/campaign-lab";
 
 type SummaryRow = {
   operator: string;
@@ -34,7 +35,9 @@ type HistoryRow = {
 
 type TimelinePoint = {
   date: string;
-  operator: string;
+  seriesKey: string;
+  seriesLabel: string;
+  segment: GbSegmentId | null;
   avgCampaignPrice: number;
   minCampaignPrice: number;
   maxCampaignPrice: number;
@@ -65,7 +68,6 @@ type ScoreRow = {
     price: number;
     discount: number;
     gbValue: number;
-    rarity: number;
   };
   capturedAt: string;
 };
@@ -78,10 +80,13 @@ type LabResponse = {
       operator: string | null;
       isStudent: boolean | null;
       limit: number;
+      groupBy: "segment" | "operator";
+      segments: GbSegmentId[];
     };
+    gbSegments: { id: GbSegmentId; label: string }[];
     scoring: {
       max: number;
-      weights: { price: number; discount: number; gbValue: number; rarity: number };
+      weights: { price: number; discount: number; gbValue: number };
       grades: { A: string; B: string; C: string; D: string };
     };
   };
@@ -102,6 +107,15 @@ const OPERATOR_COLORS = [
   "#b45309",
   "#4f46e5",
 ];
+
+const SEGMENT_COLORS: Record<GbSegmentId, string> = {
+  "5-15": "#059669",
+  "15-30": "#2563eb",
+  "30-50": "#d97706",
+  "50-plus": "#db2777",
+};
+
+const ALL_SEGMENT_IDS = GB_SEGMENTS.map((s) => s.id);
 
 function formatDate(value: string | null) {
   if (!value) return "–";
@@ -127,13 +141,19 @@ export default function AdminLabPage() {
   const [loading, setLoading] = useState(true);
   const [operator, setOperator] = useState("");
   const [studentFilter, setStudentFilter] = useState("all");
+  const [groupBy, setGroupBy] = useState<"segment" | "operator">("segment");
+  const [selectedSegments, setSelectedSegments] =
+    useState<GbSegmentId[]>(ALL_SEGMENT_IDS);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ limit: "500" });
+    const params = new URLSearchParams({ limit: "500", groupBy });
     if (operator) params.set("operator", operator);
     if (studentFilter === "true" || studentFilter === "false") {
       params.set("isStudent", studentFilter);
+    }
+    for (const segment of selectedSegments) {
+      params.append("segment", segment);
     }
 
     const res = await fetch(`/api/admin/lab?${params}`);
@@ -144,7 +164,7 @@ export default function AdminLabPage() {
     const json = (await res.json()) as LabResponse;
     setData(json);
     setLoading(false);
-  }, [operator, studentFilter]);
+  }, [operator, studentFilter, groupBy, selectedSegments]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -171,6 +191,27 @@ export default function AdminLabPage() {
     return map;
   }, [operators]);
 
+  const colorBySeries = useMemo(() => {
+    const map = new Map<string, string>();
+    if (groupBy === "segment") {
+      for (const segment of GB_SEGMENTS) {
+        map.set(segment.id, SEGMENT_COLORS[segment.id]);
+      }
+      return map;
+    }
+    return colorByOperator;
+  }, [groupBy, colorByOperator]);
+
+  function toggleSegment(id: GbSegmentId) {
+    setSelectedSegments((prev) => {
+      if (prev.includes(id)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((item) => item !== id);
+      }
+      return [...prev, id];
+    });
+  }
+
   return (
     <>
       <Header />
@@ -179,7 +220,7 @@ export default function AdminLabPage() {
           <div>
             <h1 className="text-2xl font-bold text-zinc-900">Admin Labb – Kampanjhistorik</h1>
             <p className="mt-1 text-sm text-zinc-500">
-              Prisgraf, kampanjfrekvens och första versionen av kampanjbetyg.
+              Prisgraf per surfsegment, kampanjfrekvens och kampanjbetyg.
             </p>
           </div>
           <Link
@@ -246,18 +287,78 @@ export default function AdminLabPage() {
             <div>
               <h2 className="text-lg font-bold text-zinc-900">1. Prisgraf över tid</h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Snittkampanjpris per dag och operatör (baserat på snapshots).
+                Snittkampanjpris per dag, uppdelat på surfsegment (eller operatör).
               </p>
             </div>
-            <Legend colorByOperator={colorByOperator} />
+            <SeriesLegend
+              colorBySeries={colorBySeries}
+              labels={
+                groupBy === "segment"
+                  ? Object.fromEntries(GB_SEGMENTS.map((s) => [s.id, s.label]))
+                  : undefined
+              }
+            />
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="mr-1 self-center text-xs font-medium uppercase tracking-wide text-zinc-400">
+              Visa som
+            </span>
+            <button
+              type="button"
+              onClick={() => setGroupBy("segment")}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                groupBy === "segment"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+              }`}
+            >
+              Surfsegment
+            </button>
+            <button
+              type="button"
+              onClick={() => setGroupBy("operator")}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                groupBy === "operator"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+              }`}
+            >
+              Operatör
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="mr-1 self-center text-xs font-medium uppercase tracking-wide text-zinc-400">
+              Segment
+            </span>
+            {GB_SEGMENTS.map((segment) => {
+              const active = selectedSegments.includes(segment.id);
+              return (
+                <button
+                  key={segment.id}
+                  type="button"
+                  onClick={() => toggleSegment(segment.id)}
+                  className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
+                    active
+                      ? "border-transparent text-white"
+                      : "border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50"
+                  }`}
+                  style={active ? { backgroundColor: SEGMENT_COLORS[segment.id] } : undefined}
+                >
+                  {segment.label}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="mt-4">
             {loading ? (
               <p className="text-sm text-zinc-500">Laddar…</p>
             ) : (
               <PriceTimelineChart
                 points={data?.timeline ?? []}
-                colorByOperator={colorByOperator}
+                colorBySeries={colorBySeries}
               />
             )}
           </div>
@@ -311,7 +412,7 @@ export default function AdminLabPage() {
         <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold text-zinc-900">3. Kampanjbetyg (v1)</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            0–100 poäng: prisnivå (35) + rabatt vs ordinarie (25) + GB/kr (25) + sällsynthet (15).
+            0–100 poäng: prisnivå (40) + rabatt vs ordinarie (30) + GB/kr (30).
             Senaste snapshot per kampanjnamn.
           </p>
           {data?.meta.scoring && (
@@ -363,15 +464,15 @@ export default function AdminLabPage() {
                     </td>
                     <td className="px-3 py-2 text-xs text-zinc-500">
                       pris {row.breakdown.price} · rabatt {row.breakdown.discount} · GB{" "}
-                      {row.breakdown.gbValue} · sällsynt {row.breakdown.rarity}
+                      {row.breakdown.gbValue}
                     </td>
                   </tr>
                 ))}
                 {!loading && (data?.scores.length ?? 0) === 0 && (
                   <tr>
                     <td colSpan={7} className="px-3 py-6 text-center text-zinc-500">
-                      Inga snapshots ännu – skapa/uppdatera kampanjer eller kör seed för att fylla
-                      labbet.
+                      Inga snapshots ännu – granska kampanjerna under Admin och klicka
+                      ”För över till labbet”.
                     </td>
                   </tr>
                 )}
@@ -481,14 +582,20 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Legend({ colorByOperator }: { colorByOperator: Map<string, string> }) {
-  if (colorByOperator.size === 0) return null;
+function SeriesLegend({
+  colorBySeries,
+  labels,
+}: {
+  colorBySeries: Map<string, string>;
+  labels?: Record<string, string>;
+}) {
+  if (colorBySeries.size === 0) return null;
   return (
     <div className="flex flex-wrap gap-3 text-xs text-zinc-600">
-      {[...colorByOperator.entries()].map(([op, color]) => (
-        <span key={op} className="inline-flex items-center gap-1.5">
+      {[...colorBySeries.entries()].map(([key, color]) => (
+        <span key={key} className="inline-flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
-          {op}
+          {labels?.[key] ?? key}
         </span>
       ))}
     </div>
@@ -497,15 +604,15 @@ function Legend({ colorByOperator }: { colorByOperator: Map<string, string> }) {
 
 function PriceTimelineChart({
   points,
-  colorByOperator,
+  colorBySeries,
 }: {
   points: TimelinePoint[];
-  colorByOperator: Map<string, string>;
+  colorBySeries: Map<string, string>;
 }) {
   if (points.length === 0) {
     return (
       <p className="rounded-xl bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
-        Ingen tidslinjedata ännu.
+        Ingen tidslinjedata ännu för valda segment.
       </p>
     );
   }
@@ -532,11 +639,11 @@ function PriceTimelineChart({
   const yFor = (price: number) =>
     pad.top + innerH - ((price - yMin) / Math.max(yMax - yMin, 1)) * innerH;
 
-  const byOperator = new Map<string, TimelinePoint[]>();
+  const bySeries = new Map<string, TimelinePoint[]>();
   for (const point of points) {
-    const list = byOperator.get(point.operator) ?? [];
+    const list = bySeries.get(point.seriesKey) ?? [];
     list.push(point);
-    byOperator.set(point.operator, list);
+    bySeries.set(point.seriesKey, list);
   }
 
   const yTicks = [yMin, Math.round((yMin + yMax) / 2), yMax];
@@ -573,25 +680,26 @@ function PriceTimelineChart({
           </text>
         ))}
 
-        {[...byOperator.entries()].map(([op, series]) => {
+        {[...bySeries.entries()].map(([key, series]) => {
           const sorted = [...series].sort((a, b) => a.date.localeCompare(b.date));
           const path = sorted
             .map((p, i) => `${i === 0 ? "M" : "L"} ${xFor(p.date)} ${yFor(p.avgCampaignPrice)}`)
             .join(" ");
-          const color = colorByOperator.get(op) ?? "#059669";
+          const color = colorBySeries.get(key) ?? "#059669";
+          const label = sorted[0]?.seriesLabel ?? key;
           return (
-            <g key={op}>
+            <g key={key}>
               <path d={path} fill="none" stroke={color} strokeWidth="2.5" />
               {sorted.map((p) => (
                 <circle
-                  key={`${op}-${p.date}`}
+                  key={`${key}-${p.date}`}
                   cx={xFor(p.date)}
                   cy={yFor(p.avgCampaignPrice)}
                   r="4"
                   fill={color}
                 >
                   <title>
-                    {op}: {p.avgCampaignPrice} kr ({p.date})
+                    {label}: {p.avgCampaignPrice} kr ({p.date})
                   </title>
                 </circle>
               ))}
