@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { OPERATORS, DATA_OPTIONS, NETWORK_OPTIONS } from "@/lib/constants";
@@ -347,12 +348,17 @@ export default function AdminPage() {
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Admin – Bytesjakten</h1>
-          <button
-            onClick={() => fetch("/api/admin/login", { method: "DELETE" }).then(() => setAuthed(false))}
-            className="text-sm text-zinc-500 hover:text-zinc-700"
-          >
-            Logga ut
-          </button>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/lab" className="text-sm text-emerald-600 hover:text-emerald-700">
+              Öppna datalabbet
+            </Link>
+            <button
+              onClick={() => fetch("/api/admin/login", { method: "DELETE" }).then(() => setAuthed(false))}
+              className="text-sm text-zinc-500 hover:text-zinc-700"
+            >
+              Logga ut
+            </button>
+          </div>
         </div>
 
         {message && (
