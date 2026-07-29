@@ -87,8 +87,8 @@ export function SignupSection({ preferences }: SignupSectionProps) {
             Vi ser till att du alltid ligger kvar på kampanjpris
           </h2>
           <p className="mt-4 text-lg text-zinc-600">
-            Registrera dig gratis så mejlar vi dig en vecka innan ditt abonnemang går ut –
-            med länk till bästa kampanjen hos ett annat telebolag.
+            Registrera dig hos oss så mejlar vi dig när det närmar sig byte till nästa kampanj –
+            med länk till bästa kampanjen baserat på dina preferenser.
           </p>
           <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
             <li className="flex items-center gap-2">
