@@ -21,7 +21,11 @@ export function EsimGuide() {
               </span>
               <div>
                 <h3 className="text-lg font-semibold text-zinc-900">{step.title}</h3>
-                <p className="mt-1.5 leading-relaxed text-zinc-600">{step.body}</p>
+                <div className="mt-1.5 space-y-1.5 leading-relaxed text-zinc-600">
+                  {step.body.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </div>
               </div>
             </li>
           ))}
