@@ -38,9 +38,34 @@ model Campaign {
   active        Boolean  @default(true)
   updatedAt     DateTime @updatedAt
   createdAt     DateTime @default(now())
+  snapshots     CampaignSnapshot[]
 
   @@index([active, dataGB])
   @@index([active, isStudent])
+}
+
+model CampaignSnapshot {
+  id            String   @id @default(cuid())
+  campaignId     String?
+  campaign       Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  operator      String
+  name          String
+  dataGB        Int
+  campaignPrice Int
+  regularPrice  Int
+  campaignStart DateTime
+  campaignEnd   DateTime
+  url           String
+  network       String   @default("any")
+  noBinding     Boolean  @default(true)
+  isStudent     Boolean  @default(false)
+  active        Boolean  @default(true)
+  source        String
+  capturedAt    DateTime @default(now())
+
+  @@index([operator, capturedAt])
+  @@index([isStudent, capturedAt])
+  @@index([campaignId, capturedAt])
 }
 
 model NotificationLog {
