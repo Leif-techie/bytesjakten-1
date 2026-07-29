@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const bestOnly = searchParams.get("best") === "true";
 
     const campaigns = await getActiveCampaigns();
+    const activeCount = campaigns.length;
 
     if (bestOnly) {
       const best = findBestCampaign(
@@ -25,11 +26,10 @@ export async function GET(request: NextRequest) {
         currentOperator || undefined,
         { isStudent }
       );
-      return NextResponse.json({ campaign: best });
+      return NextResponse.json({ campaign: best, activeCount });
     }
 
-    return NextResponse.json({ campaigns });
-  } catch (error) {
+    return NextResponse.json({ campaigns, activeCount });  } catch (error) {
     console.error("Campaigns error:", error);
     return NextResponse.json({ error: "Kunde inte hämta kampanjer." }, { status: 500 });
   }

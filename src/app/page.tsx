@@ -33,6 +33,7 @@ type CampaignData = {
 export default function HomePage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
+  const [activeCount, setActiveCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchBestOffer = useCallback(async (prefs: UserPreferences) => {
@@ -48,8 +49,12 @@ export default function HomePage() {
       const res = await fetch(`/api/campaigns?${params}`);
       const data = await res.json();
       setCampaign(data.campaign ?? null);
+      setActiveCount(
+        typeof data.activeCount === "number" ? data.activeCount : null,
+      );
     } catch {
       setCampaign(null);
+      setActiveCount(null);
     } finally {
       setLoading(false);
     }
@@ -61,11 +66,6 @@ export default function HomePage() {
 
   const contractEnd = new Date(preferences.contractEndDate);
   const readyToSwitch = daysUntil(contractEnd) <= 7;
-
-  const savings = campaign?.annualSavings ?? 0;
-  const campaignPrice = campaign?.averageMonthlyCost ?? 0;
-  const refPrice = campaign?.regularPrice ?? 250;
-  const campaignMonths = campaign?.campaignMonths;
 
   return (
     <>
@@ -84,6 +84,7 @@ export default function HomePage() {
               : null
           }
           loading={loading}
+          activeCount={activeCount}
         />
         <EsimGuide />
         <KivraSection />
