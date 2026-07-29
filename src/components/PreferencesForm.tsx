@@ -1,7 +1,7 @@
 "use client";
 
 import { DATA_OPTIONS, NETWORK_OPTIONS, OPERATORS } from "@/lib/constants";
-import { formatDateShort, getNetworkLabel } from "@/lib/campaigns";
+import { getNetworkLabel } from "@/lib/campaigns";
 
 export type UserPreferences = {
   minDataGB: number;
@@ -23,7 +23,7 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
 
   return (
     <section className="border-y border-zinc-100 bg-zinc-50 px-4 py-6 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <PreferenceCard
           icon="📱"
           label="Minsta data/mån"
@@ -81,7 +81,7 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
         <PreferenceCard
           icon="📅"
           label="Nuvarande tar slut"
-          value={formatDateShort(new Date(preferences.contractEndDate))}
+          value={preferences.contractEndDate}
         >
           <input
             type="date"
@@ -90,18 +90,23 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
             className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm"
           />
         </PreferenceCard>
-      </div>
 
-      <label className="mx-auto mt-4 flex max-w-xs cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 shadow-sm has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
-        <input
-          type="checkbox"
-          checked={preferences.isStudent}
-          onChange={(e) => update({ isStudent: e.target.checked })}
-          className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
-        />
-        <span className="text-base" aria-hidden>🎯</span>
-        <span className="text-sm font-medium text-zinc-900">Studentabonnemang</span>
-      </label>
+        <PreferenceCard
+          icon="🎯"
+          label="Studentabonnemang"
+          value={preferences.isStudent ? "Ja" : "Nej"}
+        >
+          <label className="mt-2 flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={preferences.isStudent}
+              onChange={(e) => update({ isStudent: e.target.checked })}
+              className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+            />
+            <span className="text-sm text-zinc-700">Visa studentpriser</span>
+          </label>
+        </PreferenceCard>
+      </div>
     </section>
   );
 }
