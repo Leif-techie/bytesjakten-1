@@ -42,7 +42,7 @@ export type CampaignScore = {
     price: number;
     discount: number;
     gbValue: number;
-    rarity: number;
+    frequency: number;
   };
   capturedAt: string;
 };
@@ -157,8 +157,9 @@ export function scoreCampaigns(snapshots: SnapshotLike[]): CampaignScore[] {
   );
   const freq = buildFrequency(snapshots);
   const maxSnapshots = Math.max(...freq.map((f) => f.snapshots), 1);
-  const rarityByOperator = new Map(
-    freq.map((f) => [f.operator, 1 - f.snapshots / maxSnapshots]),
+  // Oftare synliga operatörer belönas (relativt till den mest aktiva i datasetet).
+  const frequencyByOperator = new Map(
+    freq.map((f) => [f.operator, f.snapshots / maxSnapshots]),
   );
 
   return [...latestByKey.values()]
@@ -177,9 +178,11 @@ export function scoreCampaigns(snapshots: SnapshotLike[]): CampaignScore[] {
       const gbPercentile = percentileRank(gbValues, gbValueRaw);
       const gbValue = Math.round(gbPercentile * 25);
 
-      const rarity = Math.round((rarityByOperator.get(snap.operator) ?? 0.5) * 15);
+      const frequency = Math.round(
+        (frequencyByOperator.get(snap.operator) ?? 0.5) * 15,
+      );
 
-      const score = clamp(price + discount + gbValue + rarity, 0, 100);
+      const score = clamp(price + discount + gbValue + frequency, 0, 100);
       const grade: CampaignScore["grade"] =
         score >= 80 ? "A" : score >= 65 ? "B" : score >= 50 ? "C" : "D";
 
@@ -192,7 +195,7 @@ export function scoreCampaigns(snapshots: SnapshotLike[]): CampaignScore[] {
         isStudent: snap.isStudent,
         score,
         grade,
-        breakdown: { price, discount, gbValue, rarity },
+        breakdown: { price, discount, gbValue, frequency },
         capturedAt:
           typeof snap.capturedAt === "string"
             ? snap.capturedAt

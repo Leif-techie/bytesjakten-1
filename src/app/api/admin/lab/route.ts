@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
           price: 35,
           discount: 25,
           gbValue: 25,
-          rarity: 15,
+          frequency: 15,
         },
         grades: { A: "80+", B: "65–79", C: "50–64", D: "<50" },
       },
