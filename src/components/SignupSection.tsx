@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { UserPreferences } from "./PreferencesForm";
+import { OPERATORS, DATA_OPTIONS, NETWORK_OPTIONS } from "@/lib/constants";
 
-type SignupSectionProps = {
-  preferences: UserPreferences;
-};
-
-export function SignupSection({ preferences }: SignupSectionProps) {
+export function SignupSection() {
   const [email, setEmail] = useState("");
+  const [currentOperator, setCurrentOperator] = useState("Telia");
+  const [contractEndDate, setContractEndDate] = useState("");
+  const [minDataGB, setMinDataGB] = useState(25);
+  const [networkPreference, setNetworkPreference] = useState("any");
+  const [isStudent, setIsStudent] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -17,17 +18,23 @@ export function SignupSection({ preferences }: SignupSectionProps) {
     setStatus("loading");
     setMessage("");
 
+    if (!contractEndDate) {
+      setStatus("error");
+      setMessage("Fyll i slutdatum för ditt nuvarande abonnemang.");
+      return;
+    }
+
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          currentOperator: preferences.currentOperator,
-          contractEndDate: preferences.contractEndDate,
-          minDataGB: preferences.minDataGB,
-          networkPreference: preferences.networkPreference,
-          isStudent: preferences.isStudent,
+          currentOperator,
+          contractEndDate,
+          minDataGB,
+          networkPreference,
+          isStudent,
         }),
       });
 
@@ -54,7 +61,9 @@ export function SignupSection({ preferences }: SignupSectionProps) {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-3xl">
           ✉️
         </div>
-        <h2 className="mt-6 text-3xl font-bold text-zinc-900">Vi ser till att du alltid ligger kvar på kampanjpris</h2>
+        <h2 className="mt-6 text-3xl font-bold text-zinc-900">
+          Vi ser till att du alltid ligger kvar på kampanjpris
+        </h2>
         <p className="mt-4 text-lg text-zinc-600">
           Registrera dig gratis så mejlar vi dig en vecka innan ditt abonnemang går ut –
           med länk till bästa kampanjen hos ett annat telebolag.
@@ -72,27 +81,92 @@ export function SignupSection({ preferences }: SignupSectionProps) {
           </li>
         </ul>
 
-        <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-md">
-          <p className="mb-3 text-left text-sm text-zinc-500 sm:text-center">
-            Operatör, slutdatum, databehov, nätpreferens och studentval som du fyllt i ovan följer med när du registrerar dig.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
+        <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-lg space-y-4 text-left">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">E-post</label>
             <input
               type="email"
               required
               placeholder="din@epost.se"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="mt-1 w-full rounded-xl border border-zinc-300 px-4 py-3 text-zinc-900 placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             />
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
-            >
-              {status === "loading" ? "Registrerar..." : "Kom igång gratis →"}
-            </button>
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">Nuvarande operatör</label>
+              <select
+                value={currentOperator}
+                onChange={(e) => setCurrentOperator(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-3 text-zinc-900"
+              >
+                {OPERATORS.map((op) => (
+                  <option key={op} value={op}>{op}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">Abonnemanget går ut</label>
+              <input
+                type="date"
+                required
+                value={contractEndDate}
+                onChange={(e) => setContractEndDate(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-3 text-zinc-900"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">Minsta data/mån</label>
+              <select
+                value={minDataGB}
+                onChange={(e) => setMinDataGB(Number(e.target.value))}
+                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-3 text-zinc-900"
+              >
+                {DATA_OPTIONS.map((gb) => (
+                  <option key={gb} value={gb}>{gb} GB</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">Mobilnät</label>
+              <select
+                value={networkPreference}
+                onChange={(e) => setNetworkPreference(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-3 text-zinc-900"
+              >
+                {NETWORK_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+            <input
+              type="checkbox"
+              checked={isStudent}
+              onChange={(e) => setIsStudent(e.target.checked)}
+              className="h-5 w-5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+            />
+            <span className="text-xl" aria-hidden>🎯</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-zinc-900">Studentabonnemang</span>
+              <span className="block text-xs text-zinc-500">Visa studentpriser</span>
+            </span>
+          </label>
+
+          <button
+            type="submit"
+            disabled={status === "loading"}
+            className="w-full rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {status === "loading" ? "Registrerar..." : "Kom igång gratis →"}
+          </button>
         </form>
 
         {message && (

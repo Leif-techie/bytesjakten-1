@@ -72,7 +72,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <SignupSection preferences={preferences} />
+        <SignupSection />
         {campaign && (
           <SavingsBar
             annualSavings={savings}
