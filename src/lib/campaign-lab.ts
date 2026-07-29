@@ -9,9 +9,28 @@ export type SnapshotLike = {
   campaignId?: string | null;
 };
 
+export type GbSegmentId = "5-15" | "15-30" | "30-50" | "50-plus";
+
+export const GB_SEGMENTS: {
+  id: GbSegmentId;
+  label: string;
+  matches: (dataGB: number) => boolean;
+}[] = [
+  { id: "5-15", label: "5–15 GB", matches: (gb) => gb >= 5 && gb <= 15 },
+  { id: "15-30", label: ">15–30 GB", matches: (gb) => gb > 15 && gb <= 30 },
+  { id: "30-50", label: ">30–50 GB", matches: (gb) => gb > 30 && gb <= 50 },
+  { id: "50-plus", label: ">50 GB", matches: (gb) => gb > 50 },
+];
+
+export function getGbSegment(dataGB: number): (typeof GB_SEGMENTS)[number] | null {
+  return GB_SEGMENTS.find((segment) => segment.matches(dataGB)) ?? null;
+}
+
 export type TimelinePoint = {
   date: string;
-  operator: string;
+  seriesKey: string;
+  seriesLabel: string;
+  segment: GbSegmentId | null;
   avgCampaignPrice: number;
   minCampaignPrice: number;
   maxCampaignPrice: number;
@@ -65,16 +84,48 @@ function percentileRank(sortedAsc: number[], value: number) {
   return below / sortedAsc.length;
 }
 
-export function buildTimeline(snapshots: SnapshotLike[]): TimelinePoint[] {
+export function filterByGbSegments(
+  snapshots: SnapshotLike[],
+  segmentIds: GbSegmentId[],
+) {
+  if (segmentIds.length === 0) return [];
+  const allowed = new Set(segmentIds);
+  return snapshots.filter((snap) => {
+    const segment = getGbSegment(snap.dataGB);
+    return segment !== null && allowed.has(segment.id);
+  });
+}
+
+export function buildTimeline(
+  snapshots: SnapshotLike[],
+  groupBy: "segment" | "operator" = "segment",
+): TimelinePoint[] {
   const buckets = new Map<
     string,
-    { prices: number[]; operator: string; date: string }
+    {
+      prices: number[];
+      seriesKey: string;
+      seriesLabel: string;
+      segment: GbSegmentId | null;
+      date: string;
+    }
   >();
 
   for (const snap of snapshots) {
+    const segment = getGbSegment(snap.dataGB);
+    if (groupBy === "segment" && !segment) continue;
+
     const date = toDateKey(snap.capturedAt);
-    const key = `${date}::${snap.operator}`;
-    const existing = buckets.get(key) ?? { prices: [], operator: snap.operator, date };
+    const seriesKey = groupBy === "segment" ? segment!.id : snap.operator;
+    const seriesLabel = groupBy === "segment" ? segment!.label : snap.operator;
+    const key = `${date}::${seriesKey}`;
+    const existing = buckets.get(key) ?? {
+      prices: [],
+      seriesKey,
+      seriesLabel,
+      segment: segment?.id ?? null,
+      date,
+    };
     existing.prices.push(snap.campaignPrice);
     buckets.set(key, existing);
   }
@@ -84,14 +135,19 @@ export function buildTimeline(snapshots: SnapshotLike[]): TimelinePoint[] {
       const sum = bucket.prices.reduce((a, b) => a + b, 0);
       return {
         date: bucket.date,
-        operator: bucket.operator,
+        seriesKey: bucket.seriesKey,
+        seriesLabel: bucket.seriesLabel,
+        segment: bucket.segment,
         avgCampaignPrice: Math.round(sum / bucket.prices.length),
         minCampaignPrice: Math.min(...bucket.prices),
         maxCampaignPrice: Math.max(...bucket.prices),
         count: bucket.prices.length,
       };
     })
-    .sort((a, b) => a.date.localeCompare(b.date) || a.operator.localeCompare(b.operator));
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date) || a.seriesKey.localeCompare(b.seriesKey),
+    );
 }
 
 export function buildFrequency(snapshots: SnapshotLike[]): FrequencyRow[] {
