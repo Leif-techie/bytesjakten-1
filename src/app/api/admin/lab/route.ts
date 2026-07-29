@@ -112,14 +112,14 @@ export async function GET(request: NextRequest) {
     campaignId: row.campaignId,
   }));
 
-  const timelineSource =
+  const filteredRows =
     selectedSegments !== null
       ? filterByGbSegments(analysisRows, selectedSegments)
       : analysisRows;
 
-  const timeline = buildTimeline(timelineSource, groupBy);
+  const timeline = buildTimeline(filteredRows, groupBy);
   const frequency = buildFrequency(analysisRows);
-  const scores = scoreCampaigns(analysisRows);
+  const scores = scoreCampaigns(filteredRows);
 
   return NextResponse.json({
     meta: {
