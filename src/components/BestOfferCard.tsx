@@ -20,6 +20,7 @@ type CampaignOffer = {
 type BestOfferCardProps = {
   campaign: CampaignOffer | null;
   loading?: boolean;
+  activeCount?: number | null;
 };
 
 const OPERATOR_COLORS: Record<string, string> = {
@@ -34,7 +35,18 @@ const OPERATOR_COLORS: Record<string, string> = {
   Chilimobil: "bg-red-600",
 };
 
-export function BestOfferCard({ campaign, loading }: BestOfferCardProps) {
+function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
+  if (count == null) return null;
+  return (
+    <p className="text-sm text-zinc-500">
+      {count === 1
+        ? "1 aktiv kampanj i databasen just nu"
+        : `${count} aktiva kampanjer i databasen just nu`}
+    </p>
+  );
+}
+
+export function BestOfferCard({ campaign, loading, activeCount }: BestOfferCardProps) {
   if (loading) {
     return (
       <section className="px-4 py-10 sm:px-6">
@@ -53,6 +65,9 @@ export function BestOfferCard({ campaign, loading }: BestOfferCardProps) {
           <p className="text-lg text-zinc-600">
             Inga aktiva kampanjer utan bindningstid matchar dina val just nu.
           </p>
+          <div className="mt-2">
+            <ActiveCampaignsNote count={activeCount} />
+          </div>
           <p className="mt-2 text-sm text-zinc-400">
             Prova att ändra data/nät, eller bocka i/ur studentabonnemang. Registrera dig så mejlar
             vi dig när något bra dyker upp.
@@ -88,6 +103,9 @@ export function BestOfferCard({ campaign, loading }: BestOfferCardProps) {
               Bästa erbjudandet just nu
             </p>
             <h2 className="mt-1 text-2xl font-bold text-zinc-900">{campaign.name}</h2>
+            <div className="mt-1">
+              <ActiveCampaignsNote count={activeCount} />
+            </div>
             <p className="mt-2 text-4xl font-extrabold text-emerald-600">
               {formatSEK(campaign.campaignPrice)} kr/mån
             </p>
