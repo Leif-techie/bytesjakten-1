@@ -92,8 +92,13 @@ export function SignupSection({ preferences }: SignupSectionProps) {
           </p>
 
           <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
-            <li className="flex items-center gap-2">
-              <CheckIcon /> Påminnelse i rätt tid
+            <li>
+              <div className="flex items-center gap-2">
+                <CheckIcon /> Påminnelse en vecka innan bindningstiden går ut
+              </div>
+              <p className="ml-7 mt-1 text-sm text-zinc-500">
+                Operatörer i våra erbjudanden just nu: Hallon, Vimla, Comviq och Fello
+              </p>
             </li>
             <li className="mt-2 flex items-center gap-2">
               <CheckIcon /> Länk till bästa erbjudandet
