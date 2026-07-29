@@ -84,7 +84,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
             ✉️
           </div>
           <h2 className="mt-6 text-3xl font-bold text-zinc-900">
-            Vi ser till att du alltid ligger kvar på kampanjpris
+            Vi ser till att du alltid ligger kvar på billigast kampanjpris
           </h2>
           <p className="mt-4 text-lg text-zinc-600">
             Registrera dig hos oss så mejlar vi dig när det närmar sig byte till nästa kampanj –
