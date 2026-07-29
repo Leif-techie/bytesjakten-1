@@ -28,7 +28,7 @@ export function SavingsBar() {
             Snittpris 49 kr/mån
           </p>
           <p className="mt-1 text-sm text-emerald-100">
-            Byt till ny kampanj innan ordinarie pris gäller
+            Byt till ny kampanj innan ordinarie pris börjar gälla
           </p>
         </div>
       </div>

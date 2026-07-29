@@ -57,7 +57,12 @@ function renderEsimGuideHtml(): string {
         </td>
         <td style="padding: 0 0 14px 0;">
           <p style="margin: 0 0 4px; font-weight: 600; color: #18181b;">${step.title}</p>
-          <p style="margin: 0; color: #52525b; font-size: 14px; line-height: 1.5;">${step.body}</p>
+          ${step.body
+            .map(
+              (line) =>
+                `<p style="margin: 0 0 4px; color: #52525b; font-size: 14px; line-height: 1.5;">${line}</p>`,
+            )
+            .join("")}
         </td>
       </tr>`
   ).join("");

@@ -84,15 +84,15 @@ export function SignupSection({ preferences }: SignupSectionProps) {
             ✉️
           </div>
           <h2 className="mt-6 text-3xl font-bold text-zinc-900">
-            Vi ser till att du alltid ligger kvar på kampanjpris
+            Vi ser till att du alltid ligger kvar på billigast kampanjpris
           </h2>
           <p className="mt-4 text-lg text-zinc-600">
-            Registrera dig hos oss så mejlar vi dig när det närmar sig byte till nästa kampanj –
-            med länk till bästa kampanjen baserat på dina preferenser.
+            Registrera dig hos oss så mejlar vi dig när det närmar sig byte – du får då en länk
+            till den bästa kampanjen baserat på dina preferenser.
           </p>
           <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
             <li className="flex items-center gap-2">
-              <CheckIcon /> Påminnelse en vecka innan bindningstiden går ut
+              <CheckIcon /> Påminnelse via mejl när det är dags för byte
             </li>
             <li className="mt-2 flex items-center gap-2">
               <CheckIcon /> Operatörer i vårt erbjudande: Hallon, Vimla, Comviq och Fello
