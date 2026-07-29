@@ -471,8 +471,8 @@ export default function AdminLabPage() {
                 {!loading && (data?.scores.length ?? 0) === 0 && (
                   <tr>
                     <td colSpan={7} className="px-3 py-6 text-center text-zinc-500">
-                      Inga snapshots ännu – skapa/uppdatera kampanjer eller kör seed för att fylla
-                      labbet.
+                      Inga snapshots ännu – granska kampanjerna under Admin och klicka
+                      ”För över till labbet”.
                     </td>
                   </tr>
                 )}

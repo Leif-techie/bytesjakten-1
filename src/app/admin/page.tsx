@@ -116,6 +116,7 @@ export default function AdminPage() {
   const [emailConfig, setEmailConfig] = useState<EmailConfig | null>(null);
   const [message, setMessage] = useState("");
   const [messageIsError, setMessageIsError] = useState(false);
+  const [publishingToLab, setPublishingToLab] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [newCampaign, setNewCampaign] = useState(emptyCampaign);
   const [campaignChoice, setCampaignChoice] = useState<Record<string, string>>({});
@@ -275,6 +276,41 @@ export default function AdminPage() {
     setMessageIsError(false);
     setMessage("Kampanj borttagen.");
     loadData();
+  }
+
+  async function publishCampaignsToLab() {
+    const activeCount = campaigns.filter((c) => c.active).length;
+    if (activeCount === 0) {
+      setMessageIsError(true);
+      setMessage("Inga aktiva kampanjer att föra över.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Föra över ${activeCount} aktiva kampanjer till datalabbet?\n\nKontrollera att pris, GB och länkar stämmer innan du fortsätter.`,
+      )
+    ) {
+      return;
+    }
+
+    setPublishingToLab(true);
+    setMessage("");
+    setMessageIsError(false);
+    try {
+      const res = await fetch("/api/admin/lab/publish", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessageIsError(true);
+        setMessage(data.error ?? "Kunde inte föra över till labbet.");
+        return;
+      }
+      setMessage(
+        data.message ??
+          `${data.published ?? activeCount} kampanjer förda över till labbet.`,
+      );
+    } finally {
+      setPublishingToLab(false);
+    }
   }
 
   async function saveAffiliateUrl(id: string) {
@@ -523,10 +559,22 @@ export default function AdminPage() {
         </section>
 
         <section className="mt-10 overflow-x-auto">
-          <h2 className="text-lg font-bold">Kampanjer ({campaigns.length})</h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Affiliatelänken går till operatörens erbjudande via dig – samma länk används på hemsidan och i mejl.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold">Kampanjer ({campaigns.length})</h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Granska kampanjerna här. När de stämmer: för över aktiva till datalabbet.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={publishCampaignsToLab}
+              disabled={publishingToLab}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {publishingToLab ? "För över…" : "För över till labbet"}
+            </button>
+          </div>
           <table className="mt-4 w-full text-left text-sm">
             <thead>
               <tr className="border-b text-zinc-500">
