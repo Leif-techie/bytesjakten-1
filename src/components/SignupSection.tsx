@@ -135,7 +135,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
           )}
 
           <p className="mt-4 text-sm text-zinc-400">
-            Ingen bindningstid. Avregistrera när som helst.
+            Ingen bindningstid. Avregistrera när som helst. Glöm inte kolla skräpposten.
           </p>
         </div>
       </section>
