@@ -92,7 +92,7 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
         </PreferenceCard>
 
         <div className="flex flex-col justify-center self-stretch rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-bold text-zinc-900">Studentabonnemang?</p>
+          <p className="text-sm font-bold text-zinc-900">🎯 Studentabonnemang?</p>
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
