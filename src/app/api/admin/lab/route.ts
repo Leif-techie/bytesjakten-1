@@ -114,10 +114,9 @@ export async function GET(request: NextRequest) {
       scoring: {
         max: 100,
         weights: {
-          price: 35,
-          discount: 25,
-          gbValue: 25,
-          frequency: 15,
+          price: 40,
+          discount: 30,
+          gbValue: 30,
         },
         grades: { A: "80+", B: "65–79", C: "50–64", D: "<50" },
       },

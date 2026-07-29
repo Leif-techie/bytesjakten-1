@@ -65,7 +65,6 @@ type ScoreRow = {
     price: number;
     discount: number;
     gbValue: number;
-    frequency: number;
   };
   capturedAt: string;
 };
@@ -81,7 +80,7 @@ type LabResponse = {
     };
     scoring: {
       max: number;
-      weights: { price: number; discount: number; gbValue: number; frequency: number };
+      weights: { price: number; discount: number; gbValue: number };
       grades: { A: string; B: string; C: string; D: string };
     };
   };
@@ -311,8 +310,8 @@ export default function AdminLabPage() {
         <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold text-zinc-900">3. Kampanjbetyg (v1)</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            0–100 poäng: prisnivå (35) + rabatt vs ordinarie (25) + GB/kr (25) + frekvens (15).
-            Frekvens belönar operatörer som oftare har kampanjer. Senaste snapshot per kampanjnamn.
+            0–100 poäng: prisnivå (40) + rabatt vs ordinarie (30) + GB/kr (30).
+            Senaste snapshot per kampanjnamn.
           </p>
           {data?.meta.scoring && (
             <p className="mt-2 text-xs text-zinc-400">
@@ -363,7 +362,7 @@ export default function AdminLabPage() {
                     </td>
                     <td className="px-3 py-2 text-xs text-zinc-500">
                       pris {row.breakdown.price} · rabatt {row.breakdown.discount} · GB{" "}
-                      {row.breakdown.gbValue} · frekvens {row.breakdown.frequency}
+                      {row.breakdown.gbValue}
                     </td>
                   </tr>
                 ))}

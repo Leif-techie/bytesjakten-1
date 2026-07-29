@@ -42,7 +42,6 @@ export type CampaignScore = {
     price: number;
     discount: number;
     gbValue: number;
-    frequency: number;
   };
   capturedAt: string;
 };
@@ -155,34 +154,24 @@ export function scoreCampaigns(snapshots: SnapshotLike[]): CampaignScore[] {
   const gbValues = [...snapshots.map((s) => s.dataGB / Math.max(s.campaignPrice, 1))].sort(
     (a, b) => a - b,
   );
-  const freq = buildFrequency(snapshots);
-  const maxSnapshots = Math.max(...freq.map((f) => f.snapshots), 1);
-  // Oftare synliga operatörer belönas (relativt till den mest aktiva i datasetet).
-  const frequencyByOperator = new Map(
-    freq.map((f) => [f.operator, f.snapshots / maxSnapshots]),
-  );
 
   return [...latestByKey.values()]
     .map((snap) => {
       // Lower price => higher score
       const pricePercentile = percentileRank(prices, snap.campaignPrice);
-      const price = Math.round((1 - pricePercentile) * 35);
+      const price = Math.round((1 - pricePercentile) * 40);
 
       const discountRatio =
         snap.regularPrice > 0
           ? clamp((snap.regularPrice - snap.campaignPrice) / snap.regularPrice, 0, 1)
           : 0;
-      const discount = Math.round(discountRatio * 25);
+      const discount = Math.round(discountRatio * 30);
 
       const gbValueRaw = snap.dataGB / Math.max(snap.campaignPrice, 1);
       const gbPercentile = percentileRank(gbValues, gbValueRaw);
-      const gbValue = Math.round(gbPercentile * 25);
+      const gbValue = Math.round(gbPercentile * 30);
 
-      const frequency = Math.round(
-        (frequencyByOperator.get(snap.operator) ?? 0.5) * 15,
-      );
-
-      const score = clamp(price + discount + gbValue + frequency, 0, 100);
+      const score = clamp(price + discount + gbValue, 0, 100);
       const grade: CampaignScore["grade"] =
         score >= 80 ? "A" : score >= 65 ? "B" : score >= 50 ? "C" : "D";
 
@@ -195,7 +184,7 @@ export function scoreCampaigns(snapshots: SnapshotLike[]): CampaignScore[] {
         isStudent: snap.isStudent,
         score,
         grade,
-        breakdown: { price, discount, gbValue, frequency },
+        breakdown: { price, discount, gbValue },
         capturedAt:
           typeof snap.capturedAt === "string"
             ? snap.capturedAt
