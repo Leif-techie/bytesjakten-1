@@ -135,8 +135,9 @@ function SwitchCompleteContent() {
         <h1 className="mt-6 text-2xl font-bold text-zinc-900">Klart!</h1>
         <p className="mt-3 text-zinc-600">{message}</p>
         <p className="mt-2 text-sm text-zinc-500">
-          Nästa påminnelse inför kampanj:{" "}
+          Kampanjens slutdatum:{" "}
           <strong>{new Date(contractEndDate).toLocaleDateString("sv-SE")}</strong>
+          . Vi mejlar dig innan det är dags att byta igen.
         </p>
         <Link href="/" className="mt-8 inline-block text-emerald-600 hover:underline">
           Tillbaka till Bytesjakten
@@ -151,8 +152,9 @@ function SwitchCompleteContent() {
         Bytet har gått igenom
       </h1>
       <p className="mt-3 text-center text-zinc-600">
-        Bra jobbat{email ? `, ${email}` : ""}! Välj ny operatör och när vi ska
-        påminna dig inför nästa kampanj.
+        Bra jobbat{email ? `, ${email}` : ""}! Ange din nya operatör och{" "}
+        <strong className="font-semibold text-zinc-800">kampanjens slutdatum</strong>{" "}
+        – det datum då kampanjpriset tar slut hos den nya operatören.
       </p>
 
       <form
@@ -176,10 +178,29 @@ function SwitchCompleteContent() {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-zinc-700">
-            Påminn mig inför (kampanjens slut / nästa byte)
+        <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/60 p-4">
+          <label
+            htmlFor="campaign-end-date"
+            className="block text-base font-bold text-zinc-900"
+          >
+            Kampanjens slutdatum
           </label>
+          <p className="mt-1 text-sm text-zinc-600">
+            Hitta datumet i orderbekräftelsen eller hos din nya operatör. Det är
+            dagen då kampanjpriset tar slut – vi mejlar dig innan dess.
+          </p>
+          <input
+            id="campaign-end-date"
+            type="date"
+            required
+            value={contractEndDate}
+            min={tomorrowIso()}
+            onChange={(e) => setContractEndDate(e.target.value)}
+            className="mt-3 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-zinc-900"
+          />
+          <p className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
+            Snabbval (ungefärligt)
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {quickPicks.map((pick) => (
               <button
@@ -188,26 +209,14 @@ function SwitchCompleteContent() {
                 onClick={() => setContractEndDate(pick.value)}
                 className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
                   contractEndDate === pick.value
-                    ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-                    : "border-zinc-300 text-zinc-700 hover:border-emerald-400"
+                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    : "border-zinc-300 bg-white text-zinc-700 hover:border-emerald-400"
                 }`}
               >
                 {pick.label}
               </button>
             ))}
           </div>
-          <input
-            type="date"
-            required
-            value={contractEndDate}
-            min={tomorrowIso()}
-            onChange={(e) => setContractEndDate(e.target.value)}
-            className="mt-3 w-full rounded-xl border border-zinc-300 px-3 py-2.5 text-zinc-900"
-          />
-          <p className="mt-2 text-xs text-zinc-500">
-            Välj ungefär när kampanjpriset tar slut – vi mejlar dig innan det är
-            dags att byta igen.
-          </p>
         </div>
 
         <button
@@ -215,7 +224,7 @@ function SwitchCompleteContent() {
           disabled={submitStatus === "loading"}
           className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
         >
-          {submitStatus === "loading" ? "Sparar..." : "Spara nästa påminnelse"}
+          {submitStatus === "loading" ? "Sparar..." : "Spara kampanjens slutdatum"}
         </button>
 
         {message && submitStatus === "error" && (
