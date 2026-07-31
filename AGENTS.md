@@ -8,7 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Ägaren administrerar **kampanjer och mejlutskick manuellt** via adminpanelen. Leta inte upp, scrapa eller föreslå nya mobilabonnemangserbjudanden om det inte uttryckligen efterfrågas.
 
-**Mejl** skickas via **Maileroo** (`MAILEROO_API_KEY` + `EMAIL_FROM`). Inte Resend. Automatiska bekräftelsemejl skickas vid **ny registrering** och vid **uppdatering av uppgifter** (samma formulär med samma e-post). Kampanj-/bytesmejl skickas **manuellt** per användare i `/admin`. Bytesmejlet innehåller knappen **“Klicka här när bytet har gått igenom”** → `/byte-klart` där användaren sätter ny operatör + datum för nästa påminnelse. Ingen cron-mejl.
+**Mejl** skickas via **Maileroo** (`MAILEROO_API_KEY` + `EMAIL_FROM`). Inte Resend. Automatiska bekräftelsemejl skickas vid **ny registrering** och vid **uppdatering av uppgifter** (samma formulär med samma e-post). Kampanj-/bytesmejl skickas **manuellt** per användare i `/admin`. Bytesmejlet har **Steg 1** (beställ kampanj) och **Steg 2** (ange kampanjens slutdatum) → `/byte-klart` där användaren sätter ny operatör + kampanjens slutdatum. Ingen cron-mejl.
 
 **Affiliate:** Ägaren använder **Addrevenue** som affiliatenätverk. Hämta spårningslänkar där och klistra in dem som affiliatelänk per kampanj i admin (samma länk används på sajten och i mejl). Föreslå inte Adtraction eller andra nätverk om det inte efterfrågas.
 

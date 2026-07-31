@@ -190,19 +190,42 @@ export async function sendSwitchReminderEmail(
         </p>
       </div>
 
-      <p style="margin: 24px 0;">
-        <a href="${campaignUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
-          Beställ kampanjen hos ${operator} →
-        </a>
-      </p>
-
-      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 8px 0 24px;">
-        <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
-          När bytet har gått igenom: berätta till oss så sätter vi datum för nästa påminnelse.
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 16px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Så gör du – två steg
         </p>
-        <a href="${switchCompleteUrl(unsubscribeToken, operator)}" style="display: inline-block; background: #fff; color: #16a34a; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #16a34a;">
-          Klicka här när bytet har gått igenom
-        </a>
+
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 20px 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700;">1</span>
+            </td>
+            <td style="padding: 0 0 20px 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 1 – Beställ kampanjen</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                Byt till erbjudandet hos ${operator}. Ingen bindningstid.
+              </p>
+              <a href="${campaignUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
+                Beställ kampanjen hos ${operator} →
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 0 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700;">2</span>
+            </td>
+            <td style="padding: 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Ange kampanjens slutdatum</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                När bytet har gått igenom: klicka nedan och ange <strong>kampanjens slutdatum</strong>
+                (dagen då kampanjpriset tar slut). Då mejlar vi dig i tid innan nästa byte.
+              </p>
+              <a href="${switchCompleteUrl(unsubscribeToken, operator)}" style="display: inline-block; background: #fff; color: #16a34a; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #16a34a;">
+                Ange kampanjens slutdatum →
+              </a>
+            </td>
+          </tr>
+        </table>
       </div>
 
       ${renderEsimGuideHtml()}
