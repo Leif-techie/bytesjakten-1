@@ -24,6 +24,8 @@ export const NETWORK_OPTIONS = [
 
 export const KIVRA_URL = "https://www.kivra.se/";
 
+export const CONTACT_EMAIL = "hej@bytesjakten.se";
+
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export const CRON_TIMEZONE = "Europe/Stockholm";
