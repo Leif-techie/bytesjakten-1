@@ -149,7 +149,7 @@ function SwitchCompleteContent() {
   return (
     <div className="mx-auto max-w-lg px-4 py-16">
       <h1 className="text-center text-3xl font-bold text-zinc-900">
-        Bytet har gått igenom
+        Nästan klart!
       </h1>
       <p className="mt-3 text-center text-zinc-600">
         Bra jobbat{email ? `, ${email}` : ""}! Ange din nya operatör och{" "}
