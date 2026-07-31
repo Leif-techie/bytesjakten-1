@@ -25,18 +25,19 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Regular + student plans (Hallon, Vimla, Comviq, Fello) — Jul 2026.
+ * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 31 Jul 2026.
+ * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
  * Replace `url` with Addrevenue tracking links in admin after refresh.
  */
 function buildCampaigns(now: Date): SeedCampaign[] {
   const { start, end } = campaignWindow(now, 4);
 
   const regular: SeedCampaign[] = [
-    // Hallon – Tres nät, ingen bindningstid (dubbel surf-kampanj)
+    // Hallon – Tres nät, ingen bindningstid (dubbel surf så länge abonnemanget gäller)
     {
       operator: "Hallon",
-      name: "Hallon – 5 GB",
-      dataGB: 5,
+      name: "Hallon – 10 GB",
+      dataGB: 10,
       campaignPrice: 29,
       regularPrice: 109,
       campaignStart: start,
@@ -47,8 +48,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon – 10 GB",
-      dataGB: 10,
+      name: "Hallon – 20 GB",
+      dataGB: 20,
       campaignPrice: 39,
       regularPrice: 159,
       campaignStart: start,
@@ -59,8 +60,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon – 25 GB",
-      dataGB: 25,
+      name: "Hallon – 50 GB",
+      dataGB: 50,
       campaignPrice: 49,
       regularPrice: 259,
       campaignStart: start,
@@ -71,8 +72,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon – 50 GB",
-      dataGB: 50,
+      name: "Hallon – 100 GB",
+      dataGB: 100,
       campaignPrice: 59,
       regularPrice: 309,
       campaignStart: start,
@@ -83,8 +84,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon – 100 GB",
-      dataGB: 100,
+      name: "Hallon – 200 GB",
+      dataGB: 200,
       campaignPrice: 69,
       regularPrice: 359,
       campaignStart: start,
@@ -94,11 +95,11 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       isStudent: false,
     },
 
-    // Vimla – Telenors nät, ingen bindningstid
+    // Vimla – Telenors nät, ingen bindningstid (dubbel surf i 24 mån)
     {
       operator: "Vimla",
-      name: "Vimla – 5 GB",
-      dataGB: 5,
+      name: "Vimla – 10 GB",
+      dataGB: 10,
       campaignPrice: 20,
       regularPrice: 120,
       campaignStart: start,
@@ -109,8 +110,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Vimla",
-      name: "Vimla – 10 GB",
-      dataGB: 10,
+      name: "Vimla – 20 GB",
+      dataGB: 20,
       campaignPrice: 20,
       regularPrice: 170,
       campaignStart: start,
@@ -121,8 +122,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Vimla",
-      name: "Vimla – 15 GB",
-      dataGB: 15,
+      name: "Vimla – 30 GB",
+      dataGB: 30,
       campaignPrice: 20,
       regularPrice: 210,
       campaignStart: start,
@@ -133,8 +134,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Vimla",
-      name: "Vimla – 25 GB",
-      dataGB: 25,
+      name: "Vimla – 50 GB",
+      dataGB: 50,
       campaignPrice: 20,
       regularPrice: 260,
       campaignStart: start,
@@ -145,8 +146,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Vimla",
-      name: "Vimla – 100 GB",
-      dataGB: 100,
+      name: "Vimla – 200 GB",
+      dataGB: 200,
       campaignPrice: 20,
       regularPrice: 370,
       campaignStart: start,
@@ -231,14 +232,39 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       network: "telia",
       isStudent: false,
     },
+    {
+      operator: "Fello",
+      name: "Fello – 40 GB",
+      dataGB: 40,
+      campaignPrice: 20,
+      regularPrice: 290,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: false,
+    },
+    {
+      operator: "Fello",
+      name: "Fello – 100 GB",
+      dataGB: 100,
+      campaignPrice: 20,
+      regularPrice: 370,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: false,
+    },
   ];
 
-  // Student plans (Hallon, Vimla, Comviq, Fello) — checked Jul 2026
+  // Student plans — checked 31 Jul 2026
   const student: SeedCampaign[] = [
+    // Hallon Student: basnivå + 50 GB extra surfpott
     {
       operator: "Hallon",
-      name: "Hallon Student – 10 GB",
-      dataGB: 10,
+      name: "Hallon Student – 60 GB",
+      dataGB: 60,
       campaignPrice: 19,
       regularPrice: 109,
       campaignStart: start,
@@ -249,8 +275,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 20 GB",
-      dataGB: 20,
+      name: "Hallon Student – 70 GB",
+      dataGB: 70,
       campaignPrice: 29,
       regularPrice: 159,
       campaignStart: start,
@@ -261,8 +287,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 50 GB",
-      dataGB: 50,
+      name: "Hallon Student – 100 GB",
+      dataGB: 100,
       campaignPrice: 39,
       regularPrice: 259,
       campaignStart: start,
@@ -273,8 +299,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 100 GB",
-      dataGB: 100,
+      name: "Hallon Student – 150 GB",
+      dataGB: 150,
       campaignPrice: 49,
       regularPrice: 309,
       campaignStart: start,
@@ -285,8 +311,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 200 GB",
-      dataGB: 200,
+      name: "Hallon Student – 250 GB",
+      dataGB: 250,
       campaignPrice: 59,
       regularPrice: 359,
       campaignStart: start,
@@ -295,7 +321,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       network: "tre",
       isStudent: true,
     },
-    // Vimla student: site shows dubbel surf amounts (10→20, 15→30, …)
+    // Vimla student: dubbel surf (10→20, 15→30, …)
     {
       operator: "Vimla",
       name: "Vimla Student – 20 GB",
