@@ -215,13 +215,13 @@ export async function sendSwitchReminderEmail(
               <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700;">2</span>
             </td>
             <td style="padding: 0;">
-              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Ange kampanjens slutdatum</p>
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Ange datum för nummerflytt</p>
               <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
-                När bytet har gått igenom: klicka nedan och ange <strong>kampanjens slutdatum</strong>
-                (dagen då kampanjpriset tar slut). Då mejlar vi dig i tid innan nästa byte.
+                När bytet har gått igenom: klicka nedan och ange <strong>datumet för nummerflytten</strong>
+                (står oftast i SMS:et från operatören). Då mejlar vi dig i tid innan nästa byte.
               </p>
               <a href="${switchCompleteUrl(unsubscribeToken, operator)}" style="display: inline-block; background: #fff; color: #16a34a; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #16a34a;">
-                Ange kampanjens slutdatum →
+                Ange datum för nummerflytt →
               </a>
             </td>
           </tr>
