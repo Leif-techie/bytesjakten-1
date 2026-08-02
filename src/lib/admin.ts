@@ -21,6 +21,8 @@ export async function completeSwitch(params: {
   token: string;
   currentOperator: string;
   contractEndDate: Date;
+  campaignStartDate: Date;
+  campaignLengthMonths: number;
 }): Promise<{ success: boolean; error?: string }> {
   const user = await db.user.findUnique({
     where: { unsubscribeToken: params.token },
@@ -34,6 +36,8 @@ export async function completeSwitch(params: {
     data: {
       currentOperator: params.currentOperator,
       contractEndDate: params.contractEndDate,
+      campaignStartDate: params.campaignStartDate,
+      campaignLengthMonths: params.campaignLengthMonths,
       active: true,
     },
   });
