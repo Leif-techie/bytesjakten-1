@@ -4,7 +4,7 @@ import { OPERATORS } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
-const ALLOWED_LENGTHS = [3, 4, 5, 6] as const;
+const ALLOWED_LENGTHS = [3, 4, 5, 6, 12] as const;
 
 function addMonths(date: Date, months: number): Date {
   const d = new Date(date);
