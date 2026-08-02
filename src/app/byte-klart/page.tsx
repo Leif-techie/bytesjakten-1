@@ -197,7 +197,8 @@ function SwitchCompleteContent() {
           </label>
           <p className="mt-1 text-sm text-zinc-600">
             Titta i SMS:et från operatören – där står oftast datumet för
-            nummerflytten. Det blir kampanjens startdatum.
+            nummerflytten. Det blir kampanjens startdatum. Glöm inte trycka på
+            Spara nedan!
           </p>
           <input
             id="porting-date"
