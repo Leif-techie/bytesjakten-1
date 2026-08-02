@@ -30,6 +30,14 @@ export default function MobilabonnemangPage() {
               utan onödigt krångel.
             </p>
 
+            <aside className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50/70 px-5 py-4 text-zinc-700">
+              <p className="leading-relaxed">
+                <strong className="font-semibold text-emerald-800">Tips!</strong>{" "}
+                Byter man under våren så får man ofta extra bra surfdeal och får
+                då ihop en stor surfpott över sommaren. Perfekt till husvagnen!
+              </p>
+            </aside>
+
             <div className="mt-12 space-y-4">
               {MOBILABBONEMANG_FAQ.map((item) => (
                 <article
