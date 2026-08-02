@@ -34,6 +34,7 @@ export default function HomePage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const [activeCount, setActiveCount] = useState<number | null>(null);
+  const [lastCampaignUpdate, setLastCampaignUpdate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchBestOffer = useCallback(async (prefs: UserPreferences) => {
@@ -52,9 +53,15 @@ export default function HomePage() {
       setActiveCount(
         typeof data.activeCount === "number" ? data.activeCount : null,
       );
+      setLastCampaignUpdate(
+        typeof data.lastCampaignUpdate === "string"
+          ? data.lastCampaignUpdate
+          : null,
+      );
     } catch {
       setCampaign(null);
       setActiveCount(null);
+      setLastCampaignUpdate(null);
     } finally {
       setLoading(false);
     }
@@ -85,6 +92,7 @@ export default function HomePage() {
           }
           loading={loading}
           activeCount={activeCount}
+          lastCampaignUpdate={lastCampaignUpdate}
         />
         <EsimGuide />
         <KivraSection />
