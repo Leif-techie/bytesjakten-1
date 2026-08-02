@@ -35,6 +35,8 @@ type User = {
   active: boolean;
   currentOperator: string;
   contractEndDate: string;
+  campaignStartDate: string | null;
+  campaignLengthMonths: number | null;
   minDataGB: number;
   notificationCount: number;
   lastNotificationAt: string | null;
@@ -676,6 +678,16 @@ export default function AdminPage() {
                   <td className="py-2 pr-4">{u.currentOperator}</td>
                   <td className="py-2 pr-4">{u.minDataGB} GB</td>
                   <td className="py-2 pr-4">
+                    {u.campaignStartDate
+                      ? new Date(u.campaignStartDate).toLocaleDateString("sv-SE")
+                      : <span className="text-zinc-400">–</span>}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {u.campaignLengthMonths != null
+                      ? `${u.campaignLengthMonths} mån`
+                      : <span className="text-zinc-400">–</span>}
+                  </td>
+                  <td className="py-2 pr-4">
                     <div>{new Date(u.contractEndDate).toLocaleDateString("sv-SE")}</div>
                     {highlight && !unsubscribedUser && (
                       <span className="mt-1 inline-block rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">
@@ -764,6 +776,8 @@ export default function AdminPage() {
                   <th className="py-2 pr-4">E-post</th>
                   <th className="py-2 pr-4">Operatör</th>
                   <th className="py-2 pr-4">Data</th>
+                  <th className="py-2 pr-4">Startdatum</th>
+                  <th className="py-2 pr-4">Kampanjlängd</th>
                   <th className="py-2 pr-4">Slutdatum</th>
                   <th className="py-2 pr-4">Mejlstatus</th>
                   <th className="py-2 pr-4">Senaste kampanj i mejl</th>

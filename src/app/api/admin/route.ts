@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
       active: true,
       currentOperator: true,
       contractEndDate: true,
+      campaignStartDate: true,
+      campaignLengthMonths: true,
       minDataGB: true,
       createdAt: true,
       notifications: {
@@ -76,6 +78,8 @@ export async function GET(request: NextRequest) {
       active: user.active,
       currentOperator: user.currentOperator,
       contractEndDate: user.contractEndDate,
+      campaignStartDate: user.campaignStartDate,
+      campaignLengthMonths: user.campaignLengthMonths,
       minDataGB: user.minDataGB,
       createdAt: user.createdAt,
       notificationCount: user._count.notifications,
