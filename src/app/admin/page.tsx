@@ -684,7 +684,9 @@ export default function AdminPage() {
                   </td>
                   <td className="py-2 pr-4">
                     {u.campaignLengthMonths != null
-                      ? `${u.campaignLengthMonths} mån`
+                      ? u.campaignLengthMonths === 12
+                        ? "1 år"
+                        : `${u.campaignLengthMonths} mån`
                       : <span className="text-zinc-400">–</span>}
                   </td>
                   <td className="py-2 pr-4">
