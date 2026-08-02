@@ -24,11 +24,21 @@ export default function MobilabonnemangPage() {
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
               Mobilabonnemang
             </h1>
-            <p className="mt-4 text-lg leading-relaxed text-zinc-600">
-              Här får du svar på de vanligaste frågorna om att byta operatör,
-              behålla numret och använda eSIM – så att du kan jaga kampanjpris
-              utan onödigt krångel.
-            </p>
+            <div className="mt-4 flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-6">
+              <p className="flex-1 text-lg leading-relaxed text-zinc-600">
+                Här får du svar på de vanligaste frågorna om att byta operatör,
+                behålla numret och använda eSIM – så att du kan jaga kampanjpris
+                utan onödigt krångel.
+              </p>
+
+              <aside className="mx-auto w-full max-w-[220px] shrink-0 rotate-3 rounded-lg border-2 border-dashed border-emerald-500 bg-emerald-50 px-4 py-3 text-sm leading-snug text-zinc-700 shadow-sm sm:mx-0 sm:rotate-[6deg]">
+                <p>
+                  <strong className="font-semibold text-emerald-800">Tips!</strong>{" "}
+                  Byter man under våren så får man ofta extra bra surfdeal och får
+                  då ihop en stor surfpott över sommaren. Perfekt till husvagnen!
+                </p>
+              </aside>
+            </div>
 
             <div className="mt-12 space-y-4">
               {MOBILABBONEMANG_FAQ.map((item) => (
