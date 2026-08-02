@@ -6,7 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/Header";
 import { OPERATORS } from "@/lib/constants";
 
-const CAMPAIGN_LENGTHS = [3, 4, 5, 6] as const;
+const CAMPAIGN_LENGTHS = [3, 4, 5, 6, 12] as const;
+
+function campaignLengthLabel(months: number): string {
+  return months === 12 ? "1 år" : `${months} mån`;
+}
 
 function todayIso(): string {
   const d = new Date();
@@ -224,7 +228,7 @@ function SwitchCompleteContent() {
                     : "border-zinc-300 bg-white text-zinc-700 hover:border-emerald-400"
                 }`}
               >
-                {months} mån
+                {campaignLengthLabel(months)}
               </button>
             ))}
           </div>
