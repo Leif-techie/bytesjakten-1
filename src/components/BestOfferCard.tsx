@@ -21,6 +21,7 @@ type BestOfferCardProps = {
   campaign: CampaignOffer | null;
   loading?: boolean;
   activeCount?: number | null;
+  lastCampaignUpdate?: string | null;
 };
 
 const OPERATOR_COLORS: Record<string, string> = {
@@ -46,7 +47,27 @@ function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
   );
 }
 
-export function BestOfferCard({ campaign, loading, activeCount }: BestOfferCardProps) {
+function LastUpdateBadge({ date }: { date: string | null | undefined }) {
+  if (!date) return null;
+  const formatted = new Date(date).toLocaleDateString("sv-SE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return (
+    <div className="inline-flex items-center rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-600">
+      Kampanjer uppdaterade senast:{" "}
+      <span className="ml-1 font-semibold text-zinc-800">{formatted}</span>
+    </div>
+  );
+}
+
+export function BestOfferCard({
+  campaign,
+  loading,
+  activeCount,
+  lastCampaignUpdate,
+}: BestOfferCardProps) {
   if (loading) {
     return (
       <section className="px-4 py-10 sm:px-6">
@@ -62,6 +83,9 @@ export function BestOfferCard({ campaign, loading, activeCount }: BestOfferCardP
     return (
       <section className="px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-6xl rounded-2xl border border-zinc-200 bg-white p-8 text-center">
+          <div className="mb-4 flex justify-center">
+            <LastUpdateBadge date={lastCampaignUpdate} />
+          </div>
           <p className="text-lg text-zinc-600">
             Inga aktiva kampanjer utan bindningstid matchar dina val just nu.
           </p>
@@ -99,9 +123,12 @@ export function BestOfferCard({ campaign, loading, activeCount }: BestOfferCardP
           </div>
 
           <div className="p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
-              Bästa erbjudandet just nu
-            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
+                Bästa erbjudandet just nu
+              </p>
+              <LastUpdateBadge date={lastCampaignUpdate} />
+            </div>
             <h2 className="mt-1 text-2xl font-bold text-zinc-900">{campaign.name}</h2>
             <div className="mt-1">
               <ActiveCampaignsNote count={activeCount} />

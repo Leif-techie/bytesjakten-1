@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findBestCampaign } from "@/lib/campaigns";
 import { ensureCampaignsSeeded, getActiveCampaigns } from "@/lib/seed-campaigns";
+import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -15,8 +16,12 @@ export async function GET(request: NextRequest) {
     const isStudent = searchParams.get("isStudent") === "true";
     const bestOnly = searchParams.get("best") === "true";
 
-    const campaigns = await getActiveCampaigns();
+    const [campaigns, meta] = await Promise.all([
+      getActiveCampaigns(),
+      db.systemMeta.findUnique({ where: { id: "singleton" } }),
+    ]);
     const activeCount = campaigns.length;
+    const lastCampaignUpdate = meta?.lastCampaignUpdate?.toISOString() ?? null;
 
     if (bestOnly) {
       const best = findBestCampaign(
@@ -26,10 +31,15 @@ export async function GET(request: NextRequest) {
         currentOperator || undefined,
         { isStudent }
       );
-      return NextResponse.json({ campaign: best, activeCount });
+      return NextResponse.json({
+        campaign: best,
+        activeCount,
+        lastCampaignUpdate,
+      });
     }
 
-    return NextResponse.json({ campaigns, activeCount });  } catch (error) {
+    return NextResponse.json({ campaigns, activeCount, lastCampaignUpdate });
+  } catch (error) {
     console.error("Campaigns error:", error);
     return NextResponse.json({ error: "Kunde inte hämta kampanjer." }, { status: 500 });
   }
