@@ -3,13 +3,23 @@ import { sendPrefsConfirmationEmail } from "./email";
 
 export async function unsubscribeUser(token: string): Promise<boolean> {
   const user = await db.user.findUnique({ where: { unsubscribeToken: token } });
-  if (!user) return false;
+  if (user) {
+    await db.user.update({
+      where: { id: user.id },
+      data: { active: false },
+    });
+    return true;
+  }
 
-  await db.user.update({
-    where: { id: user.id },
+  const broadbandUser = await db.broadbandUser.findUnique({
+    where: { unsubscribeToken: token },
+  });
+  if (!broadbandUser) return false;
+
+  await db.broadbandUser.update({
+    where: { id: broadbandUser.id },
     data: { active: false },
   });
-
   return true;
 }
 

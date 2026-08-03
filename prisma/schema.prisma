@@ -85,3 +85,16 @@ model SystemMeta {
   id        String   @id @default("singleton")
   lastCampaignUpdate DateTime?
 }
+
+model BroadbandUser {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  currentOperator  String
+  contractEndDate  DateTime
+  minSpeedMbps     Int
+  technology       String   @default("any")
+  unsubscribeToken String   @unique @default(cuid())
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

@@ -14,6 +14,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Kampanjer:** "Uppdatera kampanjer" i admin ersätter databasen med seed-listan i `src/lib/seed-campaigns.ts` (aktuella erbjudanden utan bindningstid, inkl. studentpriser, operatörs-URL:er). Efter refresh: byt URL:er till Addrevenue-spårningslänkar. Startsida har checkbox **Studentabonnemang** (🎯) som filtrerar till studentkampanjer. Föreslå/scrapa inte nya erbjudanden om det inte uttryckligen efterfrågas.
 
+**Bredband:** Separat vertikal på `/bredband` med egen tabell `BroadbandUser` (e-post, leverantör, slutdatum, hastighet, teknik). Registrering via `/api/broadband/register` + bekräftelsemejl. Ingen admin/kampanjmatchning för bredband ännu. Mobilflödet är oförändrat.
+
 ## Cursor Cloud specific instructions
 
 **Demo-/bevisartefakter:** Använd **skärmdumpar**, inte video/skärminspelning. Ägarens Norton kan flagga/blockera videoinspelning och automation kopplad till filmdemos. Video behövs inte om det inte uttryckligen efterfrågas.
