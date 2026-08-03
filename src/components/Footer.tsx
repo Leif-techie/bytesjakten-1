@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const FOOTER_LINKS = [
   { href: "/mobilabonnemang", label: "Mobilabonnemang" },
+  { href: "/bredband", label: "Bredband" },
   { href: "/om", label: "Om" },
   { href: "/kontakt", label: "Kontakt" },
 ] as const;
