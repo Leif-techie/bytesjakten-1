@@ -87,7 +87,7 @@ export function BroadbandSignupSection({
     <>
       <section id="registrera" className="bg-zinc-50 px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-3xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-100 text-3xl">
             ✉️
           </div>
           <h2 className="mt-6 text-3xl font-bold text-zinc-900">
@@ -120,11 +120,11 @@ export function BroadbandSignupSection({
                 placeholder="din@epost.se"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
               />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-3.5 font-semibold text-white transition hover:bg-orange-700"
               >
                 Kom igång →
               </button>
@@ -132,7 +132,7 @@ export function BroadbandSignupSection({
           </form>
 
           {status === "success" && message && (
-            <p className="mt-4 text-sm text-emerald-600">{message}</p>
+            <p className="mt-4 text-sm text-orange-600">{message}</p>
           )}
 
           <p className="mt-4 text-sm text-zinc-400">
@@ -246,7 +246,7 @@ export function BroadbandSignupSection({
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                className="w-full rounded-xl bg-orange-600 px-4 py-3 font-semibold text-white transition hover:bg-orange-700 disabled:opacity-60"
               >
                 {status === "loading" ? "Sparar..." : "Spara och registrera"}
               </button>
@@ -261,7 +261,7 @@ export function BroadbandSignupSection({
 function CheckIcon() {
   return (
     <svg
-      className="h-5 w-5 shrink-0 text-emerald-600"
+      className="h-5 w-5 shrink-0 text-orange-600"
       fill="currentColor"
       viewBox="0 0 20 20"
       aria-hidden

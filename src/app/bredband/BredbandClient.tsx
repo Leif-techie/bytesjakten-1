@@ -51,15 +51,15 @@ export function BredbandClient() {
     <>
       <Header />
       <main className="flex-1">
-        <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/80 to-white px-4 pb-12 pt-12 sm:px-6 sm:pb-16 sm:pt-16">
+        <section className="relative overflow-hidden bg-gradient-to-b from-orange-50/80 to-white px-4 pb-12 pt-12 sm:px-6 sm:pb-16 sm:pt-16">
           <div className="mx-auto max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
+            <p className="text-sm font-medium uppercase tracking-wide text-orange-700">
               Bredband
             </p>
             <h1 className="mt-2 text-4xl font-extrabold leading-tight tracking-tight text-zinc-900 sm:text-5xl">
               Byt smartare.
               <br />
-              <span className="text-emerald-600">Betala mindre.</span>
+              <span className="text-orange-600">Betala mindre.</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600">
               Samma idé som för mobil: du berättar vad du har och när avtalet går
@@ -117,7 +117,7 @@ export function BredbandClient() {
               Letar du efter mobil istället?{" "}
               <Link
                 href="/"
-                className="font-semibold text-emerald-600 hover:underline"
+                className="font-semibold text-orange-600 hover:underline"
               >
                 Till mobilabonnemang →
               </Link>
