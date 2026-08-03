@@ -6,8 +6,6 @@ export function Hero() {
           Byt smartare.
           <br />
           <span className="text-emerald-600">Betala mindre.</span>
-          <br />
-          <span className="text-emerald-800">Din personliga avtalsassistent</span>
         </h1>
         <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600">
           Vi bevakar alla kampanjer för mobilabonnemang utan bindningstid och mejlar dig exakt när det är
