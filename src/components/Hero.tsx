@@ -7,6 +7,9 @@ export function Hero() {
           <br />
           <span className="text-emerald-600">Betala mindre.</span>
         </h1>
+        <p className="mt-4 text-xl font-medium text-zinc-800 sm:text-2xl">
+          Din personliga avtalsassistent
+        </p>
         <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600">
           Vi bevakar alla kampanjer för mobilabonnemang utan bindningstid och mejlar dig exakt när det är
           dags att byta. Du slipper jämföra priser själv – vi hittar det bästa erbjudandet åt dig.
