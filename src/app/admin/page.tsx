@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
-import { OPERATORS, DATA_OPTIONS, NETWORK_OPTIONS } from "@/lib/constants";
+import {
+  OPERATORS,
+  DATA_OPTIONS,
+  NETWORK_OPTIONS,
+  BROADBAND_TECHNOLOGY_OPTIONS,
+} from "@/lib/constants";
 
 type Stats = {
   userCount: number;
   activeUsers: number;
+  broadbandUserCount?: number;
+  activeBroadbandUsers?: number;
   campaignCount: number;
   activeCampaigns: number;
   recentNotifications: number;
@@ -39,6 +46,31 @@ type User = {
   campaignLengthMonths: number | null;
   minDataGB: number;
   notificationCount: number;
+  lastNotificationAt: string | null;
+  lastCampaignOperator: string | null;
+  lastCampaignName: string | null;
+};
+
+type BroadbandUser = {
+  id: string;
+  email: string;
+  active: boolean;
+  currentOperator: string;
+  contractEndDate: string;
+  minSpeedMbps: number;
+  technology: string;
+};
+
+type ListedUser = {
+  id: string;
+  vertical: "mobile" | "broadband";
+  email: string;
+  active: boolean;
+  currentOperator: string;
+  contractEndDate: string;
+  detail: string;
+  campaignStartDate: string | null;
+  campaignLengthMonths: number | null;
   lastNotificationAt: string | null;
   lastCampaignOperator: string | null;
   lastCampaignName: string | null;
@@ -80,7 +112,7 @@ function isDueWithin10Days(date: string) {
   return days >= 0 && days <= 10;
 }
 
-function getMailStatus(user: User) {
+function getMailStatus(user: Pick<ListedUser, "lastNotificationAt">) {
   if (user.lastNotificationAt) {
     return {
       label: "Mejl skickat",
@@ -91,6 +123,47 @@ function getMailStatus(user: User) {
   return {
     label: "Inget mejl ännu",
     className: "bg-zinc-100 text-zinc-600",
+  };
+}
+
+function broadbandTechLabel(value: string) {
+  return (
+    BROADBAND_TECHNOLOGY_OPTIONS.find((opt) => opt.value === value)?.label ??
+    value
+  );
+}
+
+function toListedMobile(u: User): ListedUser {
+  return {
+    id: u.id,
+    vertical: "mobile",
+    email: u.email,
+    active: u.active,
+    currentOperator: u.currentOperator,
+    contractEndDate: u.contractEndDate,
+    detail: `${u.minDataGB} GB`,
+    campaignStartDate: u.campaignStartDate,
+    campaignLengthMonths: u.campaignLengthMonths,
+    lastNotificationAt: u.lastNotificationAt,
+    lastCampaignOperator: u.lastCampaignOperator,
+    lastCampaignName: u.lastCampaignName,
+  };
+}
+
+function toListedBroadband(u: BroadbandUser): ListedUser {
+  return {
+    id: u.id,
+    vertical: "broadband",
+    email: u.email,
+    active: u.active,
+    currentOperator: u.currentOperator,
+    contractEndDate: u.contractEndDate,
+    detail: `${u.minSpeedMbps} Mbit/s · ${broadbandTechLabel(u.technology)}`,
+    campaignStartDate: null,
+    campaignLengthMonths: null,
+    lastNotificationAt: null,
+    lastCampaignOperator: null,
+    lastCampaignName: null,
   };
 }
 
@@ -114,6 +187,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [broadbandUsers, setBroadbandUsers] = useState<BroadbandUser[]>([]);
   const [notifications, setNotifications] = useState<NotificationEntry[]>([]);
   const [emailConfig, setEmailConfig] = useState<EmailConfig | null>(null);
   const [message, setMessage] = useState("");
@@ -137,6 +211,7 @@ export default function AdminPage() {
     setStats(data.stats);
     setCampaigns(data.campaigns);
     setUsers(data.users);
+    setBroadbandUsers(data.broadbandUsers ?? []);
     setNotifications(data.notifications ?? []);
     setEmailConfig(data.emailConfig ?? null);
     setAffiliateDrafts(
@@ -421,7 +496,10 @@ export default function AdminPage() {
         {stats && (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["Registrerade", stats.activeUsers],
+              [
+                "Registrerade",
+                `${stats.activeUsers} mobil · ${stats.activeBroadbandUsers ?? 0} bredband`,
+              ],
               ["Kampanjer aktiva", stats.activeCampaigns],
               ["Mejl (7 dagar)", stats.recentNotifications],
               [
@@ -630,41 +708,81 @@ export default function AdminPage() {
 
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">
-            Användare ({users.filter((u) => u.active).length} aktiva
-            {users.some((u) => !u.active)
-              ? `, ${users.filter((u) => !u.active).length} avregistrerade`
+            Användare (
+            {users.filter((u) => u.active).length +
+              broadbandUsers.filter((u) => u.active).length}{" "}
+            aktiva
+            {users.some((u) => !u.active) || broadbandUsers.some((u) => !u.active)
+              ? `, ${
+                  users.filter((u) => !u.active).length +
+                  broadbandUsers.filter((u) => !u.active).length
+                } avregistrerade`
               : ""}
             )
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Skicka mejl manuellt: välj erbjudande per användare och klicka Skicka mejl.
-            Användare med högst 10 dagar kvar till byte visas överst och markeras.
+            Skicka mejl manuellt till mobilabonnemang: välj erbjudande och klicka Skicka mejl.
+            “Byter inom 10 dagar” är gemensam för mobil och mobilt bredband.
             Avregistrerade visas med överstruken e-post.
           </p>
           {(() => {
-            const activeUsers = users.filter((u) => u.active);
-            const unsubscribed = users.filter((u) => !u.active);
-            const dueSoon = activeUsers
+            const mobileListed = users.map(toListedMobile);
+            const broadbandListed = broadbandUsers.map(toListedBroadband);
+            const allActive = [...mobileListed, ...broadbandListed].filter(
+              (u) => u.active
+            );
+            const dueSoon = allActive
               .filter((u) => isDueWithin10Days(u.contractEndDate))
-              .sort((a, b) => daysUntil(a.contractEndDate) - daysUntil(b.contractEndDate));
-            const others = activeUsers.filter((u) => !isDueWithin10Days(u.contractEndDate));
+              .sort(
+                (a, b) =>
+                  daysUntil(a.contractEndDate) - daysUntil(b.contractEndDate)
+              );
+            const dueSoonIds = new Set(dueSoon.map((u) => u.id));
+            const otherMobile = mobileListed.filter(
+              (u) => u.active && !dueSoonIds.has(u.id)
+            );
+            const otherBroadband = broadbandListed.filter(
+              (u) => u.active && !dueSoonIds.has(u.id)
+            );
+            const unsubscribedMobile = mobileListed.filter((u) => !u.active);
+            const unsubscribedBroadband = broadbandListed.filter(
+              (u) => !u.active
+            );
             const selectable = campaigns.filter((c) => c.active);
 
-            function renderUserRow(u: User, highlight: boolean) {
+            function renderUserRow(u: ListedUser, highlight: boolean) {
               const status = getMailStatus(u);
               const days = daysUntil(u.contractEndDate);
               const unsubscribedUser = !u.active;
+              const canEmail = u.vertical === "mobile" && !unsubscribedUser;
               return (
                 <tr
-                  key={u.id}
+                  key={`${u.vertical}-${u.id}`}
                   className={`border-b border-zinc-100 ${
-                    unsubscribedUser ? "bg-zinc-50" : highlight ? "bg-amber-50" : ""
+                    unsubscribedUser
+                      ? "bg-zinc-50"
+                      : highlight
+                        ? "bg-amber-50"
+                        : ""
                   }`}
                 >
+                  <td className="py-2 pr-4">
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                        u.vertical === "mobile"
+                          ? "bg-emerald-50 text-emerald-800"
+                          : "bg-orange-50 text-orange-800"
+                      }`}
+                    >
+                      {u.vertical === "mobile" ? "Mobil" : "Mobilt bredband"}
+                    </span>
+                  </td>
                   <td className="py-2 pr-4 font-medium">
                     <span
                       className={
-                        unsubscribedUser ? "text-zinc-500 line-through" : undefined
+                        unsubscribedUser
+                          ? "text-zinc-500 line-through"
+                          : undefined
                       }
                     >
                       {u.email}
@@ -676,21 +794,29 @@ export default function AdminPage() {
                     )}
                   </td>
                   <td className="py-2 pr-4">{u.currentOperator}</td>
-                  <td className="py-2 pr-4">{u.minDataGB} GB</td>
+                  <td className="py-2 pr-4">{u.detail}</td>
                   <td className="py-2 pr-4">
-                    {u.campaignStartDate
-                      ? new Date(u.campaignStartDate).toLocaleDateString("sv-SE")
-                      : <span className="text-zinc-400">–</span>}
+                    {u.campaignStartDate ? (
+                      new Date(u.campaignStartDate).toLocaleDateString("sv-SE")
+                    ) : (
+                      <span className="text-zinc-400">–</span>
+                    )}
                   </td>
                   <td className="py-2 pr-4">
-                    {u.campaignLengthMonths != null
-                      ? u.campaignLengthMonths === 12
-                        ? "1 år"
-                        : `${u.campaignLengthMonths} mån`
-                      : <span className="text-zinc-400">–</span>}
+                    {u.campaignLengthMonths != null ? (
+                      u.campaignLengthMonths === 12 ? (
+                        "1 år"
+                      ) : (
+                        `${u.campaignLengthMonths} mån`
+                      )
+                    ) : (
+                      <span className="text-zinc-400">–</span>
+                    )}
                   </td>
                   <td className="py-2 pr-4">
-                    <div>{new Date(u.contractEndDate).toLocaleDateString("sv-SE")}</div>
+                    <div>
+                      {new Date(u.contractEndDate).toLocaleDateString("sv-SE")}
+                    </div>
                     {highlight && !unsubscribedUser && (
                       <span className="mt-1 inline-block rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">
                         {days === 0
@@ -702,7 +828,9 @@ export default function AdminPage() {
                     )}
                   </td>
                   <td className="py-2 pr-4">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}
+                    >
                       {status.label}
                     </span>
                     {u.lastNotificationAt && (
@@ -715,20 +843,23 @@ export default function AdminPage() {
                     {u.lastCampaignName ? (
                       <>
                         <p className="font-medium">{u.lastCampaignOperator}</p>
-                        <p className="text-xs text-zinc-500">{u.lastCampaignName}</p>
+                        <p className="text-xs text-zinc-500">
+                          {u.lastCampaignName}
+                        </p>
                       </>
                     ) : (
                       <span className="text-zinc-400">–</span>
                     )}
                   </td>
                   <td className="py-2 pr-4">
-                    {unsubscribedUser ? (
-                      <span className="text-zinc-400">–</span>
-                    ) : (
+                    {canEmail ? (
                       <select
                         value={campaignChoice[u.id] ?? ""}
                         onChange={(e) =>
-                          setCampaignChoice((prev) => ({ ...prev, [u.id]: e.target.value }))
+                          setCampaignChoice((prev) => ({
+                            ...prev,
+                            [u.id]: e.target.value,
+                          }))
                         }
                         className="max-w-[220px] rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
                       >
@@ -742,11 +873,13 @@ export default function AdminPage() {
                           ))
                         )}
                       </select>
+                    ) : (
+                      <span className="text-zinc-400">–</span>
                     )}
                   </td>
                   <td className="py-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      {!unsubscribedUser && (
+                      {canEmail && (
                         <button
                           onClick={() => sendEmailToUser(u.id)}
                           disabled={
@@ -756,7 +889,9 @@ export default function AdminPage() {
                           }
                           className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
                         >
-                          {sendingUserId === u.id ? "Skickar..." : "Skicka mejl"}
+                          {sendingUserId === u.id
+                            ? "Skickar..."
+                            : "Skicka mejl"}
                         </button>
                       )}
                       <button
@@ -775,9 +910,10 @@ export default function AdminPage() {
             const tableHead = (
               <thead>
                 <tr className="border-b text-zinc-500">
+                  <th className="py-2 pr-4">Typ</th>
                   <th className="py-2 pr-4">E-post</th>
                   <th className="py-2 pr-4">Operatör</th>
-                  <th className="py-2 pr-4">Data</th>
+                  <th className="py-2 pr-4">Detalj</th>
                   <th className="py-2 pr-4">Startdatum</th>
                   <th className="py-2 pr-4">Kampanjlängd</th>
                   <th className="py-2 pr-4">Slutdatum</th>
@@ -789,48 +925,83 @@ export default function AdminPage() {
               </thead>
             );
 
+            function renderTable(rows: ListedUser[], highlight: boolean) {
+              if (rows.length === 0) return null;
+              return (
+                <table className="mt-3 w-full text-left text-sm">
+                  {tableHead}
+                  <tbody>
+                    {rows.map((u) => renderUserRow(u, highlight))}
+                  </tbody>
+                </table>
+              );
+            }
+
             return (
               <>
                 <div className="mt-6">
                   <h3 className="text-base font-semibold text-amber-900">
                     Byter inom 10 dagar ({dueSoon.length})
                   </h3>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    Gemensam lista för mobilabonnemang och mobilt bredband.
+                  </p>
                   {dueSoon.length === 0 ? (
-                    <p className="mt-2 text-sm text-zinc-400">Ingen användare i det här fönstret just nu.</p>
+                    <p className="mt-2 text-sm text-zinc-400">
+                      Ingen användare i det här fönstret just nu.
+                    </p>
                   ) : (
-                    <table className="mt-3 w-full text-left text-sm">
-                      {tableHead}
-                      <tbody>{dueSoon.map((u) => renderUserRow(u, true))}</tbody>
-                    </table>
+                    renderTable(dueSoon, true)
                   )}
                 </div>
 
                 <div className="mt-8">
-                  <h3 className="text-base font-semibold text-zinc-800">
-                    Övriga aktiva ({others.length})
+                  <h3 className="text-base font-semibold text-emerald-900">
+                    Övriga aktiva – mobilabonnemang ({otherMobile.length})
                   </h3>
-                  {others.length === 0 ? (
-                    <p className="mt-2 text-sm text-zinc-400">Inga övriga aktiva användare.</p>
+                  {otherMobile.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">
+                      Inga övriga aktiva mobilabonnemang.
+                    </p>
                   ) : (
-                    <table className="mt-3 w-full text-left text-sm">
-                      {tableHead}
-                      <tbody>{others.map((u) => renderUserRow(u, false))}</tbody>
-                    </table>
+                    renderTable(otherMobile, false)
                   )}
                 </div>
 
-                {unsubscribed.length > 0 && (
-                  <div className="mt-8">
-                    <h3 className="text-base font-semibold text-zinc-600">
-                      Avregistrerade ({unsubscribed.length})
-                    </h3>
-                    <p className="mt-1 text-sm text-zinc-400">
-                      Har klickat Avregistrera i mejlet. E-postadressen visas överstruken.
+                <div className="mt-8">
+                  <h3 className="text-base font-semibold text-orange-900">
+                    Övriga aktiva – mobilt bredband ({otherBroadband.length})
+                  </h3>
+                  {otherBroadband.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">
+                      Inga övriga aktiva för mobilt bredband.
                     </p>
-                    <table className="mt-3 w-full text-left text-sm">
-                      {tableHead}
-                      <tbody>{unsubscribed.map((u) => renderUserRow(u, false))}</tbody>
-                    </table>
+                  ) : (
+                    renderTable(otherBroadband, false)
+                  )}
+                </div>
+
+                {(unsubscribedMobile.length > 0 ||
+                  unsubscribedBroadband.length > 0) && (
+                  <div className="mt-8 space-y-6">
+                    {unsubscribedMobile.length > 0 && (
+                      <div>
+                        <h3 className="text-base font-semibold text-zinc-600">
+                          Avregistrerade – mobilabonnemang (
+                          {unsubscribedMobile.length})
+                        </h3>
+                        {renderTable(unsubscribedMobile, false)}
+                      </div>
+                    )}
+                    {unsubscribedBroadband.length > 0 && (
+                      <div>
+                        <h3 className="text-base font-semibold text-zinc-600">
+                          Avregistrerade – mobilt bredband (
+                          {unsubscribedBroadband.length})
+                        </h3>
+                        {renderTable(unsubscribedBroadband, false)}
+                      </div>
+                    )}
                   </div>
                 )}
               </>
@@ -841,7 +1012,8 @@ export default function AdminPage() {
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">Mejlhistorik ({notifications.length})</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Senaste skickade mejl med kampanj hos annat telebolag.
+            Senaste skickade mejl (gemensam historik). Kampanjmejl för mobilt
+            bredband saknas ännu.
           </p>
           {notifications.length === 0 ? (
             <p className="mt-4 text-sm text-zinc-400">Inga mejl har skickats ännu.</p>
