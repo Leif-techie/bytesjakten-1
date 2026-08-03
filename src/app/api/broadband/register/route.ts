@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         currentOperator as (typeof BROADBAND_OPERATORS)[number]
       )
     ) {
-      return NextResponse.json({ error: "Ogiltig leverantör." }, { status: 400 });
+      return NextResponse.json({ error: "Ogiltig operatör." }, { status: 400 });
     }
 
     if (
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       (opt) => opt.value === (technology ?? "any")
     );
     if (!validTechnology) {
-      return NextResponse.json({ error: "Ogiltigt teknikval." }, { status: 400 });
+      return NextResponse.json({ error: "Ogiltigt nätval." }, { status: 400 });
     }
 
     const endDate = new Date(contractEndDate);
