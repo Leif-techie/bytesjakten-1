@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/mobilabonnemang", label: "Mobilabonnemang" },
-  { href: "/bredband", label: "Bredband" },
+  { href: "/bredband", label: "Mobilt bredband" },
   { href: "/om", label: "Om" },
   { href: "/kontakt", label: "Kontakt" },
 ] as const;
@@ -13,7 +13,7 @@ const NAV_LINKS = [
 export function Header() {
   const pathname = usePathname();
   const isBroadband = pathname.startsWith("/bredband");
-  const brandSuffix = isBroadband ? "bredband" : "mobilabonnemang";
+  const brandSuffix = isBroadband ? "mobilt bredband" : "mobilabonnemang";
 
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-100 bg-white/90 backdrop-blur-md">

@@ -55,8 +55,8 @@ export function BroadbandPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="🔌"
-          label="Teknik"
+          icon="📡"
+          label="Nät"
           value={technologyLabel(preferences.technology)}
         >
           <select
@@ -73,8 +73,8 @@ export function BroadbandPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="🏠"
-          label="Nuvarande leverantör"
+          icon="📱"
+          label="Nuvarande operatör"
           value={preferences.currentOperator}
         >
           <select
@@ -142,7 +142,7 @@ function defaultContractEnd(): string {
 
 export const defaultBroadbandPreferences: BroadbandPreferences = {
   minSpeedMbps: 250,
-  technology: "any",
+  technology: "5g",
   currentOperator: BROADBAND_OPERATORS[0],
   contractEndDate: defaultContractEnd(),
 };

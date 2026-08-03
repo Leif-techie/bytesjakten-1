@@ -91,18 +91,19 @@ export function BroadbandSignupSection({
             ✉️
           </div>
           <h2 className="mt-6 text-3xl font-bold text-zinc-900">
-            Få mejl när det är dags att byta bredband
+            Få mejl när det är dags att byta mobilt bredband
           </h2>
           <p className="mt-4 text-lg text-zinc-600">
             Registrera dig så håller vi koll på när ditt avtal går ut och mejlar
-            dig i tid – med tips om bättre kampanjpris.
+            dig i tid – med tips om bättre kampanjpris på 5G-hemma och mobilt
+            bredband.
           </p>
           <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
             <li className="flex items-center gap-2">
               <CheckIcon /> Påminnelse via mejl innan avtalet tar slut
             </li>
             <li className="mt-2 flex items-center gap-2">
-              <CheckIcon /> Baserat på hastighet och teknik du vill ha
+              <CheckIcon /> Baserat på hastighet och nät du vill ha
             </li>
             <li className="mt-2 flex items-center gap-2">
               <CheckIcon /> Du väljer själv om du vill byta
@@ -176,7 +177,7 @@ export function BroadbandSignupSection({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-zinc-700">
-                    Leverantör
+                    Operatör
                   </label>
                   <select
                     value={currentOperator}
@@ -223,7 +224,7 @@ export function BroadbandSignupSection({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-zinc-700">
-                    Teknik
+                    Nät
                   </label>
                   <select
                     value={technology}

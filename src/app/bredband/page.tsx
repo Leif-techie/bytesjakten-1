@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { BredbandClient } from "./BredbandClient";
 
 export const metadata: Metadata = {
-  title: "Bredband – byt smartare, betala mindre | Bytesjakten",
+  title: "Mobilt bredband & 5G-hemma – byt smartare | Bytesjakten",
   description:
-    "Registrera dig gratis så mejlar Bytesjakten dig när det är dags att byta bredband till ett bättre kampanjpris.",
+    "Registrera dig gratis så mejlar Bytesjakten dig när det är dags att byta mobilt bredband eller 5G-hemma till ett bättre kampanjpris.",
 };
 
 export default function BredbandPage() {
