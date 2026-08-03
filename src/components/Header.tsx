@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/mobilabonnemang", label: "Mobilabonnemang" },
@@ -8,6 +11,11 @@ const NAV_LINKS = [
 ] as const;
 
 export function Header() {
+  const pathname = usePathname();
+  const brandSuffix = pathname.startsWith("/bredband")
+    ? "bredband"
+    : "mobilabonnemang";
+
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-100 bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
@@ -21,7 +29,10 @@ export function Header() {
           </div>
           <span className="text-xl font-bold tracking-tight text-zinc-900">
             Bytesjakten
-            <span className="hidden font-medium text-zinc-500 sm:inline"> | mobilabonnemang</span>
+            <span className="hidden font-medium text-zinc-500 sm:inline">
+              {" "}
+              | {brandSuffix}
+            </span>
           </span>
         </Link>
 
