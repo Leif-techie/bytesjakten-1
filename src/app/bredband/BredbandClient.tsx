@@ -23,7 +23,7 @@ const FAQ = [
     question: "Kan man byta bredband innan bindningstiden gått ut?",
     answer: [
       "Ofta ja, men du kan behöva betala kvarvarande avgifter eller uppsägningskostnad. Det lönar sig ibland ändå om det nya erbjudandet är tillräckligt mycket billigare – räkna hem skillnaden först.",
-      "Bytesjakten fokuserar, precis som för mobil, på erbjudanden där du slipper onödig inlåsning så långt det går.",
+      "Bytesjakten fokuserar på erbjudanden där du slipper onödig inlåsning så långt det går.",
     ],
   },
   {
@@ -62,9 +62,8 @@ export function BredbandClient() {
               <span className="text-orange-600">Betala mindre.</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600">
-              Samma idé som för mobil: du berättar vad du har och när avtalet går
-              ut – vi mejlar dig när det är dags att byta till ett bättre
-              kampanjpris.
+              Berätta vilken leverantör du har och när avtalet går ut – vi mejlar
+              dig när det är dags att byta till ett bättre kampanjpris.
             </p>
             <ul className="mt-8 space-y-4">
               {[
