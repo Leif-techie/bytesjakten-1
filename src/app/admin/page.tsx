@@ -19,6 +19,8 @@ type Stats = {
   activeBroadbandUsers?: number;
   campaignCount: number;
   activeCampaigns: number;
+  broadbandCampaignCount?: number;
+  activeBroadbandCampaigns?: number;
   recentNotifications: number;
   lastCampaignUpdate: string | null;
 };
@@ -647,7 +649,10 @@ export default function AdminPage() {
                 "Registrerade",
                 `${stats.activeUsers} mobil · ${stats.activeBroadbandUsers ?? 0} bredband`,
               ],
-              ["Kampanjer aktiva", stats.activeCampaigns],
+              [
+                "Erbjudanden aktiva",
+                `${stats.activeCampaigns} mobil · ${stats.activeBroadbandCampaigns ?? 0} bredband`,
+              ],
               ["Mejl (7 dagar)", stats.recentNotifications],
               [
                 "Senaste uppdatering",
@@ -669,7 +674,7 @@ export default function AdminPage() {
             onClick={() => runAction("refresh_campaigns")}
             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white"
           >
-            Uppdatera kampanjer
+            Uppdatera erbjudanden
           </button>
         </div>
 
