@@ -82,10 +82,10 @@ export default function OmPage() {
                 Kom igång gratis →
               </Link>
               <Link
-                href="/mobilabonnemang"
+                href="/vanliga-fragor#mobilabonnemang"
                 className="inline-flex rounded-xl border border-zinc-300 bg-white px-5 py-3 font-semibold text-zinc-800 transition hover:border-emerald-400"
               >
-                Läs om mobilbyte
+                Läs vanliga frågor
               </Link>
             </div>
           </div>
