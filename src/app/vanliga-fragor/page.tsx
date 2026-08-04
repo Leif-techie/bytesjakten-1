@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -18,6 +19,7 @@ function FaqSection({
   description,
   items,
   accent,
+  tip,
 }: {
   id: string;
   eyebrow: string;
@@ -25,9 +27,15 @@ function FaqSection({
   description: string;
   items: typeof MOBILABBONEMANG_FAQ;
   accent: "emerald" | "orange";
+  tip?: ReactNode;
 }) {
   const eyebrowClass =
     accent === "orange" ? "text-orange-700" : "text-emerald-700";
+  const tipBorderClass =
+    accent === "orange" ? "border-orange-500" : "border-emerald-500";
+  const tipBgClass = accent === "orange" ? "bg-orange-50" : "bg-emerald-50";
+  const tipTitleClass =
+    accent === "orange" ? "text-orange-800" : "text-emerald-800";
 
   return (
     <section id={id} className="scroll-mt-24 px-4 py-12 sm:px-6 sm:py-16">
@@ -38,7 +46,21 @@ function FaqSection({
         <h2 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
           {title}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-zinc-600">{description}</p>
+        <div className="mt-4 flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-6">
+          <p className="flex-1 text-lg leading-relaxed text-zinc-600">
+            {description}
+          </p>
+          {tip ? (
+            <aside
+              className={`mx-auto w-full max-w-[220px] shrink-0 rotate-3 rounded-lg border-2 border-dashed ${tipBorderClass} ${tipBgClass} px-4 py-3 text-sm leading-snug text-zinc-700 shadow-sm sm:mx-0 sm:rotate-[6deg]`}
+            >
+              <p>
+                <strong className={`font-semibold ${tipTitleClass}`}>Tips!</strong>{" "}
+                {tip}
+              </p>
+            </aside>
+          ) : null}
+        </div>
 
         <div className="mt-10 space-y-4">
           {items.map((item) => (
@@ -103,6 +125,7 @@ export default function VanligaFragorPage() {
           description="Frågor om nummerflytt, eSIM och hur du byter abonnemang utan onödigt krångel."
           items={MOBILABBONEMANG_FAQ}
           accent="emerald"
+          tip="Byter man under våren så får man ofta extra bra surfdeal och får då ihop en stor surfpott över sommaren. Perfekt till husvagnen!"
         />
 
         <FaqSection
