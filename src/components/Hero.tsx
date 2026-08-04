@@ -12,7 +12,7 @@ export function Hero() {
           slipper jämföra priser själv – vi hittar det bästa erbjudandet åt dig
           när din nuvarande kampanj går ut. Registrera dig med din mejladress
           nedan för att komma igång. Ingen hake. Helt gratis. Njut av
-          opertörernas låga kampanjpriser, året runt.
+          operatörernas låga kampanjpriser, året runt.
         </p>
 
         <ul className="mt-8 space-y-4">
