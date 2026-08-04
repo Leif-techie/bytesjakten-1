@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findBestCampaign } from "@/lib/campaigns";
+import { findTopCampaigns } from "@/lib/campaigns";
 import { ensureCampaignsSeeded, getActiveCampaigns } from "@/lib/seed-campaigns";
 import { db } from "@/lib/db";
 
@@ -15,6 +15,10 @@ export async function GET(request: NextRequest) {
     const currentOperator = searchParams.get("currentOperator") ?? "";
     const isStudent = searchParams.get("isStudent") === "true";
     const bestOnly = searchParams.get("best") === "true";
+    const topLimit = Math.min(
+      10,
+      Math.max(1, Number(searchParams.get("top") ?? 3) || 3)
+    );
 
     const [campaigns, meta] = await Promise.all([
       getActiveCampaigns(),
@@ -24,15 +28,17 @@ export async function GET(request: NextRequest) {
     const lastCampaignUpdate = meta?.lastCampaignUpdate?.toISOString() ?? null;
 
     if (bestOnly) {
-      const best = findBestCampaign(
+      const top = findTopCampaigns(
         campaigns,
         minDataGB,
         networkPreference,
         currentOperator || undefined,
-        { isStudent }
+        { isStudent, limit: topLimit }
       );
+      const best = top[0] ?? null;
       return NextResponse.json({
         campaign: best,
+        campaigns: top,
         activeCount,
         lastCampaignUpdate,
       });

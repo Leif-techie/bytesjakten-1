@@ -81,17 +81,18 @@ export function matchesNetwork(
   return campaignNetwork === preference;
 }
 
-export function findBestCampaign<T extends CampaignInput & { id: string; active?: boolean }>(
+export function findTopCampaigns<T extends CampaignInput & { id: string; active?: boolean }>(
   campaigns: T[],
   minDataGB: number,
   networkPreference: string,
   excludeOperator?: string,
-  options: { isStudent?: boolean; now?: Date } = {}
-): (T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }) | null {
+  options: { isStudent?: boolean; now?: Date; limit?: number } = {}
+): Array<T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }> {
   const now = options.now ?? new Date();
   const wantStudent = Boolean(options.isStudent);
+  const limit = options.limit ?? 3;
 
-  const eligible = campaigns
+  return campaigns
     .filter(
       (c) =>
         isCampaignActive(c, now) &&
@@ -109,9 +110,23 @@ export function findBestCampaign<T extends CampaignInput & { id: string; active?
         return b.annualSavings - a.annualSavings;
       }
       return a.campaignPrice - b.campaignPrice;
-    });
+    })
+    .slice(0, limit);
+}
 
-  return eligible[0] ?? null;
+export function findBestCampaign<T extends CampaignInput & { id: string; active?: boolean }>(
+  campaigns: T[],
+  minDataGB: number,
+  networkPreference: string,
+  excludeOperator?: string,
+  options: { isStudent?: boolean; now?: Date } = {}
+): (T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }) | null {
+  return (
+    findTopCampaigns(campaigns, minDataGB, networkPreference, excludeOperator, {
+      ...options,
+      limit: 1,
+    })[0] ?? null
+  );
 }
 
 export function daysUntil(date: Date, from = new Date()): number {
