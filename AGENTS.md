@@ -20,4 +20,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
-**Demo-/bevisartefakter:** Använd **skärmdumpar**, inte video/skärminspelning. Ägarens Norton kan flagga/blockera videoinspelning och automation kopplad till filmdemos. Video behövs inte om det inte uttryckligen efterfrågas.
+**Demo-/bevisartefakter:** Ta **inte** skärmdumpar eller video om det inte uttryckligen efterfrågas. Ägaren granskar UI via **Desktop**-panelen. Norton kan dessutom flagga/blockera videoinspelning.
