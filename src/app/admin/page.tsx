@@ -53,6 +53,11 @@ type User = {
   lastNotificationAt: string | null;
   lastCampaignOperator: string | null;
   lastCampaignName: string | null;
+  campaignPrice?: number | null;
+  regularPrice?: number | null;
+  monthlyDiff?: number | null;
+  monthsCounted?: number | null;
+  savedSoFar?: number | null;
 };
 
 type BroadbandUser = {
@@ -66,6 +71,11 @@ type BroadbandUser = {
   lastNotificationAt?: string | null;
   lastCampaignOperator?: string | null;
   lastCampaignName?: string | null;
+  campaignPrice?: number | null;
+  regularPrice?: number | null;
+  monthlyDiff?: number | null;
+  monthsCounted?: number | null;
+  savedSoFar?: number | null;
 };
 
 type BroadbandCampaign = {
@@ -95,6 +105,11 @@ type ListedUser = {
   lastNotificationAt: string | null;
   lastCampaignOperator: string | null;
   lastCampaignName: string | null;
+  campaignPrice: number | null;
+  regularPrice: number | null;
+  monthlyDiff: number | null;
+  monthsCounted: number | null;
+  savedSoFar: number | null;
 };
 
 type NotificationEntry = {
@@ -170,6 +185,11 @@ function toListedMobile(u: User): ListedUser {
     lastNotificationAt: u.lastNotificationAt,
     lastCampaignOperator: u.lastCampaignOperator,
     lastCampaignName: u.lastCampaignName,
+    campaignPrice: u.campaignPrice ?? null,
+    regularPrice: u.regularPrice ?? null,
+    monthlyDiff: u.monthlyDiff ?? null,
+    monthsCounted: u.monthsCounted ?? null,
+    savedSoFar: u.savedSoFar ?? null,
   };
 }
 
@@ -187,7 +207,17 @@ function toListedBroadband(u: BroadbandUser): ListedUser {
     lastNotificationAt: u.lastNotificationAt ?? null,
     lastCampaignOperator: u.lastCampaignOperator ?? null,
     lastCampaignName: u.lastCampaignName ?? null,
+    campaignPrice: u.campaignPrice ?? null,
+    regularPrice: u.regularPrice ?? null,
+    monthlyDiff: u.monthlyDiff ?? null,
+    monthsCounted: u.monthsCounted ?? null,
+    savedSoFar: u.savedSoFar ?? null,
   };
+}
+
+function formatKr(value: number | null | undefined) {
+  if (value == null) return null;
+  return `${value.toLocaleString("sv-SE")} kr`;
 }
 
 const emptyCampaign = {
@@ -1114,7 +1144,10 @@ export default function AdminPage() {
           <p className="mt-1 text-sm text-zinc-500">
             Skicka mejl manuellt: välj erbjudande per användare (mobilkampanjer
             respektive bredbandskampanjer). “Byter inom 10 dagar” är gemensam.
-            Avregistrerade visas med överstruken e-post.
+            Avregistrerade visas med överstruken e-post. Sparat hittills =
+            (ord. pris − kampanjpris) × antal hela månader sedan startdatum
+            (max kampanjlängd). Priserna låses vid byte-klart, annars från
+            senaste mejlade kampanj.
           </p>
           {(() => {
             const mobileListed = users.map(toListedMobile);
@@ -1249,6 +1282,42 @@ export default function AdminPage() {
                       <span className="text-zinc-400">–</span>
                     )}
                   </td>
+                  <td className="py-2 pr-4 whitespace-nowrap">
+                    {formatKr(u.regularPrice) ?? (
+                      <span className="text-zinc-400">–</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4 whitespace-nowrap">
+                    {formatKr(u.campaignPrice) ?? (
+                      <span className="text-zinc-400">–</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4 whitespace-nowrap">
+                    {u.monthlyDiff != null ? (
+                      <span className="font-medium text-emerald-700">
+                        {formatKr(u.monthlyDiff)}/mån
+                      </span>
+                    ) : (
+                      <span className="text-zinc-400">–</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4 whitespace-nowrap">
+                    {u.savedSoFar != null ? (
+                      <div>
+                        <span className="font-semibold text-emerald-800">
+                          {formatKr(u.savedSoFar)}
+                        </span>
+                        {u.monthsCounted != null && (
+                          <p className="text-xs text-zinc-500">
+                            {u.monthsCounted}{" "}
+                            {u.monthsCounted === 1 ? "månad" : "månader"}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-zinc-400">–</span>
+                    )}
+                  </td>
                   <td className="py-2 pr-4">
                     {canEmail ? (
                       <select
@@ -1321,6 +1390,10 @@ export default function AdminPage() {
                   <th className="py-2 pr-4">Slutdatum</th>
                   <th className="py-2 pr-4">Mejlstatus</th>
                   <th className="py-2 pr-4">Senaste kampanj i mejl</th>
+                  <th className="py-2 pr-4">Ord. pris</th>
+                  <th className="py-2 pr-4">Kampanjpris</th>
+                  <th className="py-2 pr-4">Diff</th>
+                  <th className="py-2 pr-4">Sparat hittills</th>
                   <th className="py-2 pr-4">Erbjudande</th>
                   <th className="py-2">Åtgärder</th>
                 </tr>

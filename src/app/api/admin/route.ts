@@ -7,6 +7,7 @@ import {
   sendManualSwitchEmail,
 } from "@/lib/notifications";
 import { getEmailConfigStatus } from "@/lib/email";
+import { calculateSavingsSoFar } from "@/lib/campaigns";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -35,6 +36,8 @@ export async function GET(request: NextRequest) {
           contractEndDate: true,
           campaignStartDate: true,
           campaignLengthMonths: true,
+          switchedCampaignPrice: true,
+          switchedRegularPrice: true,
           minDataGB: true,
           createdAt: true,
           notifications: {
@@ -77,16 +80,20 @@ export async function GET(request: NextRequest) {
 
   const campaignIds = [
     ...new Set(
-      notificationLogs
-        .map((log) => log.campaignId)
-        .filter((id): id is string => Boolean(id))
+      [
+        ...notificationLogs.map((log) => log.campaignId),
+        ...users.map((user) => user.notifications[0]?.campaignId),
+      ].filter((id): id is string => Boolean(id))
     ),
   ];
   const broadbandCampaignIds = [
     ...new Set(
-      notificationLogs
-        .map((log) => log.broadbandCampaignId)
-        .filter((id): id is string => Boolean(id))
+      [
+        ...notificationLogs.map((log) => log.broadbandCampaignId),
+        ...broadbandUsers.map(
+          (user) => user.notifications[0]?.broadbandCampaignId
+        ),
+      ].filter((id): id is string => Boolean(id))
     ),
   ];
 
@@ -99,6 +106,7 @@ export async function GET(request: NextRequest) {
             operator: true,
             name: true,
             campaignPrice: true,
+            regularPrice: true,
           },
         })
       : Promise.resolve([]),
@@ -110,6 +118,7 @@ export async function GET(request: NextRequest) {
             operator: true,
             name: true,
             campaignPrice: true,
+            regularPrice: true,
           },
         })
       : Promise.resolve([]),
@@ -128,6 +137,17 @@ export async function GET(request: NextRequest) {
       ? campaignMap[lastNotification.campaignId]
       : null;
 
+    const campaignPrice =
+      user.switchedCampaignPrice ?? lastCampaign?.campaignPrice ?? null;
+    const regularPrice =
+      user.switchedRegularPrice ?? lastCampaign?.regularPrice ?? null;
+    const savings = calculateSavingsSoFar({
+      campaignPrice,
+      regularPrice,
+      campaignStartDate: user.campaignStartDate,
+      campaignLengthMonths: user.campaignLengthMonths,
+    });
+
     return {
       id: user.id,
       email: user.email,
@@ -142,6 +162,11 @@ export async function GET(request: NextRequest) {
       lastNotificationAt: lastNotification?.sentAt ?? null,
       lastCampaignOperator: lastCampaign?.operator ?? null,
       lastCampaignName: lastCampaign?.name ?? null,
+      campaignPrice: savings.campaignPrice,
+      regularPrice: savings.regularPrice,
+      monthlyDiff: savings.monthlyDiff,
+      monthsCounted: savings.monthsCounted,
+      savedSoFar: savings.savedSoFar,
     };
   });
 
@@ -150,6 +175,13 @@ export async function GET(request: NextRequest) {
     const lastCampaign = lastNotification?.broadbandCampaignId
       ? broadbandCampaignMap[lastNotification.broadbandCampaignId]
       : null;
+
+    const campaignPrice = lastCampaign?.campaignPrice ?? null;
+    const regularPrice = lastCampaign?.regularPrice ?? null;
+    const monthlyDiff =
+      campaignPrice != null && regularPrice != null
+        ? Math.max(0, regularPrice - campaignPrice)
+        : null;
 
     return {
       id: user.id,
@@ -163,6 +195,11 @@ export async function GET(request: NextRequest) {
       lastNotificationAt: lastNotification?.sentAt ?? null,
       lastCampaignOperator: lastCampaign?.operator ?? null,
       lastCampaignName: lastCampaign?.name ?? null,
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
     };
   });
 

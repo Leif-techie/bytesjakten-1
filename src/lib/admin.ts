@@ -33,12 +33,68 @@ export async function completeSwitch(params: {
   contractEndDate: Date;
   campaignStartDate: Date;
   campaignLengthMonths: number;
+  campaignId?: string | null;
 }): Promise<{ success: boolean; error?: string }> {
   const user = await db.user.findUnique({
     where: { unsubscribeToken: params.token },
   });
   if (!user) {
     return { success: false, error: "Ogiltig länk." };
+  }
+
+  let switchedCampaignPrice: number | null = user.switchedCampaignPrice;
+  let switchedRegularPrice: number | null = user.switchedRegularPrice;
+  let resolvedCampaignId: string | null = params.campaignId ?? null;
+
+  if (params.campaignId) {
+    const fromLink = await db.campaign.findUnique({
+      where: { id: params.campaignId },
+      select: { id: true, campaignPrice: true, regularPrice: true },
+    });
+    if (fromLink) {
+      switchedCampaignPrice = fromLink.campaignPrice;
+      switchedRegularPrice = fromLink.regularPrice;
+      resolvedCampaignId = fromLink.id;
+    }
+  }
+
+  if (switchedCampaignPrice == null || switchedRegularPrice == null) {
+    const reminders = await db.notificationLog.findMany({
+      where: { userId: user.id, type: "switch_reminder", campaignId: { not: null } },
+      orderBy: { sentAt: "desc" },
+      take: 10,
+      select: { campaignId: true },
+    });
+    const campaignIds = reminders
+      .map((r) => r.campaignId)
+      .filter((id): id is string => Boolean(id));
+
+    if (campaignIds.length > 0) {
+      const campaigns = await db.campaign.findMany({
+        where: { id: { in: campaignIds } },
+        select: {
+          id: true,
+          operator: true,
+          campaignPrice: true,
+          regularPrice: true,
+        },
+      });
+      const byId = Object.fromEntries(campaigns.map((c) => [c.id, c]));
+      const matching =
+        campaignIds
+          .map((id) => byId[id])
+          .find(
+            (c) =>
+              c &&
+              c.operator.toLowerCase() === params.currentOperator.toLowerCase()
+          ) ?? campaignIds.map((id) => byId[id]).find(Boolean);
+
+      if (matching) {
+        switchedCampaignPrice = matching.campaignPrice;
+        switchedRegularPrice = matching.regularPrice;
+        resolvedCampaignId = matching.id;
+      }
+    }
   }
 
   const updated = await db.user.update({
@@ -48,6 +104,8 @@ export async function completeSwitch(params: {
       contractEndDate: params.contractEndDate,
       campaignStartDate: params.campaignStartDate,
       campaignLengthMonths: params.campaignLengthMonths,
+      switchedCampaignPrice,
+      switchedRegularPrice,
       active: true,
     },
   });
@@ -67,6 +125,7 @@ export async function completeSwitch(params: {
     data: {
       userId: updated.id,
       type: "switch_complete",
+      campaignId: resolvedCampaignId,
     },
   });
 

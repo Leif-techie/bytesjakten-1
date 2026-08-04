@@ -28,6 +28,7 @@ function SwitchCompleteContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const suggestedOperator = searchParams.get("operator");
+  const campaignIdFromLink = searchParams.get("campaignId");
 
   const [loadStatus, setLoadStatus] = useState<"loading" | "ready" | "error">(
     "loading"
@@ -101,6 +102,7 @@ function SwitchCompleteContent() {
           currentOperator,
           campaignStartDate,
           campaignLengthMonths,
+          campaignId: campaignIdFromLink || undefined,
         }),
       });
       const data = await res.json();

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, currentOperator, campaignStartDate, campaignLengthMonths } =
+    const { token, currentOperator, campaignStartDate, campaignLengthMonths, campaignId } =
       body;
 
     if (
@@ -91,6 +91,10 @@ export async function POST(request: NextRequest) {
       contractEndDate: endDate,
       campaignStartDate: startDate,
       campaignLengthMonths: length,
+      campaignId:
+        typeof campaignId === "string" && campaignId.trim()
+          ? campaignId.trim()
+          : null,
     });
 
     if (!result.success) {

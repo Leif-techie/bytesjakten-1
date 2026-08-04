@@ -31,6 +31,7 @@ export async function sendManualSwitchEmail(
     contractEndDate: user.contractEndDate,
     network: campaign.network ?? "any",
     unsubscribeToken: user.unsubscribeToken,
+    campaignId: campaign.id,
   });
 
   if (result.success) {

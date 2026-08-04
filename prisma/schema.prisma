@@ -8,20 +8,24 @@ datasource db {
 }
 
 model User {
-  id                   String    @id @default(cuid())
-  email                String    @unique
-  currentOperator      String
-  contractEndDate      DateTime
-  campaignStartDate    DateTime?
-  campaignLengthMonths Int?
-  minDataGB            Int
-  networkPreference    String    @default("any")
-  isStudent            Boolean   @default(false)
-  unsubscribeToken     String    @unique @default(cuid())
-  active               Boolean   @default(true)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  notifications        NotificationLog[]
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  currentOperator        String
+  contractEndDate        DateTime
+  campaignStartDate      DateTime?
+  campaignLengthMonths   Int?
+  /** Låst kampanjpris vid byte-klart (för sparande hittills). */
+  switchedCampaignPrice  Int?
+  /** Låst ordinariepris vid byte-klart (för sparande hittills). */
+  switchedRegularPrice   Int?
+  minDataGB              Int
+  networkPreference      String    @default("any")
+  isStudent              Boolean   @default(false)
+  unsubscribeToken       String    @unique @default(cuid())
+  active                 Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  notifications          NotificationLog[]
 }
 
 model Campaign {

@@ -65,6 +65,89 @@ export function calculateSavings(
   return { annualSavings, averageMonthlyCost: campaignPrice, campaignMonths };
 }
 
+/** Antal hela månader mellan två datum (kalendermånader). */
+export function wholeMonthsBetween(start: Date, end: Date = new Date()): number {
+  let months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth());
+  if (end.getDate() < start.getDate()) {
+    months -= 1;
+  }
+  return Math.max(0, months);
+}
+
+/**
+ * Sparande hittills under en pågående kampanjperiod.
+ * monthlyDiff = ordinarie − kampanjpris; kumulativ = diff × månader hittills (max längd).
+ */
+export function calculateSavingsSoFar(params: {
+  campaignPrice: number | null | undefined;
+  regularPrice: number | null | undefined;
+  campaignStartDate: Date | string | null | undefined;
+  campaignLengthMonths: number | null | undefined;
+  now?: Date;
+}): {
+  campaignPrice: number | null;
+  regularPrice: number | null;
+  monthlyDiff: number | null;
+  monthsCounted: number | null;
+  savedSoFar: number | null;
+} {
+  const campaignPrice =
+    params.campaignPrice != null && Number.isFinite(params.campaignPrice)
+      ? Number(params.campaignPrice)
+      : null;
+  const regularPrice =
+    params.regularPrice != null && Number.isFinite(params.regularPrice)
+      ? Number(params.regularPrice)
+      : null;
+
+  const monthlyDiff =
+    campaignPrice != null && regularPrice != null
+      ? Math.max(0, regularPrice - campaignPrice)
+      : null;
+
+  if (
+    monthlyDiff == null ||
+    !params.campaignStartDate ||
+    params.campaignLengthMonths == null ||
+    params.campaignLengthMonths <= 0
+  ) {
+    return {
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
+    };
+  }
+
+  const start = new Date(params.campaignStartDate);
+  if (Number.isNaN(start.getTime())) {
+    return {
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
+    };
+  }
+
+  const now = params.now ?? new Date();
+  const monthsCounted = Math.min(
+    params.campaignLengthMonths,
+    wholeMonthsBetween(start, now)
+  );
+
+  return {
+    campaignPrice,
+    regularPrice,
+    monthlyDiff,
+    monthsCounted,
+    savedSoFar: monthlyDiff * monthsCounted,
+  };
+}
+
 export function isCampaignActive(
   campaign: { campaignStart: Date; campaignEnd: Date; active?: boolean },
   now = new Date()
