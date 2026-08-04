@@ -73,7 +73,7 @@ function FeaturedOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = OPERATOR_COLORS[campaign.operator] ?? "bg-zinc-800";
+  const bgColor = rankGreen(1);
   const ready = campaign.readyToSwitch ?? true;
 
   return (
@@ -144,7 +144,7 @@ function RunnerUpOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = OPERATOR_COLORS[campaign.operator] ?? "bg-zinc-800";
+  const bgColor = rankGreen(rank);
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
