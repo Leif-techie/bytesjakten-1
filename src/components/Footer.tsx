@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 const FOOTER_LINKS = [
-  { href: "/mobilabonnemang", label: "Mobilabonnemang" },
+  { href: "/", label: "Mobilabonnemang" },
   { href: "/bredband", label: "Mobilt bredband" },
+  { href: "/vanliga-fragor", label: "Vanliga frågor" },
   { href: "/om", label: "Om" },
   { href: "/kontakt", label: "Kontakt" },
 ] as const;

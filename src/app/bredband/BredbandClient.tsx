@@ -11,37 +11,6 @@ import {
 } from "@/components/BroadbandPreferencesForm";
 import { BroadbandSignupSection } from "@/components/BroadbandSignupSection";
 
-const FAQ = [
-  {
-    question: "Vad är mobilt bredband?",
-    answer: [
-      "Mobilt bredband (ofta 5G-hemma) ger internet via mobilnätet med en router hemma – utan fiberinstallation eller stadsnät. Du beställer, kopplar in routern och surfar.",
-      "Hastigheten beror på täckning och belastning i området, men du slipper binda dig till en specifik fiberleverantör på adressen.",
-    ],
-  },
-  {
-    question: "Hur fungerar byte av mobilt bredband?",
-    answer: [
-      "Du beställer ett nytt abonnemang hos en annan operatör, aktiverar den nya routern eller SIM:en och säger upp det gamla avtalet (eller låter det löpa ut).",
-      "Kolla bindningstid, uppsägningstid och eventuella avgifter innan du byter.",
-    ],
-  },
-  {
-    question: "Kan man byta innan bindningstiden gått ut?",
-    answer: [
-      "Ofta ja, men du kan behöva betala kvarvarande avgifter. Räkna hem skillnaden mot det nya kampanjpriset först.",
-      "Bytesjakten fokuserar på erbjudanden där du slipper onödig inlåsning så långt det går.",
-    ],
-  },
-  {
-    question: "Vad påverkar pris och hastighet?",
-    answer: [
-      "Kampanjlängd, ordinarie pris efter kampanj, om router ingår och vilken hastighetsnivå du väljer.",
-      "Täckning där du bor spelar stor roll för hur snabbt det känns i praktiken – särskilt med 5G.",
-    ],
-  },
-] as const;
-
 export function BredbandClient() {
   const [preferences, setPreferences] = useState<BroadbandPreferences>(
     defaultBroadbandPreferences
@@ -95,22 +64,23 @@ export function BredbandClient() {
             <h2 className="text-2xl font-bold text-zinc-900">
               Vanliga frågor om mobilt bredband
             </h2>
-            <div className="mt-6 space-y-4">
-              {FAQ.map((item) => (
-                <article
-                  key={item.question}
-                  className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"
-                >
-                  <h3 className="text-lg font-semibold text-zinc-900">
-                    {item.question}
-                  </h3>
-                  <div className="mt-3 space-y-3 leading-relaxed text-zinc-600">
-                    {item.answer.map((paragraph) => (
-                      <p key={paragraph}>{paragraph}</p>
-                    ))}
-                  </div>
-                </article>
-              ))}
+            <p className="mt-4 text-lg leading-relaxed text-zinc-600">
+              Alla frågor och svar om både mobilabonnemang och mobilt bredband
+              finns nu samlade på en gemensam sida.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/vanliga-fragor#mobilt-bredband"
+                className="inline-flex rounded-xl bg-orange-600 px-5 py-3 font-semibold text-white transition hover:bg-orange-700"
+              >
+                Läs vanliga frågor om mobilt bredband →
+              </Link>
+              <Link
+                href="/vanliga-fragor#mobilabonnemang"
+                className="inline-flex rounded-xl border border-zinc-300 bg-white px-5 py-3 font-semibold text-zinc-800 transition hover:border-orange-300 hover:text-orange-700"
+              >
+                Se frågor om mobilabonnemang
+              </Link>
             </div>
 
             <p className="mt-10 text-zinc-600">

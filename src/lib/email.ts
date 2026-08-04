@@ -20,7 +20,7 @@ function switchCompleteUrl(token: string, operator?: string): string {
 }
 
 function esimGuideUrl(): string {
-  return `${APP_URL}/mobilabonnemang#esim`;
+  return `${APP_URL}/#esim`;
 }
 
 function parseFromAddress(raw: string): { address: string; display_name?: string } {

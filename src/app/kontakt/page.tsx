@@ -50,10 +50,10 @@ export default function KontaktPage() {
               <p>
                 Mer om hur byten fungerar finns på{" "}
                 <Link
-                  href="/mobilabonnemang"
+                  href="/vanliga-fragor#mobilabonnemang"
                   className="font-semibold text-emerald-600 hover:underline"
                 >
-                  sidan om mobilabonnemang
+                  sidan med vanliga frågor
                 </Link>
                 .
               </p>
