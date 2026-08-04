@@ -33,6 +33,7 @@ type CampaignData = {
 export default function HomePage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
+  const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [activeCount, setActiveCount] = useState<number | null>(null);
   const [lastCampaignUpdate, setLastCampaignUpdate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,7 @@ export default function HomePage() {
     try {
       const params = new URLSearchParams({
         best: "true",
+        top: "3",
         minDataGB: String(prefs.minDataGB),
         network: prefs.networkPreference,
         currentOperator: prefs.currentOperator,
@@ -49,7 +51,13 @@ export default function HomePage() {
       });
       const res = await fetch(`/api/campaigns?${params}`);
       const data = await res.json();
-      setCampaign(data.campaign ?? null);
+      const top = Array.isArray(data.campaigns)
+        ? (data.campaigns as CampaignData[])
+        : data.campaign
+          ? [data.campaign as CampaignData]
+          : [];
+      setCampaigns(top);
+      setCampaign(top[0] ?? null);
       setActiveCount(
         typeof data.activeCount === "number" ? data.activeCount : null,
       );
@@ -60,6 +68,7 @@ export default function HomePage() {
       );
     } catch {
       setCampaign(null);
+      setCampaigns([]);
       setActiveCount(null);
       setLastCampaignUpdate(null);
     } finally {
@@ -73,6 +82,7 @@ export default function HomePage() {
 
   const contractEnd = new Date(preferences.contractEndDate);
   const readyToSwitch = daysUntil(contractEnd) <= 7;
+  const ranked = campaigns.map((c) => ({ ...c, readyToSwitch }));
 
   return (
     <>
@@ -85,11 +95,8 @@ export default function HomePage() {
         )}
         <PreferencesForm preferences={preferences} onChange={setPreferences} />
         <BestOfferCard
-          campaign={
-            campaign
-              ? { ...campaign, readyToSwitch }
-              : null
-          }
+          campaigns={ranked}
+          campaign={ranked[0] ?? null}
           loading={loading}
           activeCount={activeCount}
           lastCampaignUpdate={lastCampaignUpdate}
