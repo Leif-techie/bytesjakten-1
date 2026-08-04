@@ -9,6 +9,7 @@
     "lint": "eslint",
     "setup": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
     "prod": "powershell -ExecutionPolicy Bypass -File scripts/start.ps1",
+    "deploy": "bash scripts/deploy.sh",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx scripts/run-cron.ts",
     "cron": "tsx scripts/run-cron.ts",
