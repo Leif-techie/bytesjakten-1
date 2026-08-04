@@ -10,6 +10,7 @@ import {
   type BroadbandPreferences,
 } from "@/components/BroadbandPreferencesForm";
 import { BroadbandSignupSection } from "@/components/BroadbandSignupSection";
+import { BroadbandBestOfferCard } from "@/components/BroadbandBestOfferCard";
 
 export function BredbandClient() {
   const [preferences, setPreferences] = useState<BroadbandPreferences>(
@@ -58,6 +59,7 @@ export function BredbandClient() {
           preferences={preferences}
           onChange={setPreferences}
         />
+        <BroadbandBestOfferCard preferences={preferences} />
 
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">

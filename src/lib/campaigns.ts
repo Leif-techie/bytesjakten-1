@@ -129,6 +129,68 @@ export function findBestCampaign<T extends CampaignInput & { id: string; active?
   );
 }
 
+export type BroadbandCampaignInput = {
+  operator: string;
+  name: string;
+  speedMbps: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
+  technology?: string;
+};
+
+export function matchesBroadbandTechnology(
+  campaignTechnology: string,
+  preference: string
+): boolean {
+  if (preference === "any" || campaignTechnology === "any") return true;
+  return campaignTechnology === preference;
+}
+
+export function findTopBroadbandCampaigns<
+  T extends BroadbandCampaignInput & { id: string; active?: boolean },
+>(
+  campaigns: T[],
+  minSpeedMbps: number,
+  technologyPreference: string,
+  excludeOperator?: string,
+  options: { now?: Date; limit?: number } = {}
+): Array<T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }> {
+  const now = options.now ?? new Date();
+  const limit = options.limit ?? 3;
+
+  return campaigns
+    .filter(
+      (c) =>
+        isCampaignActive(c, now) &&
+        c.speedMbps >= minSpeedMbps &&
+        matchesBroadbandTechnology(c.technology ?? "any", technologyPreference) &&
+        (!excludeOperator || c.operator.toLowerCase() !== excludeOperator.toLowerCase())
+    )
+    .map((c) => ({
+      ...c,
+      ...calculateSavings(c.campaignPrice, c.regularPrice, c.campaignStart, c.campaignEnd),
+    }))
+    .sort((a, b) => {
+      if (b.annualSavings !== a.annualSavings) {
+        return b.annualSavings - a.annualSavings;
+      }
+      return a.campaignPrice - b.campaignPrice;
+    })
+    .slice(0, limit);
+}
+
+export function getBroadbandTechnologyLabel(value: string): string {
+  const labels: Record<string, string> = {
+    any: "Spelar ingen roll",
+    "5g": "5G",
+    "4g": "4G/LTE",
+  };
+  return labels[value] ?? value;
+}
+
 export function daysUntil(date: Date, from = new Date()): number {
   const ms = date.getTime() - from.getTime();
   return Math.ceil(ms / (1000 * 60 * 60 * 24));

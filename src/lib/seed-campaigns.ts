@@ -650,3 +650,10 @@ export async function ensureCampaignsSeeded(): Promise<void> {
     await updateCampaigns();
   }
 }
+
+export async function ensureBroadbandCampaignsSeeded(): Promise<void> {
+  const count = await db.broadbandCampaign.count();
+  if (count === 0) {
+    await updateCampaigns();
+  }
+}
