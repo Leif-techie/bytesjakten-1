@@ -1,4 +1,4 @@
-import type { Campaign } from "@/generated/prisma/client";
+import type { Campaign, BroadbandCampaign } from "@/generated/prisma/client";
 import { db } from "./db";
 
 type SeedCampaign = {
@@ -14,6 +14,18 @@ type SeedCampaign = {
   isStudent: boolean;
 };
 
+type SeedBroadbandCampaign = {
+  operator: string;
+  name: string;
+  speedMbps: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
+  technology: string;
+};
+
 /** Rolling window so refreshed seed campaigns stay active after "Uppdatera kampanjer". */
 function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date } {
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -25,7 +37,7 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 31 Jul 2026.
+ * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 4 Aug 2026.
  * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
  * Replace `url` with Addrevenue tracking links in admin after refresh.
  */
@@ -258,13 +270,13 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
   ];
 
-  // Student plans — checked 31 Jul 2026
+  // Student plans — checked 4 Aug 2026
   const student: SeedCampaign[] = [
-    // Hallon Student: basnivå + 50 GB extra surfpott
+    // Hallon Student – 4 månader kampanj, ordinarie studentnivåer
     {
       operator: "Hallon",
-      name: "Hallon Student – 60 GB",
-      dataGB: 60,
+      name: "Hallon Student – 10 GB",
+      dataGB: 10,
       campaignPrice: 19,
       regularPrice: 109,
       campaignStart: start,
@@ -275,8 +287,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 70 GB",
-      dataGB: 70,
+      name: "Hallon Student – 20 GB",
+      dataGB: 20,
       campaignPrice: 29,
       regularPrice: 159,
       campaignStart: start,
@@ -287,8 +299,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 100 GB",
-      dataGB: 100,
+      name: "Hallon Student – 50 GB",
+      dataGB: 50,
       campaignPrice: 39,
       regularPrice: 259,
       campaignStart: start,
@@ -299,8 +311,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 150 GB",
-      dataGB: 150,
+      name: "Hallon Student – 100 GB",
+      dataGB: 100,
       campaignPrice: 49,
       regularPrice: 309,
       campaignStart: start,
@@ -311,8 +323,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon Student – 250 GB",
-      dataGB: 250,
+      name: "Hallon Student – 200 GB",
+      dataGB: 200,
       campaignPrice: 59,
       regularPrice: 359,
       campaignStart: start,
@@ -483,12 +495,103 @@ function buildCampaigns(now: Date): SeedCampaign[] {
   return [...regular, ...student];
 }
 
-export async function updateCampaigns(): Promise<{ updated: number; active: number }> {
+function buildBroadbandCampaigns(now: Date): SeedBroadbandCampaign[] {
+  const { start, end } = campaignWindow(now, 3);
+
+  return [
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 5 GB",
+      speedMbps: 100,
+      campaignPrice: 29,
+      regularPrice: 89,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 20 GB",
+      speedMbps: 100,
+      campaignPrice: 39,
+      regularPrice: 149,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 100 GB",
+      speedMbps: 150,
+      campaignPrice: 69,
+      regularPrice: 249,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 200 GB",
+      speedMbps: 150,
+      campaignPrice: 79,
+      regularPrice: 299,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Obegränsat 5G-bredband",
+      speedMbps: 150,
+      campaignPrice: 99,
+      regularPrice: 399,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Tre",
+      name: "Tre – Bredband Max 150",
+      speedMbps: 150,
+      campaignPrice: 399,
+      regularPrice: 399,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.tre.se/handla/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Tre",
+      name: "Tre – Bredband Max 1000",
+      speedMbps: 1000,
+      campaignPrice: 499,
+      regularPrice: 499,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.tre.se/handla/bredband",
+      technology: "5g",
+    },
+  ];
+}
+
+export async function updateCampaigns(): Promise<{
+  updated: number;
+  broadbandUpdated: number;
+  active: number;
+  activeBroadband: number;
+}> {
   const now = new Date();
   const seedData = buildCampaigns(now);
+  const broadbandSeedData = buildBroadbandCampaigns(now);
 
   // Full replace so old demo rows do not linger as inactive clutter.
   await db.campaign.deleteMany({});
+  await db.broadbandCampaign.deleteMany({});
 
   let updated = 0;
   for (const item of seedData) {
@@ -502,18 +605,40 @@ export async function updateCampaigns(): Promise<{ updated: number; active: numb
     updated++;
   }
 
+  let broadbandUpdated = 0;
+  for (const item of broadbandSeedData) {
+    await db.broadbandCampaign.create({
+      data: {
+        ...item,
+        noBinding: true,
+        active: now >= item.campaignStart && now <= item.campaignEnd,
+      },
+    });
+    broadbandUpdated++;
+  }
+
   await db.systemMeta.upsert({
     where: { id: "singleton" },
     create: { id: "singleton", lastCampaignUpdate: now },
     update: { lastCampaignUpdate: now },
   });
 
-  const active = await db.campaign.count({ where: { active: true } });
-  return { updated, active };
+  const [active, activeBroadband] = await Promise.all([
+    db.campaign.count({ where: { active: true } }),
+    db.broadbandCampaign.count({ where: { active: true } }),
+  ]);
+  return { updated, broadbandUpdated, active, activeBroadband };
 }
 
 export async function getActiveCampaigns(): Promise<Campaign[]> {
   return db.campaign.findMany({
+    where: { active: true, noBinding: true },
+    orderBy: [{ campaignPrice: "asc" }],
+  });
+}
+
+export async function getActiveBroadbandCampaigns(): Promise<BroadbandCampaign[]> {
+  return db.broadbandCampaign.findMany({
     where: { active: true, noBinding: true },
     orderBy: [{ campaignPrice: "asc" }],
   });

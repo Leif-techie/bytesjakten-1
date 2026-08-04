@@ -106,6 +106,8 @@ export async function getAdminStats() {
     activeBroadbandUsers,
     campaignCount,
     activeCampaigns,
+    broadbandCampaignCount,
+    activeBroadbandCampaigns,
     meta,
   ] = await Promise.all([
     db.user.count(),
@@ -114,6 +116,8 @@ export async function getAdminStats() {
     db.broadbandUser.count({ where: { active: true } }),
     db.campaign.count(),
     db.campaign.count({ where: { active: true } }),
+    db.broadbandCampaign.count(),
+    db.broadbandCampaign.count({ where: { active: true } }),
     db.systemMeta.findUnique({ where: { id: "singleton" } }),
   ]);
 
@@ -130,6 +134,8 @@ export async function getAdminStats() {
     activeBroadbandUsers,
     campaignCount,
     activeCampaigns,
+    broadbandCampaignCount,
+    activeBroadbandCampaigns,
     recentNotifications,
     lastCampaignUpdate: meta?.lastCampaignUpdate ?? null,
   };
