@@ -26,14 +26,10 @@ type BestOfferCardProps = {
   lastCampaignUpdate?: string | null;
 };
 
-const RANK_GREEN: Record<number, string> = {
-  1: "bg-emerald-700",
-  2: "bg-emerald-500",
-  3: "bg-green-600",
-};
+const OFFER_PANEL_GREEN = "bg-emerald-400";
 
-function rankGreen(rank: number): string {
-  return RANK_GREEN[rank] ?? "bg-emerald-600";
+function offerPanelGreen(): string {
+  return OFFER_PANEL_GREEN;
 }
 
 function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
@@ -73,7 +69,7 @@ function FeaturedOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = rankGreen(1);
+  const bgColor = offerPanelGreen();
   const ready = campaign.readyToSwitch ?? true;
 
   return (
@@ -88,7 +84,7 @@ function FeaturedOffer({
         <div
           className={`flex items-center justify-center ${bgColor} p-8 md:min-h-[200px]`}
         >
-          <span className="text-center text-2xl font-bold text-white">
+          <span className="text-center text-2xl font-bold text-emerald-950">
             {campaign.operator}
           </span>
         </div>
@@ -144,16 +140,16 @@ function RunnerUpOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = rankGreen(rank);
+  const bgColor = offerPanelGreen();
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <div className={`px-4 py-3 ${bgColor}`}>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-bold uppercase tracking-wide text-white/90">
+          <span className="text-sm font-bold uppercase tracking-wide text-emerald-950/80">
             {rank} · Alternativ
           </span>
-          <span className="text-lg font-bold text-white">{campaign.operator}</span>
+          <span className="text-lg font-bold text-emerald-950">{campaign.operator}</span>
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
