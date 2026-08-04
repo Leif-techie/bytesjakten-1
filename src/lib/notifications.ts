@@ -1,6 +1,10 @@
 import { db } from "./db";
 import { findBestCampaign, getCampaignAffiliateUrl } from "./campaigns";
-import { sendPrefsConfirmationEmail, sendSwitchReminderEmail } from "./email";
+import {
+  sendBroadbandSwitchReminderEmail,
+  sendPrefsConfirmationEmail,
+  sendSwitchReminderEmail,
+} from "./email";
 import { getActiveCampaigns } from "./seed-campaigns";
 
 export async function sendManualSwitchEmail(
@@ -35,6 +39,48 @@ export async function sendManualSwitchEmail(
         userId: user.id,
         type: "switch_reminder",
         campaignId: campaign.id,
+      },
+    });
+  }
+
+  return { success: result.success, error: result.error };
+}
+
+export async function sendManualBroadbandSwitchEmail(
+  userId: string,
+  campaignId: string
+): Promise<{ success: boolean; error?: string }> {
+  const user = await db.broadbandUser.findUnique({ where: { id: userId } });
+  if (!user || !user.active) {
+    return { success: false, error: "Användaren hittades inte." };
+  }
+
+  const campaign = await db.broadbandCampaign.findUnique({
+    where: { id: campaignId },
+  });
+  if (!campaign) {
+    return { success: false, error: "Kampanjen hittades inte." };
+  }
+
+  const result = await sendBroadbandSwitchReminderEmail({
+    email: user.email,
+    operator: campaign.operator,
+    campaignName: campaign.name,
+    campaignPrice: campaign.campaignPrice,
+    regularPrice: campaign.regularPrice,
+    campaignUrl: campaign.url,
+    contractEndDate: user.contractEndDate,
+    speedMbps: campaign.speedMbps,
+    technology: campaign.technology,
+    unsubscribeToken: user.unsubscribeToken,
+  });
+
+  if (result.success) {
+    await db.notificationLog.create({
+      data: {
+        broadbandUserId: user.id,
+        type: "broadband_switch_reminder",
+        broadbandCampaignId: campaign.id,
       },
     });
   }

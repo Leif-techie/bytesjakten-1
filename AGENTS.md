@@ -14,7 +14,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Kampanjer:** "Uppdatera kampanjer" i admin ersätter databasen med seed-listan i `src/lib/seed-campaigns.ts` (aktuella erbjudanden utan bindningstid, inkl. studentpriser, operatörs-URL:er). Efter refresh: byt URL:er till Addrevenue-spårningslänkar. Startsida har checkbox **Studentabonnemang** (🎯) som filtrerar till studentkampanjer. Föreslå/scrapa inte nya erbjudanden om det inte uttryckligen efterfrågas.
 
-**Bredband:** Separat vertikal på `/bredband` för **mobilt bredband / 5G-hemma** (inte stadsnätsfiber). Egen tabell `BroadbandUser` (e-post, operatör, slutdatum, hastighet, nät 4G/5G). Registrering via `/api/broadband/register` + bekräftelsemejl. I admin: gemensam **Byter inom 10 dagar** + **Mejlhistorik**, separata **Övriga aktiva** (mobil / mobilt bredband). Kampanjmejl för bredband saknas ännu. Mobilflödet är oförändrat.
+**Bredband:** Separat vertikal på `/bredband` för **mobilt bredband / 5G-hemma**. `BroadbandUser` + `BroadbandCampaign` (separata från mobil). Admin har separata kampanjlistor; gemensam **Byter inom 10 dagar** + **Mejlhistorik**. Mobilflödet är oförändrat.
 
 ## Cursor Cloud specific instructions
 
