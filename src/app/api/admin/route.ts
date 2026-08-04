@@ -37,6 +37,20 @@ export async function GET(request: NextRequest) {
     },
   });
 
+  const broadbandUsers = await db.broadbandUser.findMany({
+    orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+    select: {
+      id: true,
+      email: true,
+      active: true,
+      currentOperator: true,
+      contractEndDate: true,
+      minSpeedMbps: true,
+      technology: true,
+      createdAt: true,
+    },
+  });
+
   const notificationLogs = await db.notificationLog.findMany({
     orderBy: { sentAt: "desc" },
     take: 50,
@@ -89,6 +103,17 @@ export async function GET(request: NextRequest) {
     };
   });
 
+  const broadbandUsersWithStatus = broadbandUsers.map((user) => ({
+    id: user.id,
+    email: user.email,
+    active: user.active,
+    currentOperator: user.currentOperator,
+    contractEndDate: user.contractEndDate,
+    minSpeedMbps: user.minSpeedMbps,
+    technology: user.technology,
+    createdAt: user.createdAt,
+  }));
+
   const notifications = notificationLogs.map((log) => {
     const campaign = log.campaignId ? campaignMap[log.campaignId] : null;
     return {
@@ -107,6 +132,7 @@ export async function GET(request: NextRequest) {
     stats,
     campaigns,
     users: usersWithStatus,
+    broadbandUsers: broadbandUsersWithStatus,
     notifications,
     emailConfig: getEmailConfigStatus(),
   });

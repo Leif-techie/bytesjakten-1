@@ -29,3 +29,25 @@ export const CONTACT_EMAIL = "hej@bytesjakten.se";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export const CRON_TIMEZONE = "Europe/Stockholm";
+
+export const BROADBAND_OPERATORS = [
+  "Tre",
+  "Telia",
+  "Telenor",
+  "Tele2",
+  "Hallon",
+  "Fello",
+  "Comviq",
+  "Halebop",
+  "Annan",
+] as const;
+
+export const BROADBAND_SPEED_OPTIONS = [
+  100, 250, 500, 1000,
+] as const;
+
+export const BROADBAND_TECHNOLOGY_OPTIONS = [
+  { value: "any", label: "Spelar ingen roll" },
+  { value: "5g", label: "5G" },
+  { value: "4g", label: "4G/LTE" },
+] as const;

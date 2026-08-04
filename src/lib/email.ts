@@ -1,4 +1,4 @@
-import { APP_URL, KIVRA_URL } from "./constants";
+import { APP_URL, KIVRA_URL, BROADBAND_TECHNOLOGY_OPTIONS } from "./constants";
 import { formatDate, formatSEK, getNetworkLabel } from "./campaigns";
 import { ESIM_GUIDE_STEPS } from "./esim-guide";
 
@@ -337,6 +337,101 @@ export async function sendPrefsConfirmationEmail(
 
       <p style="color: #999; font-size: 12px; margin-top: 32px;">
         Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} på
+        <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+function getBroadbandTechnologyLabel(value: string): string {
+  return (
+    BROADBAND_TECHNOLOGY_OPTIONS.find((opt) => opt.value === value)?.label ??
+    value
+  );
+}
+
+type BroadbandPrefsConfirmationParams = {
+  email: string;
+  currentOperator: string;
+  contractEndDate: Date;
+  minSpeedMbps: number;
+  technology: string;
+  unsubscribeToken: string;
+  kind: "register" | "update";
+};
+
+export async function sendBroadbandPrefsConfirmationEmail(
+  params: BroadbandPrefsConfirmationParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    currentOperator,
+    contractEndDate,
+    minSpeedMbps,
+    technology,
+    unsubscribeToken,
+    kind,
+  } = params;
+
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten Mobilt bredband – din registrering är klar"
+    : "Dina uppgifter för mobilt bredband är uppdaterade";
+
+  const intro = isNew
+    ? "Tack för att du registrerade dig för mobilt bredband! Vi har sparat dina uppgifter och håller koll åt dig."
+    : "Vi har uppdaterat dina uppgifter för mobilt bredband. Så här ser de ut nu:";
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #16a34a; font-size: 24px;">${isNew ? "Välkommen till Bytesjakten Mobilt bredband!" : "Uppgifter uppdaterade"}</h1>
+      <p>${intro}</p>
+
+      <div style="background: #f4f4f5; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Dina uppgifter</p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">E-post</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nuvarande operatör</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${currentOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Avtalet går ut</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${formatDate(contractEndDate)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Önskad hastighet</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${minSpeedMbps} Mbit/s</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nät</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getBroadbandTechnologyLabel(technology)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
+        Du får ett mejl innan ditt avtal för mobilt bredband går ut – så att du kan byta till ett bättre kampanjpris i rätt tid. Om du behöver ändra uppgifter fyller du i sidan igen.
+      </p>
+      <p style="color: #18181b; font-size: 15px; font-weight: 600; line-height: 1.5;">
+        Byt smartare - Betala mindre - Bytesjakten
+      </p>
+
+      <p style="margin: 24px 0;">
+        <a href="${APP_URL}/bredband" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+          Till Bytesjakten Mobilt bredband →
+        </a>
+      </p>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} för mobilt bredband på
         <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>.
         Tjänsten är alltid gratis.
         <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
