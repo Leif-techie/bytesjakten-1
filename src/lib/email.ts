@@ -10,11 +10,18 @@ function unsubscribeUrl(token: string): string {
   return `${APP_URL}/avregistrera?token=${token}`;
 }
 
-function switchCompleteUrl(token: string, operator?: string): string {
+function switchCompleteUrl(
+  token: string,
+  operator?: string,
+  campaignId?: string
+): string {
   const url = new URL(`${APP_URL}/byte-klart`);
   url.searchParams.set("token", token);
   if (operator) {
     url.searchParams.set("operator", operator);
+  }
+  if (campaignId) {
+    url.searchParams.set("campaignId", campaignId);
   }
   return url.toString();
 }
@@ -113,6 +120,7 @@ type SwitchEmailParams = {
   contractEndDate: Date;
   network: string;
   unsubscribeToken: string;
+  campaignId?: string;
 };
 
 async function sendMailerooEmail(params: {
@@ -177,6 +185,7 @@ export async function sendSwitchReminderEmail(
     contractEndDate,
     network,
     unsubscribeToken,
+    campaignId,
   } = params;
 
   const subject = `Dags att byta mobilabonnemang – spara med ${operator}`;
@@ -227,7 +236,7 @@ export async function sendSwitchReminderEmail(
                 När bytet har gått igenom: klicka nedan och ange <strong>datumet för nummerflytten</strong>
                 (står oftast i SMS:et från operatören). Då mejlar vi dig i tid innan nästa byte.
               </p>
-              <a href="${switchCompleteUrl(unsubscribeToken, operator)}" style="display: inline-block; background: #fff; color: #16a34a; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #16a34a;">
+              <a href="${switchCompleteUrl(unsubscribeToken, operator, campaignId)}" style="display: inline-block; background: #fff; color: #16a34a; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #16a34a;">
                 Ange datum för nummerflytt →
               </a>
             </td>
