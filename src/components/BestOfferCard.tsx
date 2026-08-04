@@ -26,10 +26,23 @@ type BestOfferCardProps = {
   lastCampaignUpdate?: string | null;
 };
 
-const OFFER_PANEL_GREEN = "bg-emerald-400";
+const RANK_GREEN: Record<number, string> = {
+  1: "bg-emerald-600",
+  2: "bg-emerald-500",
+  3: "bg-emerald-400",
+};
 
-function offerPanelGreen(): string {
-  return OFFER_PANEL_GREEN;
+function rankGreen(rank: number): string {
+  return RANK_GREEN[rank] ?? "bg-emerald-600";
+}
+
+function rankPanelText(rank: number): string {
+  // Lighter panels need darker text for contrast.
+  return rank >= 3 ? "text-emerald-950" : "text-white";
+}
+
+function rankPanelMutedText(rank: number): string {
+  return rank >= 3 ? "text-emerald-950/80" : "text-white/90";
 }
 
 function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
@@ -69,7 +82,7 @@ function FeaturedOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = offerPanelGreen();
+  const bgColor = rankGreen(1);
   const ready = campaign.readyToSwitch ?? true;
 
   return (
@@ -84,7 +97,7 @@ function FeaturedOffer({
         <div
           className={`flex items-center justify-center ${bgColor} p-8 md:min-h-[200px]`}
         >
-          <span className="text-center text-2xl font-bold text-emerald-950">
+          <span className={`text-center text-2xl font-bold ${rankPanelText(1)}`}>
             {campaign.operator}
           </span>
         </div>
@@ -140,16 +153,20 @@ function RunnerUpOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = offerPanelGreen();
+  const bgColor = rankGreen(rank);
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <div className={`px-4 py-3 ${bgColor}`}>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-bold uppercase tracking-wide text-emerald-950/80">
+          <span
+            className={`text-sm font-bold uppercase tracking-wide ${rankPanelMutedText(rank)}`}
+          >
             {rank} · Alternativ
           </span>
-          <span className="text-lg font-bold text-emerald-950">{campaign.operator}</span>
+          <span className={`text-lg font-bold ${rankPanelText(rank)}`}>
+            {campaign.operator}
+          </span>
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
