@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Deploy Bytesjakten after merging to main (VPS).
-# Usage from repo root: npm run deploy
+# Usage: npm run deploy
+# Short alias (install once on the VPS):
+#   echo "alias bb='cd ~/bytesjakten && npm run deploy'" >> ~/.bashrc && source ~/.bashrc
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
