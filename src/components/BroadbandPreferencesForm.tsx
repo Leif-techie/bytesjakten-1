@@ -141,7 +141,7 @@ function defaultContractEnd(): string {
 }
 
 export const defaultBroadbandPreferences: BroadbandPreferences = {
-  minSpeedMbps: 250,
+  minSpeedMbps: 100,
   technology: "5g",
   currentOperator: BROADBAND_OPERATORS[0],
   contractEndDate: defaultContractEnd(),
