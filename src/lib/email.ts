@@ -48,6 +48,13 @@ function htmlToPlain(html: string): string {
     .trim();
 }
 
+
+function getBroadbandTechnologyLabel(value: string): string {
+  return (
+    BROADBAND_TECHNOLOGY_OPTIONS.find((opt) => opt.value === value)?.label ??
+    value
+  );
+}
 function renderEsimGuideHtml(): string {
   const steps = ESIM_GUIDE_STEPS.map(
     (step, index) => `
@@ -253,6 +260,102 @@ export async function sendSwitchReminderEmail(
   return sendMailerooEmail({ to: email, subject, html });
 }
 
+type BroadbandSwitchEmailParams = {
+  email: string;
+  operator: string;
+  campaignName: string;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignUrl: string;
+  contractEndDate: Date;
+  speedMbps: number;
+  technology: string;
+  unsubscribeToken: string;
+};
+
+export async function sendBroadbandSwitchReminderEmail(
+  params: BroadbandSwitchEmailParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    operator,
+    campaignName,
+    campaignPrice,
+    regularPrice,
+    campaignUrl,
+    contractEndDate,
+    speedMbps,
+    technology,
+    unsubscribeToken,
+  } = params;
+
+  const subject = `Dags att byta mobilt bredband – spara med ${operator}`;
+  const techLabel = getBroadbandTechnologyLabel(technology);
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #ea580c; font-size: 24px;">Hej från Bytesjakten!</h1>
+      <p>Ditt mobila bredband går ut <strong>${formatDate(contractEndDate)}</strong>.
+      Nu är det dags att byta till ett kampanjpris utan bindningstid.</p>
+
+      <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 13px; color: #c2410c; text-transform: uppercase; letter-spacing: 0.05em;">Bästa erbjudande just nu</p>
+        <h2 style="margin: 0 0 8px; font-size: 20px;">${campaignName}</h2>
+        <p style="margin: 0; font-size: 28px; font-weight: bold; color: #ea580c;">${formatSEK(campaignPrice)} kr/mån</p>
+        <p style="margin: 8px 0 0; color: #666; font-size: 14px;">
+          ${speedMbps} Mbit/s · ${techLabel} · Ingen bindningstid<br>
+          Ordinarie pris därefter: ${formatSEK(regularPrice)} kr/mån
+        </p>
+      </div>
+
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 16px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Så gör du – två steg
+        </p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 20px 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #ea580c; color: #fff; font-size: 12px; font-weight: 700;">1</span>
+            </td>
+            <td style="padding: 0 0 20px 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 1 – Beställ kampanjen</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                Byt till erbjudandet hos ${operator}. Ingen bindningstid.
+              </p>
+              <a href="${campaignUrl}" style="display: inline-block; background: #ea580c; color: white; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
+                Beställ kampanjen hos ${operator} →
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 0 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #ea580c; color: #fff; font-size: 12px; font-weight: 700;">2</span>
+            </td>
+            <td style="padding: 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Uppdatera dina uppgifter</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                När bytet är klart: gå till Bytesjakten och uppdatera operatör och slutdatum så mejlar vi dig i tid innan nästa byte.
+              </p>
+              <a href="${APP_URL}/bredband#registrera" style="display: inline-block; background: #fff; color: #ea580c; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #ea580c;">
+                Uppdatera uppgifter →
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du registrerat dig för mobilt bredband på
+        <a href="${APP_URL}/bredband" style="color: #ea580c;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
 type PrefsConfirmationParams = {
   email: string;
   currentOperator: string;
@@ -345,13 +448,6 @@ export async function sendPrefsConfirmationEmail(
   `;
 
   return sendMailerooEmail({ to: email, subject, html });
-}
-
-function getBroadbandTechnologyLabel(value: string): string {
-  return (
-    BROADBAND_TECHNOLOGY_OPTIONS.find((opt) => opt.value === value)?.label ??
-    value
-  );
 }
 
 type BroadbandPrefsConfirmationParams = {

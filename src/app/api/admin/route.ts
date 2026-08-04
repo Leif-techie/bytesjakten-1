@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { deleteUser, getAdminStats } from "@/lib/admin";
 import { updateCampaigns } from "@/lib/seed-campaigns";
-import { sendManualSwitchEmail } from "@/lib/notifications";
+import {
+  sendManualBroadbandSwitchEmail,
+  sendManualSwitchEmail,
+} from "@/lib/notifications";
 import { getEmailConfigStatus } from "@/lib/email";
 import { db } from "@/lib/db";
 
@@ -14,52 +17,63 @@ export async function GET(request: NextRequest) {
   }
 
   const stats = await getAdminStats();
-  const campaigns = await db.campaign.findMany({ orderBy: [{ operator: "asc" }, { dataGB: "asc" }] });
-  const users = await db.user.findMany({
-    orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
-    select: {
-      id: true,
-      email: true,
-      active: true,
-      currentOperator: true,
-      contractEndDate: true,
-      campaignStartDate: true,
-      campaignLengthMonths: true,
-      minDataGB: true,
-      createdAt: true,
-      notifications: {
-        where: { type: "switch_reminder" },
+  const [campaigns, broadbandCampaigns, users, broadbandUsers, notificationLogs] =
+    await Promise.all([
+      db.campaign.findMany({
+        orderBy: [{ operator: "asc" }, { dataGB: "asc" }],
+      }),
+      db.broadbandCampaign.findMany({
+        orderBy: [{ operator: "asc" }, { speedMbps: "asc" }],
+      }),
+      db.user.findMany({
+        orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+        select: {
+          id: true,
+          email: true,
+          active: true,
+          currentOperator: true,
+          contractEndDate: true,
+          campaignStartDate: true,
+          campaignLengthMonths: true,
+          minDataGB: true,
+          createdAt: true,
+          notifications: {
+            where: { type: "switch_reminder" },
+            orderBy: { sentAt: "desc" },
+            take: 1,
+            select: { sentAt: true, campaignId: true },
+          },
+          _count: { select: { notifications: true } },
+        },
+      }),
+      db.broadbandUser.findMany({
+        orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+        select: {
+          id: true,
+          email: true,
+          active: true,
+          currentOperator: true,
+          contractEndDate: true,
+          minSpeedMbps: true,
+          technology: true,
+          createdAt: true,
+          notifications: {
+            where: { type: "broadband_switch_reminder" },
+            orderBy: { sentAt: "desc" },
+            take: 1,
+            select: { sentAt: true, broadbandCampaignId: true },
+          },
+        },
+      }),
+      db.notificationLog.findMany({
         orderBy: { sentAt: "desc" },
-        take: 1,
-        select: { sentAt: true, campaignId: true },
-      },
-      _count: { select: { notifications: true } },
-    },
-  });
-
-  const broadbandUsers = await db.broadbandUser.findMany({
-    orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
-    select: {
-      id: true,
-      email: true,
-      active: true,
-      currentOperator: true,
-      contractEndDate: true,
-      minSpeedMbps: true,
-      technology: true,
-      createdAt: true,
-    },
-  });
-
-  const notificationLogs = await db.notificationLog.findMany({
-    orderBy: { sentAt: "desc" },
-    take: 50,
-    include: {
-      user: {
-        select: { email: true, currentOperator: true },
-      },
-    },
-  });
+        take: 50,
+        include: {
+          user: { select: { email: true, currentOperator: true } },
+          broadbandUser: { select: { email: true, currentOperator: true } },
+        },
+      }),
+    ]);
 
   const campaignIds = [
     ...new Set(
@@ -68,16 +82,44 @@ export async function GET(request: NextRequest) {
         .filter((id): id is string => Boolean(id))
     ),
   ];
+  const broadbandCampaignIds = [
+    ...new Set(
+      notificationLogs
+        .map((log) => log.broadbandCampaignId)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
 
-  const notifiedCampaigns = campaignIds.length
-    ? await db.campaign.findMany({
-        where: { id: { in: campaignIds } },
-        select: { id: true, operator: true, name: true, campaignPrice: true },
-      })
-    : [];
+  const [notifiedCampaigns, notifiedBroadbandCampaigns] = await Promise.all([
+    campaignIds.length
+      ? db.campaign.findMany({
+          where: { id: { in: campaignIds } },
+          select: {
+            id: true,
+            operator: true,
+            name: true,
+            campaignPrice: true,
+          },
+        })
+      : Promise.resolve([]),
+    broadbandCampaignIds.length
+      ? db.broadbandCampaign.findMany({
+          where: { id: { in: broadbandCampaignIds } },
+          select: {
+            id: true,
+            operator: true,
+            name: true,
+            campaignPrice: true,
+          },
+        })
+      : Promise.resolve([]),
+  ]);
 
   const campaignMap = Object.fromEntries(
     notifiedCampaigns.map((campaign) => [campaign.id, campaign])
+  );
+  const broadbandCampaignMap = Object.fromEntries(
+    notifiedBroadbandCampaigns.map((campaign) => [campaign.id, campaign])
   );
 
   const usersWithStatus = users.map((user) => {
@@ -103,25 +145,42 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  const broadbandUsersWithStatus = broadbandUsers.map((user) => ({
-    id: user.id,
-    email: user.email,
-    active: user.active,
-    currentOperator: user.currentOperator,
-    contractEndDate: user.contractEndDate,
-    minSpeedMbps: user.minSpeedMbps,
-    technology: user.technology,
-    createdAt: user.createdAt,
-  }));
+  const broadbandUsersWithStatus = broadbandUsers.map((user) => {
+    const lastNotification = user.notifications[0] ?? null;
+    const lastCampaign = lastNotification?.broadbandCampaignId
+      ? broadbandCampaignMap[lastNotification.broadbandCampaignId]
+      : null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      active: user.active,
+      currentOperator: user.currentOperator,
+      contractEndDate: user.contractEndDate,
+      minSpeedMbps: user.minSpeedMbps,
+      technology: user.technology,
+      createdAt: user.createdAt,
+      lastNotificationAt: lastNotification?.sentAt ?? null,
+      lastCampaignOperator: lastCampaign?.operator ?? null,
+      lastCampaignName: lastCampaign?.name ?? null,
+    };
+  });
 
   const notifications = notificationLogs.map((log) => {
-    const campaign = log.campaignId ? campaignMap[log.campaignId] : null;
+    const person = log.user ?? log.broadbandUser;
+    const mobileCampaign = log.campaignId ? campaignMap[log.campaignId] : null;
+    const bbCampaign = log.broadbandCampaignId
+      ? broadbandCampaignMap[log.broadbandCampaignId]
+      : null;
+    const campaign = mobileCampaign ?? bbCampaign;
+
     return {
       id: log.id,
       type: log.type,
       sentAt: log.sentAt,
-      email: log.user.email,
-      currentOperator: log.user.currentOperator,
+      email: person?.email ?? "–",
+      currentOperator: person?.currentOperator ?? "–",
+      vertical: log.broadbandUserId ? "broadband" : "mobile",
       campaignOperator: campaign?.operator ?? null,
       campaignName: campaign?.name ?? null,
       campaignPrice: campaign?.campaignPrice ?? null,
@@ -131,6 +190,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     stats,
     campaigns,
+    broadbandCampaigns,
     users: usersWithStatus,
     broadbandUsers: broadbandUsersWithStatus,
     notifications,
@@ -167,6 +227,22 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  if (action === "send_broadband_user_email") {
+    const { userId, campaignId } = body;
+    if (!userId || !campaignId) {
+      return NextResponse.json(
+        { error: "Välj användare och kampanj." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualBroadbandSwitchEmail(userId, campaignId);
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
+  }
+
   if (action === "delete_user") {
     const { userId } = body;
     if (!userId) {
@@ -175,7 +251,10 @@ export async function POST(request: NextRequest) {
 
     const success = await deleteUser(userId);
     if (!success) {
-      return NextResponse.json({ error: "Användaren hittades inte." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Användaren hittades inte." },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ success: true });
