@@ -16,6 +16,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Bredband:** Separat vertikal på `/bredband` för **mobilt bredband / 5G-hemma**. `BroadbandUser` + `BroadbandCampaign` (separata från mobil). Admin har separata kampanjlistor; gemensam **Byter inom 10 dagar** + **Mejlhistorik**. Mobilflödet är oförändrat.
 
+**Deploy (VPS efter merge):** Kör `bb` (alias för `cd ~/bytesjakten && npm run deploy`). Scriptet gör pull, `npm ci`, migrate, build och `pm2 restart`. Installera alias en gång: `echo "alias bb='cd ~/bytesjakten && npm run deploy'" >> ~/.bashrc && source ~/.bashrc`. Om erbjudande-seed ändrats: tryck **Uppdatera erbjudanden** i `/admin`.
+
 ## Cursor Cloud specific instructions
 
 **Demo-/bevisartefakter:** Använd **skärmdumpar**, inte video/skärminspelning. Ägarens Norton kan flagga/blockera videoinspelning och automation kopplad till filmdemos. Video behövs inte om det inte uttryckligen efterfrågas.
