@@ -26,17 +26,15 @@ type BestOfferCardProps = {
   lastCampaignUpdate?: string | null;
 };
 
-const OPERATOR_COLORS: Record<string, string> = {
-  Telia: "bg-purple-900",
-  Telenor: "bg-blue-600",
-  Tre: "bg-pink-600",
-  Hallon: "bg-orange-500",
-  Comviq: "bg-yellow-500",
-  Vimla: "bg-teal-600",
-  Halebop: "bg-indigo-600",
-  Fello: "bg-cyan-600",
-  Chilimobil: "bg-red-600",
+const RANK_GREEN: Record<number, string> = {
+  1: "bg-emerald-700",
+  2: "bg-emerald-500",
+  3: "bg-green-600",
 };
+
+function rankGreen(rank: number): string {
+  return RANK_GREEN[rank] ?? "bg-emerald-600";
+}
 
 function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
   if (count == null) return null;
