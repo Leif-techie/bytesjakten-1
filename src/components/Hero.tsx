@@ -8,8 +8,11 @@ export function Hero() {
           <span className="text-emerald-600">Betala mindre.</span>
         </h1>
         <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600">
-          Vi bevakar alla kampanjer för mobilabonnemang utan bindningstid och mejlar dig exakt när det är
-          dags att byta. Du slipper jämföra priser själv – vi hittar det bästa erbjudandet åt dig.
+          Vi bevakar alla kampanjer för mobilabonnemang utan bindningstid. Du
+          slipper jämföra priser själv – vi hittar det bästa erbjudandet åt dig
+          när din nuvarande kampanj går ut. Registrera dig med din mejladress
+          nedan för att komma igång. Ingen hake. Helt gratis. Njut av
+          opertörernas låga kampanjpriser, året runt.
         </p>
 
         <ul className="mt-8 space-y-4">
