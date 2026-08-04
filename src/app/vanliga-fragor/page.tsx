@@ -52,7 +52,7 @@ function FaqSection({
           </p>
           {tip ? (
             <aside
-              className={`mx-auto w-full max-w-[220px] shrink-0 rotate-3 rounded-lg border-2 border-dashed ${tipBorderClass} ${tipBgClass} px-4 py-3 text-sm leading-snug text-zinc-700 shadow-sm sm:mx-0 sm:rotate-[6deg]`}
+              className={`mx-auto mt-3 w-full max-w-[240px] shrink-0 rotate-3 rounded-lg border-2 border-dashed ${tipBorderClass} ${tipBgClass} px-4 py-3 text-sm leading-snug text-zinc-700 shadow-sm sm:mx-0 sm:mt-5 sm:rotate-[6deg]`}
             >
               <p>
                 <strong className={`font-semibold ${tipTitleClass}`}>Tips!</strong>{" "}
@@ -125,7 +125,7 @@ export default function VanligaFragorPage() {
           description="Frågor om nummerflytt, eSIM och hur du byter abonnemang utan onödigt krångel."
           items={MOBILABBONEMANG_FAQ}
           accent="emerald"
-          tip="Byter man under våren så får man ofta extra bra surfdeal och får då ihop en stor surfpott över sommaren. Perfekt till husvagnen!"
+          tip="Med lite tur så ger ett byte under våren dubbel surf som också sparas månad till månad. Detta ger mycket surf under sommaren. Undertecknad hade senast 600 GB över sommaren via Vimla. Perfekt i sommarstugan."
         />
 
         <FaqSection
