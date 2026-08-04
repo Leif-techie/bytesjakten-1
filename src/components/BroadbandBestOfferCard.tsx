@@ -166,7 +166,7 @@ function RunnerUpOffer({
           <span
             className={`text-sm font-bold uppercase tracking-wide ${rankPanelMutedText(rank)}`}
           >
-            {rank} · Alternativ
+            Alternativ {rank}
           </span>
           <span className={`text-lg font-bold ${rankPanelText(rank)}`}>
             {campaign.operator}
