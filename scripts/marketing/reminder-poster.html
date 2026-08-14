@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bytesjakten – påminnelse</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+        background: linear-gradient(
+          180deg,
+          rgba(236, 253, 245, 0.95) 0%,
+          #ffffff 55%,
+          #ffffff 100%
+        );
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: var(--pad-y, 96px) var(--pad-x, 72px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        margin-bottom: var(--brand-gap, 72px);
+      }
+
+      .brand-icon {
+        flex-shrink: 0;
+        width: var(--icon-size, 72px);
+        height: var(--icon-size, 72px);
+        border-radius: 9999px;
+        background: #059669;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+      }
+
+      .brand-icon svg {
+        width: calc(var(--icon-size, 72px) * 0.55);
+        height: calc(var(--icon-size, 72px) * 0.55);
+      }
+
+      .brand-text {
+        font-size: var(--brand-font, 42px);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: #18181b;
+        line-height: 1.15;
+      }
+
+      .brand-text .suffix {
+        font-weight: 500;
+        color: #71717a;
+      }
+
+      .copy {
+        max-width: var(--copy-max, 920px);
+        font-size: var(--copy-font, 46px);
+        font-weight: 600;
+        line-height: 1.38;
+        letter-spacing: -0.02em;
+        color: #27272a;
+        text-align: center;
+      }
+
+      .copy .accent {
+        color: #059669;
+      }
+
+      /* Vertikal layout (Snapchat) */
+      body.layout-tall {
+        justify-content: center;
+        padding-top: calc(var(--pad-y, 96px) + 40px);
+      }
+
+      body.layout-tall .brand {
+        margin-bottom: calc(var(--brand-gap, 72px) + 24px);
+      }
+
+      body.layout-tall .copy {
+        font-size: var(--copy-font, 52px);
+      }
+
+      /* Bred format (Reddit landscape) */
+      body.layout-wide {
+        justify-content: center;
+        padding: 48px 64px;
+      }
+
+      body.layout-wide .brand {
+        margin-bottom: 36px;
+        --icon-size: 52px;
+        --brand-font: 32px;
+      }
+
+      body.layout-wide .copy {
+        font-size: 32px;
+        line-height: 1.32;
+        max-width: 1040px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brand" aria-label="Bytesjakten mobilabonnemang">
+      <div class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="8" />
+          <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
+          <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+        </svg>
+      </div>
+      <p class="brand-text">
+        Bytesjakten
+        <span class="suffix"> | mobilabonnemang</span>
+      </p>
+    </div>
+
+    <p class="copy">
+      Vi påminner dig när det är dags för att hoppa på nästa kampanj.
+      <span class="accent">Och nästa. Och nästa.</span>
+      Året runt.
+    </p>
+  </body>
+</html>

@@ -14,7 +14,8 @@
     "db:seed": "tsx scripts/run-cron.ts",
     "cron": "tsx scripts/run-cron.ts",
     "cron:run": "curl -X POST http://localhost:3000/api/cron -H \"Authorization: Bearer dev-secret-change-me\"",
-    "export:marketing": "node scripts/export-marketing-images.mjs"
+    "export:marketing": "node scripts/export-marketing-images.mjs",
+    "export:reminder-poster": "node scripts/export-reminder-poster.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.9.1",
