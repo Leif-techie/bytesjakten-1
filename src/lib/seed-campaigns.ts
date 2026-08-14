@@ -37,7 +37,7 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 4 Aug 2026.
+ * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 14 Aug 2026.
  * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
  * Replace `url` with Addrevenue tracking links in admin after refresh.
  */
@@ -45,12 +45,12 @@ function buildCampaigns(now: Date): SeedCampaign[] {
   const { start, end } = campaignWindow(now, 4);
 
   const regular: SeedCampaign[] = [
-    // Hallon – Tres nät, ingen bindningstid (dubbel surf så länge abonnemanget gäller)
+    // Hallon – Tres nät, ingen bindningstid
     {
       operator: "Hallon",
-      name: "Hallon – 10 GB",
-      dataGB: 10,
-      campaignPrice: 29,
+      name: "Hallon – 5 GB",
+      dataGB: 5,
+      campaignPrice: 9,
       regularPrice: 109,
       campaignStart: start,
       campaignEnd: end,
@@ -60,10 +60,22 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon – 20 GB",
-      dataGB: 20,
-      campaignPrice: 39,
+      name: "Hallon – 10 GB",
+      dataGB: 10,
+      campaignPrice: 19,
       regularPrice: 159,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+      isStudent: false,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 25 GB",
+      dataGB: 25,
+      campaignPrice: 39,
+      regularPrice: 259,
       campaignStart: start,
       campaignEnd: end,
       url: "https://www.hallon.se/",
@@ -75,7 +87,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       name: "Hallon – 50 GB",
       dataGB: 50,
       campaignPrice: 49,
-      regularPrice: 259,
+      regularPrice: 309,
       campaignStart: start,
       campaignEnd: end,
       url: "https://www.hallon.se/",
@@ -87,18 +99,6 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       name: "Hallon – 100 GB",
       dataGB: 100,
       campaignPrice: 59,
-      regularPrice: 309,
-      campaignStart: start,
-      campaignEnd: end,
-      url: "https://www.hallon.se/",
-      network: "tre",
-      isStudent: false,
-    },
-    {
-      operator: "Hallon",
-      name: "Hallon – 200 GB",
-      dataGB: 200,
-      campaignPrice: 69,
       regularPrice: 359,
       campaignStart: start,
       campaignEnd: end,
@@ -107,7 +107,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       isStudent: false,
     },
 
-    // Vimla – Telenors nät, ingen bindningstid (dubbel surf i 24 mån)
+    // Vimla – Telenors nät, 20 kr/mån i 3 mån + dubbel surf i 24 mån
     {
       operator: "Vimla",
       name: "Vimla – 10 GB",
@@ -169,12 +169,12 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       isStudent: false,
     },
 
-    // Comviq – Tele2-nät, utan bindningstid (halva priset i 6 mån)
+    // Comviq – Tele2-nät, 45 kr/mån i 3 mån utan bindningstid
     {
       operator: "Comviq",
       name: "Comviq – 5 GB",
       dataGB: 5,
-      campaignPrice: 59,
+      campaignPrice: 45,
       regularPrice: 129,
       campaignStart: start,
       campaignEnd: end,
@@ -186,7 +186,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Comviq",
       name: "Comviq – 20 GB",
       dataGB: 20,
-      campaignPrice: 109,
+      campaignPrice: 45,
       regularPrice: 229,
       campaignStart: start,
       campaignEnd: end,
@@ -198,7 +198,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Comviq",
       name: "Comviq – 100 GB",
       dataGB: 100,
-      campaignPrice: 179,
+      campaignPrice: 45,
       regularPrice: 359,
       campaignStart: start,
       campaignEnd: end,
@@ -270,14 +270,14 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
   ];
 
-  // Student plans — checked 4 Aug 2026
+  // Student plans — checked 14 Aug 2026
   const student: SeedCampaign[] = [
-    // Hallon Student – 4 månader kampanj, ordinarie studentnivåer
+    // Hallon Student – 4 månader kampanj
     {
       operator: "Hallon",
       name: "Hallon Student – 10 GB",
       dataGB: 10,
-      campaignPrice: 19,
+      campaignPrice: 9,
       regularPrice: 109,
       campaignStart: start,
       campaignEnd: end,
@@ -289,7 +289,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Hallon",
       name: "Hallon Student – 20 GB",
       dataGB: 20,
-      campaignPrice: 29,
+      campaignPrice: 19,
       regularPrice: 159,
       campaignStart: start,
       campaignEnd: end,
@@ -398,7 +398,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Comviq",
       name: "Comviq Student – 14 GB",
       dataGB: 14,
-      campaignPrice: 59,
+      campaignPrice: 45,
       regularPrice: 129,
       campaignStart: start,
       campaignEnd: end,
@@ -410,7 +410,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Comviq",
       name: "Comviq Student – 40 GB",
       dataGB: 40,
-      campaignPrice: 99,
+      campaignPrice: 45,
       regularPrice: 209,
       campaignStart: start,
       campaignEnd: end,
@@ -422,7 +422,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Comviq",
       name: "Comviq Student – 100 GB",
       dataGB: 100,
-      campaignPrice: 149,
+      campaignPrice: 45,
       regularPrice: 309,
       campaignStart: start,
       campaignEnd: end,
