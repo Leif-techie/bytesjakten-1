@@ -76,6 +76,17 @@
         color: #71717a;
       }
 
+      .tagline {
+        max-width: var(--copy-max, 920px);
+        margin-bottom: var(--tagline-gap, 40px);
+        font-size: var(--tagline-font, 52px);
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        color: #059669;
+        text-align: center;
+      }
+
       .copy {
         max-width: var(--copy-max, 920px);
         font-size: var(--copy-font, 46px);
@@ -104,6 +115,11 @@
         font-size: var(--copy-font, 52px);
       }
 
+      body.layout-tall .tagline {
+        font-size: var(--tagline-font, 58px);
+        margin-bottom: calc(var(--tagline-gap, 40px) + 8px);
+      }
+
       /* Bred format (Reddit landscape) */
       body.layout-wide {
         justify-content: center;
@@ -117,9 +133,14 @@
       }
 
       body.layout-wide .copy {
-        font-size: 32px;
+        font-size: 28px;
         line-height: 1.32;
         max-width: 1040px;
+      }
+
+      body.layout-wide .tagline {
+        font-size: 36px;
+        margin-bottom: 24px;
       }
     </style>
   </head>
@@ -137,6 +158,8 @@
         <span class="suffix"> | mobilabonnemang</span>
       </p>
     </div>
+
+    <p class="tagline">Spara tusentals kr per år.</p>
 
     <p class="copy">
       Vi påminner dig när det är dags för att hoppa på nästa kampanj.
