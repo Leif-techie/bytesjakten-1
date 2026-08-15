@@ -6,6 +6,7 @@ const FOOTER_LINKS = [
   { href: "/vanliga-fragor", label: "Vanliga frågor" },
   { href: "/om", label: "Om" },
   { href: "/kontakt", label: "Kontakt" },
+  { href: "/integritet", label: "Integritet" },
 ] as const;
 
 export function Footer() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { OPERATORS, DATA_OPTIONS, NETWORK_OPTIONS } from "@/lib/constants";
 import type { UserPreferences } from "./PreferencesForm";
 
@@ -135,7 +136,15 @@ export function SignupSection({ preferences }: SignupSectionProps) {
           )}
 
           <p className="mt-4 text-sm text-zinc-400">
-            Ingen bindningstid. Avregistrera när som helst. Glöm inte kolla skräpposten.
+            Ingen bindningstid. Avregistrera när som helst. Glöm inte kolla
+            skräpposten.{" "}
+            <Link
+              href="/integritet"
+              className="underline hover:text-zinc-600"
+            >
+              Integritetspolicy
+            </Link>
+            .
           </p>
         </div>
       </section>
