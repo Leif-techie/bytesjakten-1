@@ -42,7 +42,15 @@ export default function KontaktPage() {
               <p className="mt-4 text-sm leading-relaxed text-zinc-500">
                 Tips: om ärendet gäller ditt konto, ange samma e-postadress som
                 du registrerat dig med. Vill du avregistrera dig kan du använda
-                länken i våra mejl.
+                länken i våra mejl. Vill du att vi raderar dina uppgifter helt,
+                mejla oss med ämnet ”Radera mitt konto” – se{" "}
+                <Link
+                  href="/integritet"
+                  className="font-semibold text-emerald-600 hover:underline"
+                >
+                  integritetspolicyn
+                </Link>
+                .
               </p>
             </div>
 
@@ -64,6 +72,13 @@ export default function KontaktPage() {
                   className="font-semibold text-emerald-600 hover:underline"
                 >
                   om Bytesjakten
+                </Link>
+                . Om personuppgifter:{" "}
+                <Link
+                  href="/integritet"
+                  className="font-semibold text-emerald-600 hover:underline"
+                >
+                  integritetspolicy
                 </Link>
                 .
               </p>

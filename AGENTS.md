@@ -14,6 +14,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Kampanjer:** "Uppdatera kampanjer" i admin ersätter databasen med seed-listan i `src/lib/seed-campaigns.ts` (aktuella erbjudanden utan bindningstid, inkl. studentpriser, operatörs-URL:er). Efter refresh: byt URL:er till Addrevenue-spårningslänkar. Startsida har checkbox **Studentabonnemang** (🎯) som filtrerar till studentkampanjer. Föreslå/scrapa inte nya erbjudanden om det inte uttryckligen efterfrågas.
 
+**Integritet / radering:** Offentlig policy på `/integritet`. Avregistrering = `active: false` (uppgifter kan sparas upp till 12 mån). Begäran om **full radering** via `hej@bytesjakten.se` → hard delete i `/admin` (mål inom 30 dagar). Bygg inte automatisk GDPR-purge om det inte efterfrågas.
+
 **Bredband:** Separat vertikal på `/bredband` för **mobilt bredband / 5G-hemma**. `BroadbandUser` + `BroadbandCampaign` (separata från mobil). Admin har separata kampanjlistor; gemensam **Byter inom 10 dagar** + **Mejlhistorik**. Mobilflödet är oförändrat.
 
 **Deploy (VPS efter merge):** Kör `bb` (alias för `cd ~/bytesjakten && npm run deploy`). Scriptet gör pull, `npm ci`, migrate, build och `pm2 restart`. Installera alias en gång: `echo "alias bb='cd ~/bytesjakten && npm run deploy'" >> ~/.bashrc && source ~/.bashrc`. Om erbjudande-seed ändrats: tryck **Uppdatera erbjudanden** i `/admin`.
