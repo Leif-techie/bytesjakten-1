@@ -37,7 +37,7 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 14 Aug 2026.
+ * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 20 Aug 2026.
  * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
  * Replace `url` with Addrevenue tracking links in admin after refresh.
  */
@@ -270,7 +270,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
   ];
 
-  // Student plans — checked 14 Aug 2026
+  // Student plans — checked 20 Aug 2026
   const student: SeedCampaign[] = [
     // Hallon Student – 4 månader kampanj
     {
