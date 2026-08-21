@@ -4,6 +4,7 @@ import {
   getCampaignPeriodLabel,
   getNetworkLabel,
 } from "@/lib/campaigns";
+import { trackOfferClick } from "@/lib/snap-pixel";
 
 type CampaignOffer = {
   operator: string;
@@ -133,6 +134,13 @@ function FeaturedOffer({
             href={getCampaignAffiliateUrl(campaign)}
             target="_blank"
             rel="sponsored noopener noreferrer"
+            onClick={() =>
+              trackOfferClick({
+                operator: campaign.operator,
+                campaignName: campaign.name,
+                vertical: "mobile",
+              })
+            }
             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700"
           >
             Beställ nu
@@ -185,6 +193,13 @@ function RunnerUpOffer({
           href={getCampaignAffiliateUrl(campaign)}
           target="_blank"
           rel="sponsored noopener noreferrer"
+          onClick={() =>
+            trackOfferClick({
+              operator: campaign.operator,
+              campaignName: campaign.name,
+              vertical: "mobile",
+            })
+          }
           className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-600 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
         >
           Beställ nu

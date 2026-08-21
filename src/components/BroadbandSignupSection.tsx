@@ -7,6 +7,7 @@ import {
   BROADBAND_SPEED_OPTIONS,
   BROADBAND_TECHNOLOGY_OPTIONS,
 } from "@/lib/constants";
+import { trackSignUp } from "@/lib/snap-pixel";
 import type { BroadbandPreferences } from "./BroadbandPreferencesForm";
 
 type BroadbandSignupSectionProps = {
@@ -76,6 +77,7 @@ export function BroadbandSignupSection({
 
       setStatus("success");
       setMessage(data.message);
+      trackSignUp({ vertical: "broadband" });
       setEmail("");
       setShowModal(false);
     } catch {

@@ -9,6 +9,7 @@ import {
   daysUntil,
 } from "@/lib/campaigns";
 import type { BroadbandPreferences } from "@/components/BroadbandPreferencesForm";
+import { trackOfferClick } from "@/lib/snap-pixel";
 
 type BroadbandOffer = {
   operator: string;
@@ -137,6 +138,13 @@ function FeaturedOffer({
             href={getCampaignAffiliateUrl(campaign)}
             target="_blank"
             rel="sponsored noopener noreferrer"
+            onClick={() =>
+              trackOfferClick({
+                operator: campaign.operator,
+                campaignName: campaign.name,
+                vertical: "broadband",
+              })
+            }
             className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-3.5 font-semibold text-white transition hover:bg-orange-700"
           >
             Beställ nu
@@ -192,6 +200,13 @@ function RunnerUpOffer({
           href={getCampaignAffiliateUrl(campaign)}
           target="_blank"
           rel="sponsored noopener noreferrer"
+          onClick={() =>
+            trackOfferClick({
+              operator: campaign.operator,
+              campaignName: campaign.name,
+              vertical: "broadband",
+            })
+          }
           className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-orange-600 px-4 py-2.5 text-sm font-semibold text-orange-700 transition hover:bg-orange-50"
         >
           Beställ nu
