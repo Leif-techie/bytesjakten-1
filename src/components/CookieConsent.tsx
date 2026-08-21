@@ -48,16 +48,13 @@ export function CookieConsent() {
         >
           <div className="mx-auto flex max-w-4xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm leading-relaxed text-zinc-600">
-              Vi använder Snap Pixel för att mäta våra annonser (t.ex. sidvisning,
-              klick på erbjudanden och registrering). Du kan acceptera eller
-              avvisa. Läs mer i vår{" "}
+              Vi använder cookies för att mäta våra annonser.{" "}
               <Link
                 href="/integritet"
                 className="font-semibold text-emerald-700 underline hover:text-emerald-800"
               >
-                integritetspolicy
+                Läs mer
               </Link>
-              .
             </p>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               <button
