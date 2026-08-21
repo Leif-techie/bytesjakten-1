@@ -2,7 +2,12 @@
 
 import { hasMarketingConsent } from "@/lib/cookie-consent";
 
-export const SNAP_PIXEL_ID = process.env.NEXT_PUBLIC_SNAP_PIXEL_ID?.trim() ?? "";
+// Must be a direct `process.env.NEXT_PUBLIC_*` read so Next inlines the value
+// into the client bundle at build time. Optional chaining (?.trim()) breaks
+// inlining and leaves an empty string in the browser.
+export const SNAP_PIXEL_ID = (
+  process.env.NEXT_PUBLIC_SNAP_PIXEL_ID ?? ""
+).trim();
 
 export type SnapTrackEvent =
   | "PAGE_VIEW"

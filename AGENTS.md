@@ -16,7 +16,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Integritet / radering:** Offentlig policy på `/integritet`. Avregistrering = `active: false` (uppgifter kan sparas upp till 12 mån). Begäran om **full radering** via `hej@bytesjakten.se` → hard delete i `/admin` (mål inom 30 dagar). Bygg inte automatisk GDPR-purge om det inte efterfrågas.
 
-**Snap Pixel:** Kräver `NEXT_PUBLIC_SNAP_PIXEL_ID`. Laddas **först efter cookie-samtycke** (`CookieConsent`). `PAGE_VIEW` vid accept/sidladdning; `CUSTOM_EVENT_1` vid klick på **Beställ nu**; `SIGN_UP` vid lyckad registrering. Utan samtycke eller utan ID: ingen pixel och ingen banner.
+**Snap Pixel:** Kräver `NEXT_PUBLIC_SNAP_PIXEL_ID` i VPS `.env` **vid `next build`** (bäddas in i klientbundlen; saknas den → ingen pixel och ingen cookie-ruta). Laddas **först efter Acceptera** i cookie-rutan. I DevTools: filtrera på `scevent` / `sc-static` (inte bara `snap`) **efter** accept. Events: `PAGE_VIEW`; `CUSTOM_EVENT_1` vid **Beställ nu**; `SIGN_UP` vid registrering.
 
 **Bredband:** Separat vertikal på `/bredband` för **mobilt bredband / 5G-hemma**. `BroadbandUser` + `BroadbandCampaign` (separata från mobil). Admin har separata kampanjlistor; gemensam **Byter inom 10 dagar** + **Mejlhistorik**. Mobilflödet är oförändrat.
 
