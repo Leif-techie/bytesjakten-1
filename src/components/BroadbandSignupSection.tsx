@@ -77,7 +77,7 @@ export function BroadbandSignupSection({
 
       setStatus("success");
       setMessage(data.message);
-      trackSignUp({ vertical: "broadband" });
+      trackSignUp({ vertical: "broadband", email });
       setEmail("");
       setShowModal(false);
     } catch {

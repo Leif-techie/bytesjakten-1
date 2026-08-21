@@ -1,10 +1,13 @@
+"use client";
+
+import { useEffect } from "react";
 import {
   formatSEK,
   getCampaignAffiliateUrl,
   getCampaignPeriodLabel,
   getNetworkLabel,
 } from "@/lib/campaigns";
-import { trackOfferClick } from "@/lib/snap-pixel";
+import { trackOfferClick, trackViewContent } from "@/lib/snap-pixel";
 
 type CampaignOffer = {
   operator: string;
@@ -223,6 +226,24 @@ export function BestOfferCard({
       : campaign
         ? [campaign]
         : [];
+
+  const viewKey = offers
+    .slice(0, 3)
+    .map((o) => `${o.operator}:${o.name}:${o.campaignPrice}`)
+    .join("|");
+
+  useEffect(() => {
+    if (loading || !viewKey) return;
+    for (const offer of offers.slice(0, 3)) {
+      trackViewContent({
+        price: offer.campaignPrice,
+        operator: offer.operator,
+        campaignName: offer.name,
+        vertical: "mobile",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [loading, viewKey]);
 
   if (loading) {
     return (

@@ -8,18 +8,27 @@ import {
   readCookieConsent,
   writeCookieConsent,
 } from "@/lib/cookie-consent";
-import { isSnapPixelConfigured } from "@/lib/snap-pixel";
+import {
+  isSnapPixelConfigured,
+  isSnapTestSession,
+} from "@/lib/snap-pixel";
 
 /**
- * Shows a compact consent bar. Snap Pixel loads only after accept.
+ * Shows a compact consent bar. Snap Pixel loads after accept,
+ * or immediately during Snap Events Manager test sessions (ScTestModeId).
  */
 export function CookieConsent() {
   const [choice, setChoice] = useState<CookieConsentValue | null>(null);
   const [ready, setReady] = useState(false);
+  const [snapTest, setSnapTest] = useState(false);
 
   useEffect(() => {
-    setChoice(readCookieConsent());
-    setReady(true);
+    // Defer so we don't sync-setState in the effect body (eslint react-hooks).
+    queueMicrotask(() => {
+      setChoice(readCookieConsent());
+      setSnapTest(isSnapTestSession());
+      setReady(true);
+    });
   }, []);
 
   function accept() {
@@ -32,10 +41,11 @@ export function CookieConsent() {
     setChoice("rejected");
   }
 
-  const showBanner = ready && choice === null && isSnapPixelConfigured();
-  // Use React state (not a fresh localStorage read) so Accept mounts the pixel immediately.
+  const configured = isSnapPixelConfigured();
+  const showBanner = ready && choice === null && configured && !snapTest;
+  // Snap Test Events needs the pixel on first paint of the test tab.
   const loadPixel =
-    ready && choice === "accepted" && isSnapPixelConfigured();
+    ready && configured && (choice === "accepted" || snapTest);
 
   return (
     <>

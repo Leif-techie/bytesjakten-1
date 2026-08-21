@@ -9,7 +9,7 @@ import {
   daysUntil,
 } from "@/lib/campaigns";
 import type { BroadbandPreferences } from "@/components/BroadbandPreferencesForm";
-import { trackOfferClick } from "@/lib/snap-pixel";
+import { trackOfferClick, trackViewContent } from "@/lib/snap-pixel";
 
 type BroadbandOffer = {
   operator: string;
@@ -268,6 +268,24 @@ export function BroadbandBestOfferCard({
 
   const readyToSwitch = daysUntil(new Date(preferences.contractEndDate)) <= 7;
   const offers = campaigns.map((c) => ({ ...c, readyToSwitch }));
+
+  const viewKey = offers
+    .slice(0, 3)
+    .map((o) => `${o.operator}:${o.name}:${o.campaignPrice}`)
+    .join("|");
+
+  useEffect(() => {
+    if (loading || !viewKey) return;
+    for (const offer of offers.slice(0, 3)) {
+      trackViewContent({
+        price: offer.campaignPrice,
+        operator: offer.operator,
+        campaignName: offer.name,
+        vertical: "broadband",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [loading, viewKey]);
 
   if (loading) {
     return (
