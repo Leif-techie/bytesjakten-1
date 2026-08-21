@@ -180,8 +180,16 @@ export default function IntegritetPage() {
                   (Snapchat) för att mäta annonsresultat och händelser som
                   sidvisningar, klick på erbjudanden och registrering till
                   påminnelsetjänsten. Det kan innebära cookies eller liknande
-                  teknik från Snap. Adminpanelen använder dessutom en egen
-                  sessionscookie för inloggning.
+                  teknik från Snap.
+                </p>
+                <p className="mt-3">
+                  Snap Pixel aktiveras{" "}
+                  <strong className="font-semibold text-zinc-800">
+                    först efter att du accepterat
+                  </strong>{" "}
+                  i vår cookie-ruta. Väljer du Avvisa laddas inte pixeln. Ditt
+                  val sparas i webbläsaren (localStorage). Adminpanelen använder
+                  dessutom en egen sessionscookie för inloggning.
                 </p>
                 <p className="mt-3">
                   Vi använder för närvarande inga andra analysverktyg (t.ex.
