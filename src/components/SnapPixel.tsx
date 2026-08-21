@@ -1,31 +1,44 @@
 "use client";
 
-import Script from "next/script";
+import { useEffect } from "react";
 import { SNAP_PIXEL_ID, isSnapPixelConfigured } from "@/lib/snap-pixel";
 
+type SnaptrFn = ((...args: unknown[]) => void) & {
+  queue?: unknown[];
+  handleRequest?: (...args: unknown[]) => void;
+};
+
 /**
- * Loads Snap Pixel and fires PAGE_VIEW once per full page load.
- * Requires NEXT_PUBLIC_SNAP_PIXEL_ID.
+ * Loads Snap Pixel and fires PAGE_VIEW once when mounted (after consent / test mode).
+ * Uses DOM injection so it works when mounted after cookie accept (next/script can miss that).
  */
 export function SnapPixel() {
-  if (!isSnapPixelConfigured()) return null;
+  useEffect(() => {
+    if (!isSnapPixelConfigured()) return;
 
-  return (
-    <Script
-      id="snap-pixel"
-      strategy="afterInteractive"
-      dangerouslySetInnerHTML={{
-        __html: `
-(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function()
-{a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};
-a.queue=[];var s='script';r=t.createElement(s);r.async=!0;
-r.src=n;var u=t.getElementsByTagName(s)[0];
-u.parentNode.insertBefore(r,u);})(window,document,
-'https://sc-static.net/scevent.min.js');
-snaptr('init', ${JSON.stringify(SNAP_PIXEL_ID)}, {});
-snaptr('track', 'PAGE_VIEW');
-        `.trim(),
-      }}
-    />
-  );
+    const w = window as Window & { snaptr?: SnaptrFn };
+
+    if (typeof w.snaptr !== "function") {
+      const stub: SnaptrFn = (...args: unknown[]) => {
+        if (stub.handleRequest) {
+          stub.handleRequest(...args);
+        } else {
+          (stub.queue ||= []).push(args);
+        }
+      };
+      stub.queue = [];
+      w.snaptr = stub;
+
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://sc-static.net/scevent.min.js";
+      const first = document.getElementsByTagName("script")[0];
+      first?.parentNode?.insertBefore(script, first);
+    }
+
+    w.snaptr!("init", SNAP_PIXEL_ID, {});
+    w.snaptr!("track", "PAGE_VIEW");
+  }, []);
+
+  return null;
 }

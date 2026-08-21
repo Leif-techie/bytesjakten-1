@@ -31,14 +31,29 @@ export function isSnapPixelConfigured(): boolean {
   return Boolean(SNAP_PIXEL_ID);
 }
 
-/** Track a Snap Pixel event if consent is given and the pixel is loaded. */
+/**
+ * Snap Events Manager "Open Website" appends ScTestModeId so the SDK
+ * sends events to the Test Events panel (near real-time).
+ */
+export function isSnapTestSession(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const href = window.location.href;
+    if (/(?:\?|&)ScTestModeId=/i.test(href)) return true;
+    return new URLSearchParams(window.location.search).has("ScTestModeId");
+  } catch {
+    return false;
+  }
+}
+
+/** Track a Snap Pixel event if consent (or Snap test session) and pixel loaded. */
 export function trackSnap(
   event: SnapTrackEvent,
   params?: Record<string, unknown>
 ): void {
   if (typeof window === "undefined") return;
   if (!SNAP_PIXEL_ID) return;
-  if (!hasMarketingConsent()) return;
+  if (!hasMarketingConsent() && !isSnapTestSession()) return;
   if (typeof window.snaptr !== "function") return;
   window.snaptr("track", event, params);
 }
