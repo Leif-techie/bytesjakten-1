@@ -1,5 +1,7 @@
 /** Snap Pixel helpers (client-side only). */
 
+import { hasMarketingConsent } from "@/lib/cookie-consent";
+
 export const SNAP_PIXEL_ID = process.env.NEXT_PUBLIC_SNAP_PIXEL_ID?.trim() ?? "";
 
 export type SnapTrackEvent =
@@ -24,13 +26,14 @@ export function isSnapPixelConfigured(): boolean {
   return Boolean(SNAP_PIXEL_ID);
 }
 
-/** Track a Snap Pixel event if the pixel is loaded. */
+/** Track a Snap Pixel event if consent is given and the pixel is loaded. */
 export function trackSnap(
   event: SnapTrackEvent,
   params?: Record<string, unknown>
 ): void {
   if (typeof window === "undefined") return;
   if (!SNAP_PIXEL_ID) return;
+  if (!hasMarketingConsent()) return;
   if (typeof window.snaptr !== "function") return;
   window.snaptr("track", event, params);
 }
