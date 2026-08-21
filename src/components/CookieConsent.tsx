@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { SnapPixel } from "@/components/SnapPixel";
 import {
   type CookieConsentValue,
-  hasMarketingConsent,
   readCookieConsent,
   writeCookieConsent,
 } from "@/lib/cookie-consent";
@@ -34,7 +33,9 @@ export function CookieConsent() {
   }
 
   const showBanner = ready && choice === null && isSnapPixelConfigured();
-  const loadPixel = ready && hasMarketingConsent() && isSnapPixelConfigured();
+  // Use React state (not a fresh localStorage read) so Accept mounts the pixel immediately.
+  const loadPixel =
+    ready && choice === "accepted" && isSnapPixelConfigured();
 
   return (
     <>
