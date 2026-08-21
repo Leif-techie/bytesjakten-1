@@ -70,7 +70,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
 
       setStatus("success");
       setMessage(data.message);
-      trackSignUp({ vertical: "mobile" });
+      trackSignUp({ vertical: "mobile", email });
       setEmail("");
       setShowModal(false);
     } catch {

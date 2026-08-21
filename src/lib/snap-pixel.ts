@@ -13,6 +13,7 @@ export type SnapTrackEvent =
   | "PAGE_VIEW"
   | "SIGN_UP"
   | "CUSTOM_EVENT_1"
+  | "VIEW_CONTENT"
   | (string & {});
 
 type Snaptr = (
@@ -66,16 +67,37 @@ export function trackOfferClick(params?: {
 }): void {
   trackSnap("CUSTOM_EVENT_1", {
     item_category: params?.vertical ?? "mobile",
-    item_name: params?.campaignName,
-    brand: params?.operator,
+    item_ids: params?.campaignName ? [params.campaignName] : undefined,
+    brands: params?.operator ? [params.operator] : undefined,
   });
 }
 
-/** Registrering till påminnelsetjänsten. */
-export function trackSignUp(params?: {
+/** VIEW_CONTENT när erbjudanden visas (matchar Snaps produktvy-event). */
+export function trackViewContent(params: {
+  price: number;
+  operator?: string;
+  campaignName?: string;
   vertical?: "mobile" | "broadband";
 }): void {
+  trackSnap("VIEW_CONTENT", {
+    price: params.price,
+    currency: "SEK",
+    item_ids: params.campaignName ? [params.campaignName] : undefined,
+    item_category: params.vertical ?? "mobile",
+    brands: params.operator ? [params.operator] : undefined,
+  });
+}
+
+/** Registrering till påminnelsetjänsten. Snap hashar user_email i SDK. */
+export function trackSignUp(params?: {
+  vertical?: "mobile" | "broadband";
+  email?: string;
+}): void {
+  const email = params?.email?.trim().toLowerCase();
   trackSnap("SIGN_UP", {
-    sign_up_method: params?.vertical ?? "mobile",
+    sign_up_method: "Email",
+    success: 1,
+    item_category: params?.vertical ?? "mobile",
+    ...(email ? { user_email: email } : {}),
   });
 }
