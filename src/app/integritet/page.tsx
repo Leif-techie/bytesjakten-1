@@ -173,9 +173,19 @@ export default function IntegritetPage() {
                   7. Cookies
                 </h2>
                 <p className="mt-3">
-                  Vi använder inga analys- eller marknadsföringscookies på
-                  besökarsajten. Endast inloggning till vår adminpanel sätter en
-                  sessionscookie.
+                  På besökarsajten kan vi använda{" "}
+                  <strong className="font-semibold text-zinc-800">
+                    Snap Pixel
+                  </strong>{" "}
+                  (Snapchat) för att mäta annonsresultat och händelser som
+                  sidvisningar, klick på erbjudanden och registrering till
+                  påminnelsetjänsten. Det kan innebära cookies eller liknande
+                  teknik från Snap. Adminpanelen använder dessutom en egen
+                  sessionscookie för inloggning.
+                </p>
+                <p className="mt-3">
+                  Vi använder för närvarande inga andra analysverktyg (t.ex.
+                  Google Analytics) på sajten.
                 </p>
               </div>
 

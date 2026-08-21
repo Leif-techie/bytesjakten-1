@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { OPERATORS, DATA_OPTIONS, NETWORK_OPTIONS } from "@/lib/constants";
+import { trackSignUp } from "@/lib/snap-pixel";
 import type { UserPreferences } from "./PreferencesForm";
 
 type SignupSectionProps = {
@@ -69,6 +70,7 @@ export function SignupSection({ preferences }: SignupSectionProps) {
 
       setStatus("success");
       setMessage(data.message);
+      trackSignUp({ vertical: "mobile" });
       setEmail("");
       setShowModal(false);
     } catch {
