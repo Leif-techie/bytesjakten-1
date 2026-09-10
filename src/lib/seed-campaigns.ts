@@ -37,7 +37,9 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 20 Aug 2026.
+ * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 10 Sep 2026.
+ * Hallon: kampanj från 19 kr (tidigare 9). Fello: kampanj 30 kr (tidigare 20).
+ * Vimla 20 kr / Comviq 45 kr oförändrade. Comviq utan bindningstid-URL.
  * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
  * Replace `url` with Addrevenue tracking links in admin after refresh.
  */
@@ -45,12 +47,12 @@ function buildCampaigns(now: Date): SeedCampaign[] {
   const { start, end } = campaignWindow(now, 4);
 
   const regular: SeedCampaign[] = [
-    // Hallon – Tres nät, ingen bindningstid
+    // Hallon – Tres nät, ingen bindningstid (kampanj 19–59 kr i 4 mån, sep 2026)
     {
       operator: "Hallon",
       name: "Hallon – 5 GB",
       dataGB: 5,
-      campaignPrice: 9,
+      campaignPrice: 19,
       regularPrice: 109,
       campaignStart: start,
       campaignEnd: end,
@@ -62,7 +64,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Hallon",
       name: "Hallon – 10 GB",
       dataGB: 10,
-      campaignPrice: 19,
+      campaignPrice: 29,
       regularPrice: 159,
       campaignStart: start,
       campaignEnd: end,
@@ -207,12 +209,12 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       isStudent: false,
     },
 
-    // Fello – Telias nät, ingen bindningstid
+    // Fello – Telias nät, ingen bindningstid (kampanj 30 kr i 3 mån, sep 2026)
     {
       operator: "Fello",
       name: "Fello – 5 GB",
       dataGB: 5,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 120,
       campaignStart: start,
       campaignEnd: end,
@@ -224,7 +226,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello – 10 GB",
       dataGB: 10,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 180,
       campaignStart: start,
       campaignEnd: end,
@@ -236,7 +238,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello – 20 GB",
       dataGB: 20,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 230,
       campaignStart: start,
       campaignEnd: end,
@@ -248,7 +250,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello – 40 GB",
       dataGB: 40,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 290,
       campaignStart: start,
       campaignEnd: end,
@@ -260,7 +262,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello – 100 GB",
       dataGB: 100,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 370,
       campaignStart: start,
       campaignEnd: end,
@@ -270,14 +272,14 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
   ];
 
-  // Student plans — checked 20 Aug 2026
+  // Student plans — checked 10 Sep 2026
   const student: SeedCampaign[] = [
     // Hallon Student – 4 månader kampanj
     {
       operator: "Hallon",
       name: "Hallon Student – 10 GB",
       dataGB: 10,
-      campaignPrice: 9,
+      campaignPrice: 19,
       regularPrice: 109,
       campaignStart: start,
       campaignEnd: end,
@@ -289,7 +291,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Hallon",
       name: "Hallon Student – 20 GB",
       dataGB: 20,
-      campaignPrice: 19,
+      campaignPrice: 29,
       regularPrice: 159,
       campaignStart: start,
       campaignEnd: end,
@@ -434,7 +436,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello Student – 10 GB",
       dataGB: 10,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 120,
       campaignStart: start,
       campaignEnd: end,
@@ -446,7 +448,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello Student – 20 GB",
       dataGB: 20,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 160,
       campaignStart: start,
       campaignEnd: end,
@@ -458,7 +460,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello Student – 30 GB",
       dataGB: 30,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 200,
       campaignStart: start,
       campaignEnd: end,
@@ -470,7 +472,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello Student – 50 GB",
       dataGB: 50,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 250,
       campaignStart: start,
       campaignEnd: end,
@@ -482,7 +484,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Fello",
       name: "Fello Student – 100 GB",
       dataGB: 100,
-      campaignPrice: 20,
+      campaignPrice: 30,
       regularPrice: 320,
       campaignStart: start,
       campaignEnd: end,
