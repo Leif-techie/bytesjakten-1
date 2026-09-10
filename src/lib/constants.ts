@@ -1,6 +1,7 @@
 export const OPERATORS = [
   "Telia",
   "Telenor",
+  "Tele2",
   "Tre",
   "Hallon",
   "Comviq",
