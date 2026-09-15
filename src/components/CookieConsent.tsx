@@ -17,8 +17,8 @@ type Panel = "main" | "customize";
 
 /**
  * Blocking consent modal with Accept all / Necessary only / Customize.
- * Mobile: bottom sheet sized to the small viewport (svh) so the full dialog
- * stays visible while the browser chrome is showing. Desktop: centered.
+ * Sized against the small viewport (svh) and vertically centered so the
+ * full dialog stays on-screen while mobile browser chrome is showing.
  */
 export function CookieConsent() {
   const [choice, setChoice] = useState<CookieConsentValue | null>(null);
@@ -76,8 +76,15 @@ export function CookieConsent() {
 
       {showBanner ? (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-zinc-900/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-          style={{ height: "100svh", maxHeight: "100svh" }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/60 p-3 backdrop-blur-sm sm:p-4"
+          style={{
+            height: "100svh",
+            maxHeight: "100svh",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: "auto",
+          }}
           role="presentation"
         >
           <div
@@ -85,9 +92,9 @@ export function CookieConsent() {
             aria-modal="true"
             aria-labelledby="cookie-consent-title"
             aria-describedby="cookie-consent-desc"
-            className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-zinc-200 border-b-0 bg-white shadow-2xl sm:rounded-2xl sm:border-b"
+            className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl"
             style={{
-              maxHeight: "min(88svh, 100%)",
+              maxHeight: "min(85svh, 100%)",
             }}
           >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-2 sm:px-8 sm:pt-8 sm:pb-3">
