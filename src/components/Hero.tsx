@@ -1,4 +1,11 @@
-export function Hero() {
+import type { ReactNode } from "react";
+
+type HeroProps = {
+  /** Placed directly under the headline (e.g. signup form). */
+  children?: ReactNode;
+};
+
+export function Hero({ children }: HeroProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/80 to-white px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
       <div className="mx-auto max-w-3xl">
@@ -7,11 +14,14 @@ export function Hero() {
           <br />
           <span className="text-emerald-600">Betala mindre.</span>
         </h1>
-        <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600">
+
+        {children}
+
+        <p className="mt-8 max-w-lg text-lg leading-relaxed text-zinc-600">
           Vi bevakar alla kampanjer för mobilabonnemang utan bindningstid. Du
           slipper jämföra priser själv – vi hittar det bästa erbjudandet åt dig
           när din nuvarande kampanj går ut. Registrera dig med din mejladress
-          nedan för att komma igång. Ingen hake. Helt gratis. Njut av
+          ovan för att komma igång. Ingen hake. Helt gratis. Njut av
           operatörernas låga kampanjpriser, året runt.
         </p>
 
