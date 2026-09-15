@@ -9,12 +9,13 @@ import {
   defaultBroadbandPreferences,
   type BroadbandPreferences,
 } from "@/components/BroadbandPreferencesForm";
+import { BroadbandSignupForm } from "@/components/BroadbandSignupForm";
 import { BroadbandSignupSection } from "@/components/BroadbandSignupSection";
 import { BroadbandBestOfferCard } from "@/components/BroadbandBestOfferCard";
 
 export function BredbandClient() {
   const [preferences, setPreferences] = useState<BroadbandPreferences>(
-    defaultBroadbandPreferences
+    defaultBroadbandPreferences,
   );
 
   return (
@@ -31,7 +32,10 @@ export function BredbandClient() {
               <br />
               <span className="text-orange-600">Betala mindre.</span>
             </h1>
-            <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-600">
+
+            <BroadbandSignupForm preferences={preferences} layout="hero" />
+
+            <p className="mt-8 max-w-lg text-lg leading-relaxed text-zinc-600">
               Berätta vilken operatör du har och när avtalet går ut – vi mejlar
               dig när det är dags att byta till ett bättre kampanjpris på mobilt
               bredband och 5G-hemma.
@@ -54,7 +58,7 @@ export function BredbandClient() {
           </div>
         </section>
 
-        <BroadbandSignupSection preferences={preferences} />
+        <BroadbandSignupSection />
         <BroadbandPreferencesForm
           preferences={preferences}
           onChange={setPreferences}

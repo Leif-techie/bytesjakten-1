@@ -10,6 +10,7 @@ import {
   type UserPreferences,
 } from "@/components/PreferencesForm";
 import { BestOfferCard } from "@/components/BestOfferCard";
+import { SignupForm } from "@/components/SignupForm";
 import { SignupSection } from "@/components/SignupSection";
 import { EsimGuide } from "@/components/EsimGuide";
 import { KivraSection } from "@/components/KivraSection";
@@ -88,8 +89,10 @@ export default function HomePage() {
     <>
       <Header />
       <main>
-        <Hero />
-        <SignupSection preferences={preferences} />
+        <Hero>
+          <SignupForm preferences={preferences} layout="hero" />
+        </Hero>
+        <SignupSection />
         {campaign && (
           <SavingsBar />
         )}
