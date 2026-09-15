@@ -76,22 +76,21 @@ export function CookieConsent() {
               id="cookie-consent-title"
               className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl"
             >
-              Vi använder cookies
+              Cookies på Bytesjakten
             </h2>
             <p
               id="cookie-consent-desc"
               className="mt-3 text-base leading-relaxed text-zinc-600"
             >
-              För att mäta våra annonser (Snapchat) och förstå vad som fungerar
-              ber vi om ditt godkännande. Du kan avvisa – då laddas ingen
-              mätning.{" "}
+              Vi använder cookies och liknande tekniker för statistik och
+              marknadsföring. Nödvändiga cookies krävs för att webbplatsen ska
+              fungera. Du kan välja att acceptera alla eller bara nödvändiga.{" "}
               <Link
                 href="/integritet"
                 className="font-semibold text-emerald-700 underline hover:text-emerald-800"
               >
-                Läs mer i integritetspolicyn
+                Läs mer
               </Link>
-              .
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
@@ -100,14 +99,14 @@ export function CookieConsent() {
                 onClick={accept}
                 className="w-full rounded-xl bg-emerald-600 px-5 py-3.5 text-base font-semibold text-white transition hover:bg-emerald-700 sm:flex-1"
               >
-                Acceptera
+                Acceptera alla
               </button>
               <button
                 type="button"
                 onClick={reject}
                 className="w-full rounded-xl border border-zinc-300 bg-white px-5 py-3.5 text-base font-semibold text-zinc-800 transition hover:bg-zinc-50 sm:flex-1"
               >
-                Avvisa
+                Bara nödvändiga
               </button>
             </div>
           </div>
