@@ -17,10 +17,7 @@ export function SignupSection() {
   return (
     <section className="bg-zinc-50 px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-2xl text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-3xl">
-          ✉️
-        </div>
-        <h2 className="mt-6 text-3xl font-bold text-zinc-900">
+        <h2 className="text-3xl font-bold text-zinc-900">
           Vi ser till att du alltid ligger kvar på billigast kampanjpris
         </h2>
         <p className="mt-4 text-lg text-zinc-600">
