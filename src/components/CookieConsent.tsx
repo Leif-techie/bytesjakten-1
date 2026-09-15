@@ -17,7 +17,8 @@ type Panel = "main" | "customize";
 
 /**
  * Blocking consent modal with Accept all / Necessary only / Customize.
- * Compact on mobile: fits in the viewport without page scroll.
+ * Mobile: bottom sheet sized to the small viewport (svh) so the full dialog
+ * stays visible while the browser chrome is showing. Desktop: centered.
  */
 export function CookieConsent() {
   const [choice, setChoice] = useState<CookieConsentValue | null>(null);
@@ -75,8 +76,8 @@ export function CookieConsent() {
 
       {showBanner ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/60 p-3 backdrop-blur-sm sm:p-4"
-          style={{ minHeight: "100dvh" }}
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-zinc-900/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          style={{ height: "100svh", maxHeight: "100svh" }}
           role="presentation"
         >
           <div
@@ -84,10 +85,9 @@ export function CookieConsent() {
             aria-modal="true"
             aria-labelledby="cookie-consent-title"
             aria-describedby="cookie-consent-desc"
-            className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl"
+            className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-zinc-200 border-b-0 bg-white shadow-2xl sm:rounded-2xl sm:border-b"
             style={{
-              maxHeight: "min(92dvh, 100%)",
-              marginBottom: "env(safe-area-inset-bottom, 0px)",
+              maxHeight: "min(88svh, 100%)",
             }}
           >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-2 sm:px-8 sm:pt-8 sm:pb-3">
@@ -174,7 +174,6 @@ export function CookieConsent() {
               )}
             </div>
 
-            {/* Actions stay pinned at the bottom of the card */}
             <div className="shrink-0 border-t border-zinc-100 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-8 sm:pt-4 sm:pb-8">
               {panel === "main" ? (
                 <div className="flex flex-col gap-2 sm:gap-3">
