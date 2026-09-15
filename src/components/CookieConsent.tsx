@@ -12,7 +12,6 @@ import {
   isSnapPixelConfigured,
   isSnapTestSession,
 } from "@/lib/snap-pixel";
-import styles from "./CookieConsent.module.css";
 
 type Panel = "main" | "customize";
 
@@ -75,55 +74,53 @@ export function CookieConsent() {
       {loadPixel ? <SnapPixel /> : null}
 
       {showBanner ? (
-        <div className={styles.overlay} role="presentation">
+        <div className="bj-cookie-overlay" role="presentation">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="cookie-consent-title"
             aria-describedby="cookie-consent-desc"
-            className={styles.modal}
+            className="bj-cookie-modal"
           >
-            <div className={styles.body}>
+            <div className="bj-cookie-body">
               {panel === "main" ? (
                 <>
-                  <h2 id="cookie-consent-title" className={styles.title}>
+                  <h2 id="cookie-consent-title" className="bj-cookie-title">
                     Cookies på Bytesjakten
                   </h2>
-                  <p id="cookie-consent-desc" className={styles.text}>
+                  <p id="cookie-consent-desc" className="bj-cookie-text">
                     Vi använder cookies och liknande tekniker för statistik och
                     marknadsföring. Nödvändiga cookies krävs för att webbplatsen
                     ska fungera.{" "}
-                    <Link href="/integritet" className={styles.link}>
+                    <Link href="/integritet" className="bj-cookie-link">
                       Läs mer
                     </Link>
                   </p>
                 </>
               ) : (
                 <>
-                  <h2 id="cookie-consent-title" className={styles.title}>
+                  <h2 id="cookie-consent-title" className="bj-cookie-title">
                     Anpassa cookies
                   </h2>
-                  <p id="cookie-consent-desc" className={styles.text}>
+                  <p id="cookie-consent-desc" className="bj-cookie-text">
                     Välj vilka cookies du vill tillåta. Nödvändiga cookies kan
                     inte stängas av.
                   </p>
 
-                  <ul className={styles.options}>
-                    <li
-                      className={`${styles.option} ${styles.optionMuted}`}
-                    >
+                  <ul className="bj-cookie-options">
+                    <li className="bj-cookie-option bj-cookie-option--muted">
                       <div>
-                        <p className={styles.optionTitle}>Nödvändiga</p>
-                        <p className={styles.optionDesc}>
+                        <p className="bj-cookie-option-title">Nödvändiga</p>
+                        <p className="bj-cookie-option-desc">
                           Krävs för grundläggande funktioner på sajten.
                         </p>
                       </div>
-                      <span className={styles.badge}>Alltid på</span>
+                      <span className="bj-cookie-badge">Alltid på</span>
                     </li>
-                    <li className={styles.option}>
+                    <li className="bj-cookie-option">
                       <div>
-                        <p className={styles.optionTitle}>Marknadsföring</p>
-                        <p className={styles.optionDesc}>
+                        <p className="bj-cookie-option-title">Marknadsföring</p>
+                        <p className="bj-cookie-option-desc">
                           Hjälper oss mäta och förbättra våra annonser.
                         </p>
                       </div>
@@ -132,11 +129,11 @@ export function CookieConsent() {
                         role="switch"
                         aria-checked={marketing}
                         onClick={() => setMarketing((v) => !v)}
-                        className={`${styles.switch} ${
-                          marketing ? styles.switchOn : ""
+                        className={`bj-cookie-switch${
+                          marketing ? " bj-cookie-switch--on" : ""
                         }`}
                       >
-                        <span className={styles.switchThumb} />
+                        <span className="bj-cookie-switch-thumb" />
                       </button>
                     </li>
                   </ul>
@@ -144,46 +141,44 @@ export function CookieConsent() {
               )}
             </div>
 
-            <div className={styles.footer}>
+            <div className="bj-cookie-footer">
               {panel === "main" ? (
-                <div className={styles.actions}>
+                <div className="bj-cookie-actions">
                   <button
                     type="button"
                     onClick={acceptAll}
-                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    className="bj-cookie-btn bj-cookie-btn--primary"
                   >
                     Acceptera alla
                   </button>
                   <button
                     type="button"
                     onClick={necessaryOnly}
-                    className={`${styles.btn} ${styles.btnSecondary}`}
+                    className="bj-cookie-btn bj-cookie-btn--secondary"
                   >
                     Bara nödvändiga
                   </button>
                   <button
                     type="button"
                     onClick={() => setPanel("customize")}
-                    className={`${styles.btn} ${styles.btnGhost}`}
+                    className="bj-cookie-btn bj-cookie-btn--ghost"
                   >
                     Anpassa
                   </button>
                 </div>
               ) : (
-                <div
-                  className={`${styles.actions} ${styles.actionsRow}`}
-                >
+                <div className="bj-cookie-actions bj-cookie-actions--row">
                   <button
                     type="button"
                     onClick={saveCustom}
-                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    className="bj-cookie-btn bj-cookie-btn--primary"
                   >
                     Spara val
                   </button>
                   <button
                     type="button"
                     onClick={() => setPanel("main")}
-                    className={`${styles.btn} ${styles.btnSecondary}`}
+                    className="bj-cookie-btn bj-cookie-btn--secondary"
                   >
                     Tillbaka
                   </button>

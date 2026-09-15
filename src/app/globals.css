@@ -21,3 +21,316 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* ---- Cookie consent modal (iOS + Android safe) ---- */
+.bj-cookie-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  background: rgba(24, 24, 27, 0.6);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+}
+
+.bj-cookie-modal {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  max-width: 90%;
+  height: auto;
+  max-height: calc(
+    100% - max(0.75rem, env(safe-area-inset-top, 0px)) -
+      max(0.75rem, env(safe-area-inset-bottom, 0px))
+  );
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #e4e4e7;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.bj-cookie-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 1rem 1rem 0.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bj-cookie-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+  color: #18181b;
+}
+
+.bj-cookie-text {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #52525b;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bj-cookie-link {
+  font-weight: 600;
+  color: #047857;
+  text-decoration: underline;
+}
+
+.bj-cookie-link:hover {
+  color: #065f46;
+}
+
+.bj-cookie-options {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bj-cookie-option {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.bj-cookie-option--muted {
+  background: #fafafa;
+}
+
+.bj-cookie-option-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.bj-cookie-option-desc {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #71717a;
+}
+
+.bj-cookie-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background: #e4e4e7;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #52525b;
+}
+
+.bj-cookie-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 9999px;
+  background: #d4d4d8;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bj-cookie-switch--on {
+  background: #059669;
+}
+
+.bj-cookie-switch-thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.bj-cookie-switch--on .bj-cookie-switch-thumb {
+  transform: translateX(1.25rem);
+}
+
+.bj-cookie-footer {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid #f4f4f5;
+  background: #ffffff;
+}
+
+.bj-cookie-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.bj-cookie-btn {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bj-cookie-btn--primary {
+  border: none;
+  background: #059669;
+  color: #ffffff;
+}
+
+.bj-cookie-btn--primary:hover {
+  background: #047857;
+}
+
+.bj-cookie-btn--secondary {
+  border: 1px solid #d4d4d8;
+  background: #ffffff;
+  color: #27272a;
+}
+
+.bj-cookie-btn--secondary:hover {
+  background: #fafafa;
+}
+
+.bj-cookie-btn--ghost {
+  border: none;
+  background: transparent;
+  color: #047857;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+.bj-cookie-btn--ghost:hover {
+  background: #ecfdf5;
+}
+
+/* ≥480px: wider modal; customize actions can sit in a row */
+@media (min-width: 480px) {
+  .bj-cookie-overlay {
+    padding-top: max(1rem, env(safe-area-inset-top, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  .bj-cookie-modal {
+    width: 100%;
+    max-width: 460px;
+  }
+
+  .bj-cookie-body {
+    padding: 2rem 2rem 0.75rem;
+  }
+
+  .bj-cookie-title {
+    font-size: 1.5rem;
+  }
+
+  .bj-cookie-text {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .bj-cookie-options {
+    margin-top: 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .bj-cookie-option {
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .bj-cookie-option-title {
+    font-size: 1rem;
+  }
+
+  .bj-cookie-option-desc {
+    font-size: 0.875rem;
+  }
+
+  .bj-cookie-badge {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .bj-cookie-footer {
+    padding: 1rem 2rem 2rem;
+  }
+
+  .bj-cookie-actions {
+    gap: 0.75rem;
+  }
+
+  .bj-cookie-actions--row {
+    flex-direction: row-reverse;
+  }
+
+  .bj-cookie-actions--row .bj-cookie-btn {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .bj-cookie-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  .bj-cookie-btn--ghost {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .bj-cookie-modal {
+    max-width: 500px;
+  }
+}
