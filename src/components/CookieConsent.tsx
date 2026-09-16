@@ -16,8 +16,8 @@ import {
 type Panel = "main" | "customize";
 
 /**
- * Blocking consent modal with Accept all / Necessary only / Customize.
- * Compact on mobile: fits in the viewport without page scroll.
+ * Blocking, centered cookie modal (fixed inset:0 overlay + media queries).
+ * Stays inside the viewport on iOS/Android, including safe-area insets.
  */
 export function CookieConsent() {
   const [choice, setChoice] = useState<CookieConsentValue | null>(null);
@@ -74,82 +74,53 @@ export function CookieConsent() {
       {loadPixel ? <SnapPixel /> : null}
 
       {showBanner ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/60 p-3 backdrop-blur-sm sm:p-4"
-          style={{ minHeight: "100dvh" }}
-          role="presentation"
-        >
+        <div className="bj-cookie-overlay" role="presentation">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="cookie-consent-title"
             aria-describedby="cookie-consent-desc"
-            className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl"
-            style={{
-              maxHeight: "min(92dvh, 100%)",
-              marginBottom: "env(safe-area-inset-bottom, 0px)",
-            }}
+            className="bj-cookie-modal"
           >
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-2 sm:px-8 sm:pt-8 sm:pb-3">
+            <div className="bj-cookie-body">
               {panel === "main" ? (
                 <>
-                  <h2
-                    id="cookie-consent-title"
-                    className="text-lg font-bold tracking-tight text-zinc-900 sm:text-2xl"
-                  >
+                  <h2 id="cookie-consent-title" className="bj-cookie-title">
                     Cookies på Bytesjakten
                   </h2>
-                  <p
-                    id="cookie-consent-desc"
-                    className="mt-2 text-sm leading-relaxed text-zinc-600 sm:mt-3 sm:text-base"
-                  >
+                  <p id="cookie-consent-desc" className="bj-cookie-text">
                     Vi använder cookies och liknande tekniker för statistik och
                     marknadsföring. Nödvändiga cookies krävs för att webbplatsen
                     ska fungera.{" "}
-                    <Link
-                      href="/integritet"
-                      className="font-semibold text-emerald-700 underline hover:text-emerald-800"
-                    >
+                    <Link href="/integritet" className="bj-cookie-link">
                       Läs mer
                     </Link>
                   </p>
                 </>
               ) : (
                 <>
-                  <h2
-                    id="cookie-consent-title"
-                    className="text-lg font-bold tracking-tight text-zinc-900 sm:text-2xl"
-                  >
+                  <h2 id="cookie-consent-title" className="bj-cookie-title">
                     Anpassa cookies
                   </h2>
-                  <p
-                    id="cookie-consent-desc"
-                    className="mt-2 text-sm leading-relaxed text-zinc-600 sm:mt-3 sm:text-base"
-                  >
+                  <p id="cookie-consent-desc" className="bj-cookie-text">
                     Välj vilka cookies du vill tillåta. Nödvändiga cookies kan
                     inte stängas av.
                   </p>
 
-                  <ul className="mt-3 space-y-2 sm:mt-5 sm:space-y-3">
-                    <li className="flex items-start justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
+                  <ul className="bj-cookie-options">
+                    <li className="bj-cookie-option bj-cookie-option--muted">
                       <div>
-                        <p className="text-sm font-semibold text-zinc-900 sm:text-base">
-                          Nödvändiga
-                        </p>
-                        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">
+                        <p className="bj-cookie-option-title">Nödvändiga</p>
+                        <p className="bj-cookie-option-desc">
                           Krävs för grundläggande funktioner på sajten.
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-full bg-zinc-200 px-2.5 py-1 text-[11px] font-semibold text-zinc-600 sm:px-3 sm:text-xs">
-                        Alltid på
-                      </span>
+                      <span className="bj-cookie-badge">Alltid på</span>
                     </li>
-                    <li className="flex items-start justify-between gap-3 rounded-xl border border-zinc-200 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
+                    <li className="bj-cookie-option">
                       <div>
-                        <p className="text-sm font-semibold text-zinc-900 sm:text-base">
-                          Marknadsföring
-                        </p>
-                        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">
+                        <p className="bj-cookie-option-title">Marknadsföring</p>
+                        <p className="bj-cookie-option-desc">
                           Hjälper oss mäta och förbättra våra annonser.
                         </p>
                       </div>
@@ -158,15 +129,11 @@ export function CookieConsent() {
                         role="switch"
                         aria-checked={marketing}
                         onClick={() => setMarketing((v) => !v)}
-                        className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                          marketing ? "bg-emerald-600" : "bg-zinc-300"
+                        className={`bj-cookie-switch${
+                          marketing ? " bj-cookie-switch--on" : ""
                         }`}
                       >
-                        <span
-                          className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
-                            marketing ? "translate-x-5" : "translate-x-0"
-                          }`}
-                        />
+                        <span className="bj-cookie-switch-thumb" />
                       </button>
                     </li>
                   </ul>
@@ -174,45 +141,44 @@ export function CookieConsent() {
               )}
             </div>
 
-            {/* Actions stay pinned at the bottom of the card */}
-            <div className="shrink-0 border-t border-zinc-100 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-8 sm:pt-4 sm:pb-8">
+            <div className="bj-cookie-footer">
               {panel === "main" ? (
-                <div className="flex flex-col gap-2 sm:gap-3">
+                <div className="bj-cookie-actions">
                   <button
                     type="button"
                     onClick={acceptAll}
-                    className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:px-5 sm:py-3.5 sm:text-base"
+                    className="bj-cookie-btn bj-cookie-btn--primary"
                   >
                     Acceptera alla
                   </button>
                   <button
                     type="button"
                     onClick={necessaryOnly}
-                    className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 sm:px-5 sm:py-3.5 sm:text-base"
+                    className="bj-cookie-btn bj-cookie-btn--secondary"
                   >
                     Bara nödvändiga
                   </button>
                   <button
                     type="button"
                     onClick={() => setPanel("customize")}
-                    className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 sm:px-5 sm:py-3 sm:text-base"
+                    className="bj-cookie-btn bj-cookie-btn--ghost"
                   >
                     Anpassa
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2 sm:flex-row-reverse sm:gap-3">
+                <div className="bj-cookie-actions bj-cookie-actions--row">
                   <button
                     type="button"
                     onClick={saveCustom}
-                    className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:flex-1 sm:px-5 sm:py-3.5 sm:text-base"
+                    className="bj-cookie-btn bj-cookie-btn--primary"
                   >
                     Spara val
                   </button>
                   <button
                     type="button"
                     onClick={() => setPanel("main")}
-                    className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 sm:flex-1 sm:px-5 sm:py-3.5 sm:text-base"
+                    className="bj-cookie-btn bj-cookie-btn--secondary"
                   >
                     Tillbaka
                   </button>
