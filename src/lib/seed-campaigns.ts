@@ -1,4 +1,8 @@
-import type { Campaign, BroadbandCampaign } from "@/generated/prisma/client";
+import type {
+  Campaign,
+  BroadbandCampaign,
+  ElectricityCampaign,
+} from "@/generated/prisma/client";
 import { db } from "./db";
 
 type SeedCampaign = {
@@ -24,6 +28,18 @@ type SeedBroadbandCampaign = {
   campaignEnd: Date;
   url: string;
   technology: string;
+};
+
+type SeedElectricityCampaign = {
+  operator: string;
+  name: string;
+  priceType: string;
+  bindingMonths: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
 };
 
 /** Rolling window so refreshed seed campaigns stay active after "Uppdatera kampanjer". */
@@ -581,19 +597,107 @@ function buildBroadbandCampaigns(now: Date): SeedBroadbandCampaign[] {
   ];
 }
 
+function buildElectricityCampaigns(now: Date): SeedElectricityCampaign[] {
+  const { start, end } = campaignWindow(now, 6);
+
+  return [
+    {
+      operator: "Tibber",
+      name: "Tibber – Rörligt (spot)",
+      priceType: "variable",
+      bindingMonths: 0,
+      campaignPrice: 0,
+      regularPrice: 0,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://tibber.com/se",
+    },
+    {
+      operator: "GodEl",
+      name: "GodEl – Fastpris 1 år",
+      priceType: "fixed",
+      bindingMonths: 12,
+      campaignPrice: 89,
+      regularPrice: 110,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.godel.se/",
+    },
+    {
+      operator: "Greenely",
+      name: "Greenely – Rörligt",
+      priceType: "variable",
+      bindingMonths: 0,
+      campaignPrice: 4,
+      regularPrice: 8,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.greenely.com/se",
+    },
+    {
+      operator: "Fortum",
+      name: "Fortum – Fastpris 12 mån",
+      priceType: "fixed",
+      bindingMonths: 12,
+      campaignPrice: 95,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fortum.se/",
+    },
+    {
+      operator: "Vattenfall",
+      name: "Vattenfall – Fastpris 24 mån",
+      priceType: "fixed",
+      bindingMonths: 24,
+      campaignPrice: 92,
+      regularPrice: 115,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vattenfall.se/",
+    },
+    {
+      operator: "Bixia",
+      name: "Bixia – Fastpris 36 mån",
+      priceType: "fixed",
+      bindingMonths: 36,
+      campaignPrice: 88,
+      regularPrice: 112,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.bixia.se/",
+    },
+    {
+      operator: "Cheap Energy",
+      name: "Cheap Energy – Rörligt",
+      priceType: "variable",
+      bindingMonths: 0,
+      campaignPrice: 2,
+      regularPrice: 6,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.cheapenergy.se/",
+    },
+  ];
+}
+
 export async function updateCampaigns(): Promise<{
   updated: number;
   broadbandUpdated: number;
+  electricityUpdated: number;
   active: number;
   activeBroadband: number;
+  activeElectricity: number;
 }> {
   const now = new Date();
   const seedData = buildCampaigns(now);
   const broadbandSeedData = buildBroadbandCampaigns(now);
+  const electricitySeedData = buildElectricityCampaigns(now);
 
   // Full replace so old demo rows do not linger as inactive clutter.
   await db.campaign.deleteMany({});
   await db.broadbandCampaign.deleteMany({});
+  await db.electricityCampaign.deleteMany({});
 
   let updated = 0;
   for (const item of seedData) {
@@ -619,17 +723,36 @@ export async function updateCampaigns(): Promise<{
     broadbandUpdated++;
   }
 
+  let electricityUpdated = 0;
+  for (const item of electricitySeedData) {
+    await db.electricityCampaign.create({
+      data: {
+        ...item,
+        active: now >= item.campaignStart && now <= item.campaignEnd,
+      },
+    });
+    electricityUpdated++;
+  }
+
   await db.systemMeta.upsert({
     where: { id: "singleton" },
     create: { id: "singleton", lastCampaignUpdate: now },
     update: { lastCampaignUpdate: now },
   });
 
-  const [active, activeBroadband] = await Promise.all([
+  const [active, activeBroadband, activeElectricity] = await Promise.all([
     db.campaign.count({ where: { active: true } }),
     db.broadbandCampaign.count({ where: { active: true } }),
+    db.electricityCampaign.count({ where: { active: true } }),
   ]);
-  return { updated, broadbandUpdated, active, activeBroadband };
+  return {
+    updated,
+    broadbandUpdated,
+    electricityUpdated,
+    active,
+    activeBroadband,
+    activeElectricity,
+  };
 }
 
 export async function getActiveCampaigns(): Promise<Campaign[]> {
@@ -646,6 +769,15 @@ export async function getActiveBroadbandCampaigns(): Promise<BroadbandCampaign[]
   });
 }
 
+export async function getActiveElectricityCampaigns(): Promise<
+  ElectricityCampaign[]
+> {
+  return db.electricityCampaign.findMany({
+    where: { active: true },
+    orderBy: [{ campaignPrice: "asc" }],
+  });
+}
+
 export async function ensureCampaignsSeeded(): Promise<void> {
   const count = await db.campaign.count();
   if (count === 0) {
@@ -655,6 +787,13 @@ export async function ensureCampaignsSeeded(): Promise<void> {
 
 export async function ensureBroadbandCampaignsSeeded(): Promise<void> {
   const count = await db.broadbandCampaign.count();
+  if (count === 0) {
+    await updateCampaigns();
+  }
+}
+
+export async function ensureElectricityCampaignsSeeded(): Promise<void> {
+  const count = await db.electricityCampaign.count();
   if (count === 0) {
     await updateCampaigns();
   }

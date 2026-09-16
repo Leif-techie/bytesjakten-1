@@ -14,10 +14,21 @@ export async function unsubscribeUser(token: string): Promise<boolean> {
   const broadbandUser = await db.broadbandUser.findUnique({
     where: { unsubscribeToken: token },
   });
-  if (!broadbandUser) return false;
+  if (broadbandUser) {
+    await db.broadbandUser.update({
+      where: { id: broadbandUser.id },
+      data: { active: false },
+    });
+    return true;
+  }
 
-  await db.broadbandUser.update({
-    where: { id: broadbandUser.id },
+  const electricityUser = await db.electricityUser.findUnique({
+    where: { unsubscribeToken: token },
+  });
+  if (!electricityUser) return false;
+
+  await db.electricityUser.update({
+    where: { id: electricityUser.id },
     data: { active: false },
   });
   return true;
@@ -151,9 +162,17 @@ export async function deleteUser(userId: string): Promise<boolean> {
   const broadbandUser = await db.broadbandUser.findUnique({
     where: { id: userId },
   });
-  if (!broadbandUser) return false;
+  if (broadbandUser) {
+    await db.broadbandUser.delete({ where: { id: userId } });
+    return true;
+  }
 
-  await db.broadbandUser.delete({ where: { id: userId } });
+  const electricityUser = await db.electricityUser.findUnique({
+    where: { id: userId },
+  });
+  if (!electricityUser) return false;
+
+  await db.electricityUser.delete({ where: { id: userId } });
   return true;
 }
 
