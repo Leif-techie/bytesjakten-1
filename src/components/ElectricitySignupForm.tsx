@@ -132,7 +132,7 @@ export function ElectricitySignupForm({
         <p
           className={`mt-4 text-sm text-zinc-400 ${isHero ? "text-left" : "text-center"}`}
         >
-          Ingen bindningstid. Avregistrera när som helst. Glöm inte kolla
+          Gratis tjänst. Avregistrera när som helst. Glöm inte kolla
           skräpposten.{" "}
           <Link href="/integritet" className="underline hover:text-zinc-600">
             Integritetspolicy
