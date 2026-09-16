@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   title: "Bytesjakten – Byt smartare, betala mindre",
   description:
     "Gratis tjänst som bevakar mobilkampanjer utan bindningstid och mejlar dig när det är dags att byta operatör.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
