@@ -75,18 +75,22 @@ model CampaignSnapshot {
 }
 
 model NotificationLog {
-  id                  String         @id @default(cuid())
-  userId              String?
-  user                User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  broadbandUserId     String?
-  broadbandUser       BroadbandUser? @relation(fields: [broadbandUserId], references: [id], onDelete: Cascade)
-  type                String
-  sentAt              DateTime       @default(now())
-  campaignId          String?
-  broadbandCampaignId String?
+  id                    String              @id @default(cuid())
+  userId                String?
+  user                  User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  broadbandUserId       String?
+  broadbandUser         BroadbandUser?      @relation(fields: [broadbandUserId], references: [id], onDelete: Cascade)
+  electricityUserId     String?
+  electricityUser       ElectricityUser?    @relation(fields: [electricityUserId], references: [id], onDelete: Cascade)
+  type                  String
+  sentAt                DateTime            @default(now())
+  campaignId            String?
+  broadbandCampaignId   String?
+  electricityCampaignId String?
 
   @@index([userId, type])
   @@index([broadbandUserId, type])
+  @@index([electricityUserId, type])
 }
 
 model SystemMeta {
@@ -125,4 +129,43 @@ model BroadbandCampaign {
   createdAt     DateTime @default(now())
 
   @@index([active, speedMbps])
+}
+
+model ElectricityUser {
+  id                  String            @id @default(cuid())
+  email               String            @unique
+  currentOperator     String
+  contractEndDate     DateTime
+  /** any | fixed | variable */
+  priceTypePreference String            @default("any")
+  /** null = spelar ingen roll; 0 = ingen bindning */
+  maxBindingMonths    Int?
+  unsubscribeToken    String            @unique @default(cuid())
+  active              Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  notifications       NotificationLog[]
+}
+
+model ElectricityCampaign {
+  id            String   @id @default(cuid())
+  operator      String
+  name          String
+  /** fixed = fastpris, variable = rörligt */
+  priceType     String
+  /** 0 = ingen bindningstid */
+  bindingMonths Int      @default(0)
+  /** Kampanjpris i öre/kWh */
+  campaignPrice Int
+  /** Ordinarie/jämförelsepris i öre/kWh */
+  regularPrice  Int
+  campaignStart DateTime
+  campaignEnd   DateTime
+  url           String
+  active        Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  @@index([active, priceType])
+  @@index([active, bindingMonths])
 }
