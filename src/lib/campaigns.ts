@@ -274,6 +274,22 @@ export function getBroadbandTechnologyLabel(value: string): string {
   return labels[value] ?? value;
 }
 
+export function getElectricityPriceTypeLabel(value: string): string {
+  const labels: Record<string, string> = {
+    any: "Spelar ingen roll",
+    fixed: "Fastpris",
+    variable: "Rörligt",
+  };
+  return labels[value] ?? value;
+}
+
+/** Display binding for an offer: 0 → "Ingen bindningstid", else "Bindningstid: N mån". */
+export function getElectricityBindingLabel(months: number | null | undefined): string {
+  if (months == null) return "Spelar ingen roll";
+  if (months === 0) return "Ingen bindningstid";
+  return `Bindningstid: ${months} mån`;
+}
+
 export function daysUntil(date: Date, from = new Date()): number {
   const ms = date.getTime() - from.getTime();
   return Math.ceil(ms / (1000 * 60 * 60 * 24));

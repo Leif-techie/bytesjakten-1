@@ -63,7 +63,7 @@ export function trackSnap(
 export function trackOfferClick(params?: {
   operator?: string;
   campaignName?: string;
-  vertical?: "mobile" | "broadband";
+  vertical?: "mobile" | "broadband" | "electricity";
 }): void {
   trackSnap("CUSTOM_EVENT_1", {
     item_category: params?.vertical ?? "mobile",
@@ -77,7 +77,7 @@ export function trackViewContent(params: {
   price: number;
   operator?: string;
   campaignName?: string;
-  vertical?: "mobile" | "broadband";
+  vertical?: "mobile" | "broadband" | "electricity";
 }): void {
   trackSnap("VIEW_CONTENT", {
     price: params.price,
@@ -90,7 +90,7 @@ export function trackViewContent(params: {
 
 /** Registrering till påminnelsetjänsten. Snap hashar user_email i SDK. */
 export function trackSignUp(params?: {
-  vertical?: "mobile" | "broadband";
+  vertical?: "mobile" | "broadband" | "electricity";
   email?: string;
 }): void {
   const email = params?.email?.trim().toLowerCase();
