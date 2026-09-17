@@ -36,27 +36,38 @@ export function PriceJourney() {
           viewBox="0 0 760 210"
           className="bj-journey-svg relative mx-auto h-auto w-full"
           role="img"
-          aria-label="Pris över tid: 29, 39, 29 och 20 kronor per månad. Bytesjakten hjälper dig byta när priset går upp."
+          aria-label="Pris över tid: 29, 230, 29 och 20 kronor per månad. Utan byte höjs priset; Bytesjakten hjälper dig byta tillbaka."
         >
-          {/* Segment 1: 29 kampanj */}
+          {/* Segment 1: 29 kampanj — ingen Bytesjakten här (visar vad som händer utan byte) */}
           <Segment
             x1={36}
-            x2={168}
+            x2={188}
             y={118}
             tone="good"
             price="29"
             label="Kampanjpris"
           />
-          <SwitchMark x={198} />
+          {/* Tyst gap: priset bara går upp */}
+          <line
+            x1={196}
+            y1={118}
+            x2={220}
+            y2={118}
+            stroke="#d4d4d8"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray="3 5"
+            className="bj-journey-path"
+          />
 
-          {/* Segment 2: 39 slut */}
+          {/* Segment 2: 230 ordinarie — utan Bytesjakten */}
           <Segment
             x1={228}
             x2={360}
             y={118}
             tone="warn"
-            price="39"
-            label="Kampanjen slut"
+            price="230"
+            label="Ordinarie pris"
           />
           <SwitchMark x={390} />
 
@@ -93,11 +104,10 @@ export function PriceJourney() {
             tone: "good" as const,
           },
           {
-            price: "39",
-            label: "Kampanjen tar slut",
-            note: "Utan byte höjs månadspriset.",
+            price: "230",
+            label: "Ordinarie pris",
+            note: "Utan Bytesjakten höjs månadspriset.",
             tone: "warn" as const,
-            brand: true,
           },
           {
             price: "29",
@@ -201,7 +211,7 @@ function Segment({
         y={y + 38}
         textAnchor="middle"
         fill="#18181b"
-        fontSize="20"
+        fontSize={price.length > 2 ? 17 : 20}
         fontWeight="800"
         fontFamily="var(--font-geist-sans), system-ui, sans-serif"
       >
