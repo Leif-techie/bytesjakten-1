@@ -2,6 +2,7 @@ import { db } from "./db";
 import { findBestCampaign, getCampaignAffiliateUrl } from "./campaigns";
 import {
   sendBroadbandSwitchReminderEmail,
+  sendElectricitySwitchReminderEmail,
   sendPrefsConfirmationEmail,
   sendSwitchReminderEmail,
 } from "./email";
@@ -82,6 +83,48 @@ export async function sendManualBroadbandSwitchEmail(
         broadbandUserId: user.id,
         type: "broadband_switch_reminder",
         broadbandCampaignId: campaign.id,
+      },
+    });
+  }
+
+  return { success: result.success, error: result.error };
+}
+
+export async function sendManualElectricitySwitchEmail(
+  userId: string,
+  campaignId: string
+): Promise<{ success: boolean; error?: string }> {
+  const user = await db.electricityUser.findUnique({ where: { id: userId } });
+  if (!user || !user.active) {
+    return { success: false, error: "Användaren hittades inte." };
+  }
+
+  const campaign = await db.electricityCampaign.findUnique({
+    where: { id: campaignId },
+  });
+  if (!campaign) {
+    return { success: false, error: "Kampanjen hittades inte." };
+  }
+
+  const result = await sendElectricitySwitchReminderEmail({
+    email: user.email,
+    operator: campaign.operator,
+    campaignName: campaign.name,
+    campaignPrice: campaign.campaignPrice,
+    regularPrice: campaign.regularPrice,
+    campaignUrl: campaign.url,
+    contractEndDate: user.contractEndDate,
+    priceType: campaign.priceType,
+    bindingMonths: campaign.bindingMonths,
+    unsubscribeToken: user.unsubscribeToken,
+  });
+
+  if (result.success) {
+    await db.notificationLog.create({
+      data: {
+        electricityUserId: user.id,
+        type: "electricity_switch_reminder",
+        electricityCampaignId: campaign.id,
       },
     });
   }
