@@ -78,7 +78,7 @@ export function ElavtalClient() {
             <p className="mt-10 text-zinc-600">
               Letar du efter mobilabonnemang eller mobilt bredband?{" "}
               <Link
-                href="/"
+                href="/mobilabonnemang"
                 className="font-semibold text-blue-600 hover:underline"
               >
                 Till mobilabonnemang →

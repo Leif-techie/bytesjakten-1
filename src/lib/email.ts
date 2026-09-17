@@ -33,7 +33,7 @@ function switchCompleteUrl(
 }
 
 function esimGuideUrl(): string {
-  return `${APP_URL}/#esim`;
+  return `${APP_URL}/mobilabonnemang#esim`;
 }
 
 function parseFromAddress(raw: string): { address: string; display_name?: string } {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { href: "/", label: "Mobilabonnemang" },
+  { href: "/mobilabonnemang", label: "Mobilabonnemang" },
   { href: "/bredband", label: "Mobilt bredband" },
   { href: "/elavtal", label: "Elavtal" },
   { href: "/vanliga-fragor", label: "Vanliga frågor" },
@@ -16,11 +16,14 @@ export function Header() {
   const pathname = usePathname();
   const isElectricity = pathname.startsWith("/elavtal");
   const isBroadband = pathname.startsWith("/bredband");
+  const isMobile = pathname.startsWith("/mobilabonnemang");
   const brandSuffix = isElectricity
     ? "elavtal"
     : isBroadband
       ? "mobilt bredband"
-      : "mobilabonnemang";
+      : isMobile
+        ? "mobilabonnemang"
+        : null;
   const brandAccent = isElectricity
     ? "bg-blue-600"
     : isBroadband
@@ -42,10 +45,12 @@ export function Header() {
           </div>
           <span className="text-xl font-bold tracking-tight text-zinc-900">
             Bytesjakten
-            <span className="hidden font-medium text-zinc-500 sm:inline">
-              {" "}
-              | {brandSuffix}
-            </span>
+            {brandSuffix && (
+              <span className="hidden font-medium text-zinc-500 sm:inline">
+                {" "}
+                | {brandSuffix}
+              </span>
+            )}
           </span>
         </Link>
 
