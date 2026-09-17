@@ -132,7 +132,9 @@ export function PriceJourney() {
               />
             )}
             <span
-              className={`relative z-[1] mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
+              className={`relative z-[1] mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold text-white ${
+                step.price.length > 2 ? "text-[9px]" : "text-xs"
+              } ${
                 step.tone === "warn"
                   ? "bg-zinc-400"
                   : step.tone === "best"
