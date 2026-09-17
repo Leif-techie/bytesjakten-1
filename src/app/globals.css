@@ -329,3 +329,60 @@ html {
     max-width: 500px;
   }
 }
+
+/* ---- Price journey (hero graphic) ---- */
+@keyframes bj-journey-draw {
+  from {
+    stroke-dashoffset: 160;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes bj-journey-fade-up {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bj-journey-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.88;
+  }
+}
+
+.bj-journey-path {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: bj-journey-draw 0.7s ease-out 0.1s forwards;
+}
+
+.bj-journey-node {
+  opacity: 0;
+  animation: bj-journey-fade-up 0.5s ease-out 0.25s forwards;
+}
+
+.bj-journey-brand {
+  opacity: 0;
+  animation:
+    bj-journey-fade-up 0.55s ease-out 0.55s forwards,
+    bj-journey-pulse 2.6s ease-in-out 1.3s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bj-journey-path,
+  .bj-journey-node,
+  .bj-journey-brand {
+    animation: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
