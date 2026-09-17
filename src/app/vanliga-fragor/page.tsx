@@ -103,7 +103,7 @@ export default function VanligaFragorPage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/#registrera"
+                href="/mobilabonnemang#registrera"
                 className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
               >
                 Till mobilabonnemang →

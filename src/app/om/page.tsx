@@ -76,7 +76,7 @@ export default function OmPage() {
 
             <div className="mt-12 flex flex-wrap gap-4">
               <Link
-                href="/#registrera"
+                href="/mobilabonnemang#registrera"
                 className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
               >
                 Kom igång gratis →

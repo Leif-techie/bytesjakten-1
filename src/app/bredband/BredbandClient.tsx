@@ -92,7 +92,7 @@ export function BredbandClient() {
             <p className="mt-10 text-zinc-600">
               Letar du efter mobilabonnemang istället?{" "}
               <Link
-                href="/"
+                href="/mobilabonnemang"
                 className="font-semibold text-orange-600 hover:underline"
               >
                 Till mobilabonnemang →

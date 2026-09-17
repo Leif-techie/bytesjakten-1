@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { href: "/", label: "Mobilabonnemang" },
+  { href: "/mobilabonnemang", label: "Mobilabonnemang" },
   { href: "/bredband", label: "Mobilt bredband" },
   { href: "/elavtal", label: "Elavtal" },
   { href: "/vanliga-fragor", label: "Vanliga frågor" },
@@ -16,21 +16,19 @@ export function Header() {
   const pathname = usePathname();
   const isElectricity = pathname.startsWith("/elavtal");
   const isBroadband = pathname.startsWith("/bredband");
+  const isMobile = pathname.startsWith("/mobilabonnemang");
   const brandSuffix = isElectricity
     ? "elavtal"
     : isBroadband
       ? "mobilt bredband"
-      : "mobilabonnemang";
+      : isMobile
+        ? "mobilabonnemang"
+        : null;
   const brandAccent = isElectricity
     ? "bg-blue-600"
     : isBroadband
       ? "bg-orange-600"
       : "bg-emerald-600";
-  const badgeClasses = isElectricity
-    ? "bg-blue-50 text-blue-700 ring-blue-200"
-    : isBroadband
-      ? "bg-orange-50 text-orange-700 ring-orange-200"
-      : "bg-emerald-50 text-emerald-700 ring-emerald-200";
 
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-100 bg-white/90 backdrop-blur-md">
@@ -47,10 +45,12 @@ export function Header() {
           </div>
           <span className="text-xl font-bold tracking-tight text-zinc-900">
             Bytesjakten
-            <span className="hidden font-medium text-zinc-500 sm:inline">
-              {" "}
-              | {brandSuffix}
-            </span>
+            {brandSuffix && (
+              <span className="hidden font-medium text-zinc-500 sm:inline">
+                {" "}
+                | {brandSuffix}
+              </span>
+            )}
           </span>
         </Link>
 
@@ -68,15 +68,6 @@ export function Header() {
             </Link>
           ))}
         </nav>
-
-        <span
-          className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ring-1 md:inline-flex ${badgeClasses}`}
-        >
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-          Alltid gratis
-        </span>
       </div>
     </header>
   );
