@@ -264,6 +264,87 @@ export function getBroadbandTechnologyLabel(value: string): string {
   return labels[value] ?? value;
 }
 
+export function getElectricityPriceTypeLabel(value: string): string {
+  const labels: Record<string, string> = {
+    any: "Spelar ingen roll",
+    fixed: "Fastpris",
+    variable: "Rörligt",
+  };
+  return labels[value] ?? value;
+}
+
+/** Display binding for an offer: 0 → "Ingen bindningstid", else "Bindningstid: N mån". */
+export function getElectricityBindingLabel(months: number | null | undefined): string {
+  if (months == null) return "Spelar ingen roll";
+  if (months === 0) return "Ingen bindningstid";
+  return `Bindningstid: ${months} mån`;
+}
+
+export type ElectricityCampaignInput = {
+  operator: string;
+  name: string;
+  priceType: string;
+  bindingMonths: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
+};
+
+export function matchesElectricityPriceType(
+  campaignPriceType: string,
+  preference: string
+): boolean {
+  if (preference === "any") return true;
+  return campaignPriceType === preference;
+}
+
+export function matchesElectricityBinding(
+  campaignBindingMonths: number,
+  maxBindingMonths: number | null | undefined
+): boolean {
+  if (maxBindingMonths == null) return true;
+  return campaignBindingMonths <= maxBindingMonths;
+}
+
+export function findTopElectricityCampaigns<
+  T extends ElectricityCampaignInput & { id: string; active?: boolean },
+>(
+  campaigns: T[],
+  priceTypePreference: string,
+  maxBindingMonths: number | null | undefined,
+  excludeOperator?: string,
+  options: { now?: Date; limit?: number } = {}
+): Array<
+  T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }
+> {
+  const now = options.now ?? new Date();
+  const limit = options.limit ?? 3;
+
+  return campaigns
+    .filter(
+      (c) =>
+        isCampaignActive(c, now) &&
+        matchesElectricityPriceType(c.priceType, priceTypePreference) &&
+        matchesElectricityBinding(c.bindingMonths, maxBindingMonths) &&
+        (!excludeOperator ||
+          c.operator.toLowerCase() !== excludeOperator.toLowerCase())
+    )
+    .map((c) => ({
+      ...c,
+      // Reuse savings helpers: öre/kWh treated like "monthly" units for ranking
+      ...calculateSavings(
+        c.campaignPrice,
+        c.regularPrice,
+        c.campaignStart,
+        c.campaignEnd
+      ),
+    }))
+    .sort((a, b) => a.campaignPrice - b.campaignPrice)
+    .slice(0, limit);
+}
+
 export function daysUntil(date: Date, from = new Date()): number {
   const ms = date.getTime() - from.getTime();
   return Math.ceil(ms / (1000 * 60 * 60 * 24));

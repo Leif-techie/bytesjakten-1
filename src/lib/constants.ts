@@ -52,3 +52,31 @@ export const BROADBAND_TECHNOLOGY_OPTIONS = [
   { value: "5g", label: "5G" },
   { value: "4g", label: "4G/LTE" },
 ] as const;
+
+export const ELECTRICITY_OPERATORS = [
+  "Vattenfall",
+  "E.ON",
+  "Fortum",
+  "Tibber",
+  "GodEl",
+  "Greenely",
+  "Bixia",
+  "Telinet",
+  "Cheap Energy",
+  "Annan",
+] as const;
+
+export const ELECTRICITY_PRICE_TYPE_OPTIONS = [
+  { value: "any", label: "Spelar ingen roll" },
+  { value: "fixed", label: "Fastpris" },
+  { value: "variable", label: "Rörligt" },
+] as const;
+
+/** Max bindningstid användaren accepterar (null i API = any via "any"). */
+export const ELECTRICITY_BINDING_OPTIONS = [
+  { value: "any", label: "Spelar ingen roll", months: null as number | null },
+  { value: "0", label: "Ingen bindningstid", months: 0 },
+  { value: "12", label: "Max 12 mån", months: 12 },
+  { value: "24", label: "Max 24 mån", months: 24 },
+  { value: "36", label: "Max 36 mån", months: 36 },
+] as const;

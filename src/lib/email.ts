@@ -1,5 +1,11 @@
 import { APP_URL, KIVRA_URL, BROADBAND_TECHNOLOGY_OPTIONS } from "./constants";
-import { formatDate, formatSEK, getNetworkLabel } from "./campaigns";
+import {
+  formatDate,
+  formatSEK,
+  getNetworkLabel,
+  getElectricityPriceTypeLabel,
+  getElectricityBindingLabel,
+} from "./campaigns";
 import { ESIM_GUIDE_STEPS } from "./esim-guide";
 
 const MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails";
@@ -538,6 +544,191 @@ export async function sendBroadbandPrefsConfirmationEmail(
       <p style="color: #999; font-size: 12px; margin-top: 32px;">
         Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} för mobilt bredband på
         <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+type ElectricityPrefsConfirmationParams = {
+  email: string;
+  currentOperator: string;
+  contractEndDate: Date;
+  priceTypePreference: string;
+  maxBindingMonths: number | null;
+  unsubscribeToken: string;
+  kind: "register" | "update";
+};
+
+export async function sendElectricityPrefsConfirmationEmail(
+  params: ElectricityPrefsConfirmationParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    currentOperator,
+    contractEndDate,
+    priceTypePreference,
+    maxBindingMonths,
+    unsubscribeToken,
+    kind,
+  } = params;
+
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten Elavtal – din registrering är klar"
+    : "Dina uppgifter för elavtal är uppdaterade";
+
+  const intro = isNew
+    ? "Tack för att du registrerade dig för elavtal! Vi har sparat dina uppgifter och håller koll åt dig."
+    : "Vi har uppdaterat dina uppgifter för elavtal. Så här ser de ut nu:";
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #2563eb; font-size: 24px;">${isNew ? "Välkommen till Bytesjakten Elavtal!" : "Uppgifter uppdaterade"}</h1>
+      <p>${intro}</p>
+
+      <div style="background: #f4f4f5; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Dina uppgifter</p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">E-post</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nuvarande elleverantör</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${currentOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Avtalet går ut</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${formatDate(contractEndDate)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Pristyp</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getElectricityPriceTypeLabel(priceTypePreference)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Max bindningstid</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getElectricityBindingLabel(maxBindingMonths)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
+        Du får ett mejl innan ditt elavtal går ut – så att du kan byta till ett bättre erbjudande i rätt tid. Om du behöver ändra uppgifter fyller du i sidan igen.
+      </p>
+      <p style="color: #18181b; font-size: 15px; font-weight: 600; line-height: 1.5;">
+        Byt smartare - Betala mindre - Bytesjakten
+      </p>
+
+      <p style="margin: 24px 0;">
+        <a href="${APP_URL}/elavtal" style="display: inline-block; background: #2563eb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+          Till Bytesjakten Elavtal →
+        </a>
+      </p>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} för elavtal på
+        <a href="${APP_URL}" style="color: #2563eb;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+type ElectricitySwitchEmailParams = {
+  email: string;
+  operator: string;
+  campaignName: string;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignUrl: string;
+  contractEndDate: Date;
+  priceType: string;
+  bindingMonths: number;
+  unsubscribeToken: string;
+};
+
+export async function sendElectricitySwitchReminderEmail(
+  params: ElectricitySwitchEmailParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    operator,
+    campaignName,
+    campaignPrice,
+    regularPrice,
+    campaignUrl,
+    contractEndDate,
+    priceType,
+    bindingMonths,
+    unsubscribeToken,
+  } = params;
+
+  const subject = `Dags att byta elavtal – spara med ${operator}`;
+  const priceLabel = getElectricityPriceTypeLabel(priceType);
+  const bindingLabel = getElectricityBindingLabel(bindingMonths);
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #2563eb; font-size: 24px;">Hej från Bytesjakten!</h1>
+      <p>Ditt elavtal går ut <strong>${formatDate(contractEndDate)}</strong>.
+      Nu är det dags att byta till ett bättre erbjudande.</p>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 13px; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.05em;">Bästa erbjudande just nu</p>
+        <h2 style="margin: 0 0 8px; font-size: 20px;">${campaignName}</h2>
+        <p style="margin: 0; font-size: 28px; font-weight: bold; color: #2563eb;">${formatSEK(campaignPrice)} öre/kWh</p>
+        <p style="margin: 8px 0 0; color: #666; font-size: 14px;">
+          ${priceLabel} · ${bindingLabel}<br>
+          Jämförelsepris: ${formatSEK(regularPrice)} öre/kWh
+        </p>
+      </div>
+
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 16px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Så gör du – två steg
+        </p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 20px 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 700;">1</span>
+            </td>
+            <td style="padding: 0 0 20px 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 1 – Beställ erbjudandet</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                Byt till erbjudandet hos ${operator}.
+              </p>
+              <a href="${campaignUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
+                Beställ hos ${operator} →
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 0 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 700;">2</span>
+            </td>
+            <td style="padding: 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Uppdatera dina uppgifter</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                När bytet är klart: uppdatera elleverantör och slutdatum så mejlar vi dig i tid innan nästa byte.
+              </p>
+              <a href="${APP_URL}/elavtal#registrera" style="display: inline-block; background: #fff; color: #2563eb; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #2563eb;">
+                Uppdatera uppgifter →
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du registrerat dig för elavtal på
+        <a href="${APP_URL}/elavtal" style="color: #2563eb;">Bytesjakten</a>.
         Tjänsten är alltid gratis.
         <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
       </p>

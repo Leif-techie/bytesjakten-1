@@ -3,6 +3,7 @@ import Link from "next/link";
 const FOOTER_LINKS = [
   { href: "/", label: "Mobilabonnemang" },
   { href: "/bredband", label: "Mobilt bredband" },
+  { href: "/elavtal", label: "Elavtal" },
   { href: "/vanliga-fragor", label: "Vanliga frågor" },
   { href: "/om", label: "Om" },
   { href: "/kontakt", label: "Kontakt" },
