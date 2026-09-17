@@ -27,15 +27,14 @@ export function ElectricitySignupSection() {
         </h2>
         <p className="mt-4 text-lg text-zinc-600">
           Registrera dig så håller vi koll på när ditt elavtal går ut och mejlar
-          dig i tid – med tips om bättre kampanjpris, oavsett om du vill ha
-          fastpris eller rörligt och hur lång bindningstid du accepterar.
+          dig i tid – innan det är dags att byta.
         </p>
         <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
           <li className="flex items-center gap-2">
             <CheckIcon /> Påminnelse via mejl innan avtalet tar slut
           </li>
           <li className="mt-2 flex items-center gap-2">
-            <CheckIcon /> Baserat på pristyp och bindningstid du vill ha
+            <CheckIcon /> Du anger elleverantör, slutdatum och önskemål
           </li>
           <li className="mt-2 flex items-center gap-2">
             <CheckIcon /> Du väljer själv om du vill byta

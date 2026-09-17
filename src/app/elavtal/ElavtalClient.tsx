@@ -1,23 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import {
-  ElectricityPreferencesForm,
-  defaultElectricityPreferences,
-  type ElectricityPreferences,
-} from "@/components/ElectricityPreferencesForm";
 import { ElectricitySignupForm } from "@/components/ElectricitySignupForm";
 import { ElectricitySignupSection } from "@/components/ElectricitySignupSection";
-import { ElectricityBestOfferCard } from "@/components/ElectricityBestOfferCard";
 
 export function ElavtalClient() {
-  const [preferences, setPreferences] = useState<ElectricityPreferences>(
-    defaultElectricityPreferences,
-  );
-
   return (
     <>
       <Header />
@@ -33,19 +22,18 @@ export function ElavtalClient() {
               <span className="text-blue-600">Betala mindre.</span>
             </h1>
 
-            <ElectricitySignupForm preferences={preferences} layout="hero" />
+            <ElectricitySignupForm layout="hero" />
 
             <p className="mt-8 max-w-lg text-lg leading-relaxed text-zinc-600">
               Berätta vilken elleverantör du har och när avtalet går ut – vi
-              mejlar dig när det är dags att byta till ett bättre kampanjpris på
-              el, oavsett om du vill ha fastpris eller rörligt.
+              mejlar dig när det är dags att byta elavtal.
             </p>
             <ul className="mt-8 space-y-4">
               {[
                 { icon: "📅", text: "Vi berättar när det är dags att byta" },
                 {
                   icon: "💡",
-                  text: "Utifrån fastpris, rörligt och bindningstid",
+                  text: "Du anger fastpris/rörligt och bindningstid",
                 },
                 { icon: "✉️", text: "Påminnelse innan avtalet tar slut" },
               ].map((item) => (
@@ -62,11 +50,6 @@ export function ElavtalClient() {
         </section>
 
         <ElectricitySignupSection />
-        <ElectricityPreferencesForm
-          preferences={preferences}
-          onChange={setPreferences}
-        />
-        <ElectricityBestOfferCard preferences={preferences} />
 
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">

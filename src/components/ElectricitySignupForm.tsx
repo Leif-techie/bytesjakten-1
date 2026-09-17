@@ -8,16 +8,19 @@ import {
   ELECTRICITY_PRICE_TYPE_OPTIONS,
 } from "@/lib/constants";
 import { trackSignUp } from "@/lib/snap-pixel";
-import type { ElectricityPreferences } from "./ElectricityPreferencesForm";
+import {
+  defaultElectricityPreferences,
+  type ElectricityPreferences,
+} from "./ElectricityPreferencesForm";
 
 type ElectricitySignupFormProps = {
-  preferences: ElectricityPreferences;
+  preferences?: ElectricityPreferences;
   layout?: "hero" | "centered";
 };
 
 /** Email + Kom igång + fine print for electricity, with registration modal. */
 export function ElectricitySignupForm({
-  preferences,
+  preferences = defaultElectricityPreferences,
   layout = "hero",
 }: ElectricitySignupFormProps) {
   const [email, setEmail] = useState("");
