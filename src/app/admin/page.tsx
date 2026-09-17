@@ -10,17 +10,28 @@ import {
   BROADBAND_OPERATORS,
   BROADBAND_SPEED_OPTIONS,
   BROADBAND_TECHNOLOGY_OPTIONS,
+  ELECTRICITY_OPERATORS,
+  ELECTRICITY_PRICE_TYPE_OPTIONS,
+  ELECTRICITY_BINDING_OPTIONS,
 } from "@/lib/constants";
+import {
+  getElectricityPriceTypeLabel,
+  getElectricityBindingLabel,
+} from "@/lib/campaigns";
 
 type Stats = {
   userCount: number;
   activeUsers: number;
   broadbandUserCount?: number;
   activeBroadbandUsers?: number;
+  electricityUserCount?: number;
+  activeElectricityUsers?: number;
   campaignCount: number;
   activeCampaigns: number;
   broadbandCampaignCount?: number;
   activeBroadbandCampaigns?: number;
+  electricityCampaignCount?: number;
+  activeElectricityCampaigns?: number;
   recentNotifications: number;
   lastCampaignUpdate: string | null;
 };
@@ -92,9 +103,41 @@ type BroadbandCampaign = {
   active: boolean;
 };
 
+type ElectricityUser = {
+  id: string;
+  email: string;
+  active: boolean;
+  currentOperator: string;
+  contractEndDate: string;
+  priceTypePreference: string;
+  maxBindingMonths: number | null;
+  lastNotificationAt?: string | null;
+  lastCampaignOperator?: string | null;
+  lastCampaignName?: string | null;
+  campaignPrice?: number | null;
+  regularPrice?: number | null;
+  monthlyDiff?: number | null;
+  monthsCounted?: number | null;
+  savedSoFar?: number | null;
+};
+
+type ElectricityCampaign = {
+  id: string;
+  operator: string;
+  name: string;
+  priceType: string;
+  bindingMonths: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: string;
+  campaignEnd: string;
+  url: string;
+  active: boolean;
+};
+
 type ListedUser = {
   id: string;
-  vertical: "mobile" | "broadband";
+  vertical: "mobile" | "broadband" | "electricity";
   email: string;
   active: boolean;
   currentOperator: string;
@@ -118,7 +161,7 @@ type NotificationEntry = {
   sentAt: string;
   email: string;
   currentOperator: string;
-  vertical?: "mobile" | "broadband";
+  vertical?: "mobile" | "broadband" | "electricity";
   campaignOperator: string | null;
   campaignName: string | null;
   campaignPrice: number | null;
@@ -134,6 +177,7 @@ type EmailConfig = {
 const NOTIFICATION_LABELS: Record<string, string> = {
   switch_reminder: "Påminnelse om byte (mobil)",
   broadband_switch_reminder: "Påminnelse om byte (bredband)",
+  electricity_switch_reminder: "Påminnelse om byte (elavtal)",
 };
 
 /** Antal hela dagar kvar till slutdatum (0 = idag, negativt = passerat). */
@@ -215,9 +259,45 @@ function toListedBroadband(u: BroadbandUser): ListedUser {
   };
 }
 
+function toListedElectricity(u: ElectricityUser): ListedUser {
+  return {
+    id: u.id,
+    vertical: "electricity",
+    email: u.email,
+    active: u.active,
+    currentOperator: u.currentOperator,
+    contractEndDate: u.contractEndDate,
+    detail: `${getElectricityPriceTypeLabel(u.priceTypePreference)} · ${getElectricityBindingLabel(u.maxBindingMonths)}`,
+    campaignStartDate: null,
+    campaignLengthMonths: null,
+    lastNotificationAt: u.lastNotificationAt ?? null,
+    lastCampaignOperator: u.lastCampaignOperator ?? null,
+    lastCampaignName: u.lastCampaignName ?? null,
+    campaignPrice: u.campaignPrice ?? null,
+    regularPrice: u.regularPrice ?? null,
+    monthlyDiff: u.monthlyDiff ?? null,
+    monthsCounted: u.monthsCounted ?? null,
+    savedSoFar: u.savedSoFar ?? null,
+  };
+}
+
 function formatKr(value: number | null | undefined) {
   if (value == null) return null;
   return `${value.toLocaleString("sv-SE")} kr`;
+}
+
+function formatOrePerKwh(value: number | null | undefined) {
+  if (value == null) return null;
+  return `${value.toLocaleString("sv-SE")} öre/kWh`;
+}
+
+function formatListedPrice(
+  vertical: ListedUser["vertical"],
+  value: number | null | undefined
+) {
+  return vertical === "electricity"
+    ? formatOrePerKwh(value)
+    : formatKr(value);
 }
 
 const emptyCampaign = {
@@ -247,6 +327,20 @@ const emptyBroadbandCampaign = {
   technology: "5g",
 };
 
+const emptyElectricityCampaign = {
+  operator: "Vattenfall",
+  name: "",
+  priceType: "fixed",
+  bindingMonths: 0,
+  campaignPrice: 89,
+  regularPrice: 120,
+  campaignStart: new Date().toISOString().slice(0, 10),
+  campaignEnd: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10),
+  url: "",
+};
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
@@ -256,8 +350,14 @@ export default function AdminPage() {
   const [broadbandCampaigns, setBroadbandCampaigns] = useState<
     BroadbandCampaign[]
   >([]);
+  const [electricityCampaigns, setElectricityCampaigns] = useState<
+    ElectricityCampaign[]
+  >([]);
   const [users, setUsers] = useState<User[]>([]);
   const [broadbandUsers, setBroadbandUsers] = useState<BroadbandUser[]>([]);
+  const [electricityUsers, setElectricityUsers] = useState<ElectricityUser[]>(
+    []
+  );
   const [notifications, setNotifications] = useState<NotificationEntry[]>([]);
   const [emailConfig, setEmailConfig] = useState<EmailConfig | null>(null);
   const [message, setMessage] = useState("");
@@ -266,6 +366,9 @@ export default function AdminPage() {
   const [newCampaign, setNewCampaign] = useState(emptyCampaign);
   const [newBroadbandCampaign, setNewBroadbandCampaign] = useState(
     emptyBroadbandCampaign
+  );
+  const [newElectricityCampaign, setNewElectricityCampaign] = useState(
+    emptyElectricityCampaign
   );
   const [campaignChoice, setCampaignChoice] = useState<Record<string, string>>(
     {}
@@ -276,6 +379,9 @@ export default function AdminPage() {
     Record<string, string>
   >({});
   const [broadbandAffiliateDrafts, setBroadbandAffiliateDrafts] = useState<
+    Record<string, string>
+  >({});
+  const [electricityAffiliateDrafts, setElectricityAffiliateDrafts] = useState<
     Record<string, string>
   >({});
   const [savingAffiliateId, setSavingAffiliateId] = useState<string | null>(
@@ -293,8 +399,10 @@ export default function AdminPage() {
     setStats(data.stats);
     setCampaigns(data.campaigns);
     setBroadbandCampaigns(data.broadbandCampaigns ?? []);
+    setElectricityCampaigns(data.electricityCampaigns ?? []);
     setUsers(data.users);
     setBroadbandUsers(data.broadbandUsers ?? []);
+    setElectricityUsers(data.electricityUsers ?? []);
     setNotifications(data.notifications ?? []);
     setEmailConfig(data.emailConfig ?? null);
     setAffiliateDrafts(
@@ -310,6 +418,13 @@ export default function AdminPage() {
         ])
       )
     );
+    setElectricityAffiliateDrafts(
+      Object.fromEntries(
+        ((data.electricityCampaigns as ElectricityCampaign[]) ?? []).map(
+          (c) => [c.id, c.url]
+        )
+      )
+    );
     setCampaignChoice((prev) => {
       const next = { ...prev };
       const activeCampaigns = (data.campaigns as Campaign[]).filter(
@@ -317,6 +432,9 @@ export default function AdminPage() {
       );
       const activeBroadband = (
         (data.broadbandCampaigns as BroadbandCampaign[]) ?? []
+      ).filter((c) => c.active);
+      const activeElectricity = (
+        (data.electricityCampaigns as ElectricityCampaign[]) ?? []
       ).filter((c) => c.active);
       for (const user of data.users as User[]) {
         if (!next[user.id] && activeCampaigns.length > 0) {
@@ -331,6 +449,15 @@ export default function AdminPage() {
           const preferred =
             activeBroadband.find((c) => c.operator !== user.currentOperator) ??
             activeBroadband[0];
+          next[user.id] = preferred.id;
+        }
+      }
+      for (const user of (data.electricityUsers as ElectricityUser[]) ?? []) {
+        if (!next[user.id] && activeElectricity.length > 0) {
+          const preferred =
+            activeElectricity.find(
+              (c) => c.operator !== user.currentOperator
+            ) ?? activeElectricity[0];
           next[user.id] = preferred.id;
         }
       }
@@ -370,7 +497,8 @@ export default function AdminPage() {
 
     if (
       action === "send_user_email" ||
-      action === "send_broadband_user_email"
+      action === "send_broadband_user_email" ||
+      action === "send_electricity_user_email"
     ) {
       if (data.success) {
         setMessage("Mejl skickat till användaren.");
@@ -388,7 +516,7 @@ export default function AdminPage() {
 
   async function sendEmailToUser(
     userId: string,
-    vertical: "mobile" | "broadband"
+    vertical: "mobile" | "broadband" | "electricity"
   ) {
     const campaignId = campaignChoice[userId];
     if (!campaignId) {
@@ -398,12 +526,13 @@ export default function AdminPage() {
     }
     setSendingUserId(userId);
     try {
-      await runAction(
+      const action =
         vertical === "mobile"
           ? "send_user_email"
-          : "send_broadband_user_email",
-        { userId, campaignId }
-      );
+          : vertical === "broadband"
+            ? "send_broadband_user_email"
+            : "send_electricity_user_email";
+      await runAction(action, { userId, campaignId });
     } finally {
       setSendingUserId(null);
     }
@@ -469,6 +598,24 @@ export default function AdminPage() {
     }
   }
 
+  async function addElectricityCampaign(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await fetch("/api/admin/electricity-campaigns", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newElectricityCampaign),
+    });
+    const data = await res.json();
+    setMessage(
+      res.ok ? "Elavtalskampanj tillagd!" : data.error ?? "Fel"
+    );
+    setMessageIsError(!res.ok);
+    if (res.ok) {
+      setNewElectricityCampaign(emptyElectricityCampaign);
+      loadData();
+    }
+  }
+
   async function deleteCampaign(id: string) {
     const res = await fetch(`/api/admin/campaigns?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
@@ -497,6 +644,22 @@ export default function AdminPage() {
     }
     setMessageIsError(false);
     setMessage("Bredbandskampanj borttagen.");
+    loadData();
+  }
+
+  async function deleteElectricityCampaign(id: string) {
+    const res = await fetch(
+      `/api/admin/electricity-campaigns?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" }
+    );
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setMessageIsError(true);
+      setMessage(data.error ?? "Kunde inte ta bort kampanjen.");
+      return;
+    }
+    setMessageIsError(false);
+    setMessage("Elavtalskampanj borttagen.");
     loadData();
   }
 
@@ -576,6 +739,35 @@ export default function AdminPage() {
     setMessageIsError(false);
     try {
       const res = await fetch("/api/admin/broadband-campaigns", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, url }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessageIsError(true);
+        setMessage(data.error ?? "Kunde inte spara affiliatelänken.");
+        return;
+      }
+      setMessage("Affiliatelänk sparad.");
+      loadData();
+    } finally {
+      setSavingAffiliateId(null);
+    }
+  }
+
+  async function saveElectricityAffiliateUrl(id: string) {
+    const url = (electricityAffiliateDrafts[id] ?? "").trim();
+    if (!url || !/^https?:\/\//i.test(url)) {
+      setMessageIsError(true);
+      setMessage("Affiliatelänken måste börja med http:// eller https://.");
+      return;
+    }
+    setSavingAffiliateId(id);
+    setMessage("");
+    setMessageIsError(false);
+    try {
+      const res = await fetch("/api/admin/electricity-campaigns", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, url }),
@@ -677,11 +869,11 @@ export default function AdminPage() {
             {[
               [
                 "Registrerade",
-                `${stats.activeUsers} mobil · ${stats.activeBroadbandUsers ?? 0} bredband`,
+                `${stats.activeUsers} mobil · ${stats.activeBroadbandUsers ?? 0} bredband · ${stats.activeElectricityUsers ?? 0} elavtal`,
               ],
               [
                 "Erbjudanden aktiva",
-                `${stats.activeCampaigns} mobil · ${stats.activeBroadbandCampaigns ?? 0} bredband`,
+                `${stats.activeCampaigns} mobil · ${stats.activeBroadbandCampaigns ?? 0} bredband · ${stats.activeElectricityCampaigns ?? 0} elavtal`,
               ],
               ["Mejl (7 dagar)", stats.recentNotifications],
               [
@@ -1127,34 +1319,279 @@ export default function AdminPage() {
           )}
         </section>
 
+        <section className="mt-10">
+          <h2 className="text-lg font-bold text-blue-900">
+            Lägg till kampanj – elavtal
+          </h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Separata erbjudanden för elavtal. Pris anges i öre/kWh.
+            Affiliatelänk används i mejlutskick till elavtalsanvändare.
+          </p>
+          <form
+            onSubmit={addElectricityCampaign}
+            className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            <select
+              value={newElectricityCampaign.operator}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  operator: e.target.value,
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+            >
+              {ELECTRICITY_OPERATORS.map((op) => (
+                <option key={op} value={op}>
+                  {op}
+                </option>
+              ))}
+            </select>
+            <input
+              placeholder="Namn (t.ex. Fastpris 1 år)"
+              value={newElectricityCampaign.name}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  name: e.target.value,
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+              required
+            />
+            <select
+              value={newElectricityCampaign.priceType}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  priceType: e.target.value,
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+            >
+              {ELECTRICITY_PRICE_TYPE_OPTIONS.filter((o) => o.value !== "any").map(
+                (opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                )
+              )}
+            </select>
+            <select
+              value={String(newElectricityCampaign.bindingMonths)}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  bindingMonths: Number(e.target.value),
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+            >
+              {ELECTRICITY_BINDING_OPTIONS.filter((o) => o.months != null).map(
+                (opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                )
+              )}
+            </select>
+            <input
+              type="number"
+              placeholder="Kampanjpris öre/kWh"
+              value={newElectricityCampaign.campaignPrice}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  campaignPrice: Number(e.target.value),
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+              required
+            />
+            <input
+              type="number"
+              placeholder="Ordinarie/jämförelsepris öre/kWh"
+              value={newElectricityCampaign.regularPrice}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  regularPrice: Number(e.target.value),
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+              required
+            />
+            <input
+              type="url"
+              placeholder="Affiliatelänk (https://...)"
+              value={newElectricityCampaign.url}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  url: e.target.value,
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
+              required
+            />
+            <input
+              type="date"
+              value={newElectricityCampaign.campaignStart}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  campaignStart: e.target.value,
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+            />
+            <input
+              type="date"
+              value={newElectricityCampaign.campaignEnd}
+              onChange={(e) =>
+                setNewElectricityCampaign({
+                  ...newElectricityCampaign,
+                  campaignEnd: e.target.value,
+                })
+              }
+              className="rounded-lg border border-zinc-300 px-3 py-2"
+            />
+            <button
+              type="submit"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Lägg till
+            </button>
+          </form>
+        </section>
+
+        <section className="mt-10 overflow-x-auto">
+          <h2 className="text-lg font-bold text-blue-900">
+            Kampanjer – elavtal ({electricityCampaigns.length})
+          </h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Separat lista från mobil och bredband. Används när du skickar mejl
+            till elavtalsanvändare. Pris i öre/kWh.
+          </p>
+          {electricityCampaigns.length === 0 ? (
+            <p className="mt-4 text-sm text-zinc-400">
+              Inga elavtalskampanjer ännu.
+            </p>
+          ) : (
+            <table className="mt-4 w-full text-left text-sm">
+              <thead>
+                <tr className="border-b text-zinc-500">
+                  <th className="py-2 pr-4">Leverantör</th>
+                  <th className="py-2 pr-4">Namn</th>
+                  <th className="py-2 pr-4">Pristyp</th>
+                  <th className="py-2 pr-4">Bindning</th>
+                  <th className="py-2 pr-4">Pris</th>
+                  <th className="py-2 pr-4">Affiliatelänk</th>
+                  <th className="py-2 pr-4">Status</th>
+                  <th className="py-2">Åtgärd</th>
+                </tr>
+              </thead>
+              <tbody>
+                {electricityCampaigns.map((c) => {
+                  const draft = electricityAffiliateDrafts[c.id] ?? c.url;
+                  const dirty = draft.trim() !== c.url;
+                  return (
+                    <tr key={c.id} className="border-b border-zinc-100">
+                      <td className="py-2 pr-4">{c.operator}</td>
+                      <td className="py-2 pr-4">{c.name}</td>
+                      <td className="py-2 pr-4">
+                        {getElectricityPriceTypeLabel(c.priceType)}
+                      </td>
+                      <td className="py-2 pr-4 whitespace-nowrap">
+                        {getElectricityBindingLabel(c.bindingMonths)}
+                      </td>
+                      <td className="py-2 pr-4 whitespace-nowrap">
+                        {c.campaignPrice} öre/kWh
+                      </td>
+                      <td className="py-2 pr-4 min-w-[280px]">
+                        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+                          <input
+                            type="url"
+                            value={draft}
+                            onChange={(e) =>
+                              setElectricityAffiliateDrafts((prev) => ({
+                                ...prev,
+                                [c.id]: e.target.value,
+                              }))
+                            }
+                            className="w-full min-w-0 flex-1 rounded-lg border border-zinc-300 px-2 py-1.5 text-xs"
+                            placeholder="https://..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveElectricityAffiliateUrl(c.id)}
+                            disabled={!dirty || savingAffiliateId === c.id}
+                            className="shrink-0 rounded-lg border border-zinc-300 px-2 py-1.5 text-xs font-medium disabled:opacity-40"
+                          >
+                            {savingAffiliateId === c.id ? "Sparar..." : "Spara"}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-2 pr-4">
+                        <span
+                          className={
+                            c.active ? "text-blue-600" : "text-zinc-400"
+                          }
+                        >
+                          {c.active ? "Aktiv" : "Inaktiv"}
+                        </span>
+                      </td>
+                      <td className="py-2">
+                        <button
+                          onClick={() => deleteElectricityCampaign(c.id)}
+                          className="text-red-600 hover:underline"
+                        >
+                          Ta bort
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </section>
+
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">
             Användare (
             {users.filter((u) => u.active).length +
-              broadbandUsers.filter((u) => u.active).length}{" "}
+              broadbandUsers.filter((u) => u.active).length +
+              electricityUsers.filter((u) => u.active).length}{" "}
             aktiva
-            {users.some((u) => !u.active) || broadbandUsers.some((u) => !u.active)
+            {users.some((u) => !u.active) ||
+            broadbandUsers.some((u) => !u.active) ||
+            electricityUsers.some((u) => !u.active)
               ? `, ${
                   users.filter((u) => !u.active).length +
-                  broadbandUsers.filter((u) => !u.active).length
+                  broadbandUsers.filter((u) => !u.active).length +
+                  electricityUsers.filter((u) => !u.active).length
                 } avregistrerade`
               : ""}
             )
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Skicka mejl manuellt: välj erbjudande per användare (mobilkampanjer
-            respektive bredbandskampanjer). “Byter inom 10 dagar” är gemensam.
-            Avregistrerade visas med överstruken e-post. Sparat hittills =
-            (ord. pris − kampanjpris) × antal hela månader sedan startdatum
-            (max kampanjlängd). Priserna låses vid byte-klart, annars från
-            senaste mejlade kampanj.
+            Skicka mejl manuellt: välj erbjudande per användare (mobilkampanjer,
+            bredbandskampanjer respektive elavtalskampanjer). “Byter inom 10
+            dagar” är gemensam. Avregistrerade visas med överstruken e-post.
+            Sparat hittills = (ord. pris − kampanjpris) × antal hela månader
+            sedan startdatum (max kampanjlängd). Priserna låses vid byte-klart,
+            annars från senaste mejlade kampanj. Elavtal visas i öre/kWh.
           </p>
           {(() => {
             const mobileListed = users.map(toListedMobile);
             const broadbandListed = broadbandUsers.map(toListedBroadband);
-            const allActive = [...mobileListed, ...broadbandListed].filter(
-              (u) => u.active
-            );
+            const electricityListed = electricityUsers.map(toListedElectricity);
+            const allActive = [
+              ...mobileListed,
+              ...broadbandListed,
+              ...electricityListed,
+            ].filter((u) => u.active);
             const dueSoon = allActive
               .filter((u) => isDueWithin10Days(u.contractEndDate))
               .sort(
@@ -1168,14 +1605,42 @@ export default function AdminPage() {
             const otherBroadband = broadbandListed.filter(
               (u) => u.active && !dueSoonIds.has(u.id)
             );
+            const otherElectricity = electricityListed.filter(
+              (u) => u.active && !dueSoonIds.has(u.id)
+            );
             const unsubscribedMobile = mobileListed.filter((u) => !u.active);
             const unsubscribedBroadband = broadbandListed.filter(
+              (u) => !u.active
+            );
+            const unsubscribedElectricity = electricityListed.filter(
               (u) => !u.active
             );
             const selectableMobile = campaigns.filter((c) => c.active);
             const selectableBroadband = broadbandCampaigns.filter(
               (c) => c.active
             );
+            const selectableElectricity = electricityCampaigns.filter(
+              (c) => c.active
+            );
+
+            function verticalBadge(vertical: ListedUser["vertical"]) {
+              if (vertical === "mobile") {
+                return {
+                  label: "Mobil",
+                  className: "bg-emerald-50 text-emerald-800",
+                };
+              }
+              if (vertical === "broadband") {
+                return {
+                  label: "Mobilt bredband",
+                  className: "bg-orange-50 text-orange-800",
+                };
+              }
+              return {
+                label: "Elavtal",
+                className: "bg-blue-50 text-blue-800",
+              };
+            }
 
             function renderUserRow(u: ListedUser, highlight: boolean) {
               const status = getMailStatus(u);
@@ -1184,8 +1649,13 @@ export default function AdminPage() {
               const selectable =
                 u.vertical === "mobile"
                   ? selectableMobile
-                  : selectableBroadband;
+                  : u.vertical === "broadband"
+                    ? selectableBroadband
+                    : selectableElectricity;
               const canEmail = !unsubscribedUser;
+              const badge = verticalBadge(u.vertical);
+              const priceUnit =
+                u.vertical === "electricity" ? "öre/kWh" : "kr";
               return (
                 <tr
                   key={`${u.vertical}-${u.id}`}
@@ -1199,13 +1669,9 @@ export default function AdminPage() {
                 >
                   <td className="py-2 pr-4">
                     <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                        u.vertical === "mobile"
-                          ? "bg-emerald-50 text-emerald-800"
-                          : "bg-orange-50 text-orange-800"
-                      }`}
+                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${badge.className}`}
                     >
-                      {u.vertical === "mobile" ? "Mobil" : "Mobilt bredband"}
+                      {badge.label}
                     </span>
                   </td>
                   <td className="py-2 pr-4 font-medium">
@@ -1283,19 +1749,20 @@ export default function AdminPage() {
                     )}
                   </td>
                   <td className="py-2 pr-4 whitespace-nowrap">
-                    {formatKr(u.regularPrice) ?? (
+                    {formatListedPrice(u.vertical, u.regularPrice) ?? (
                       <span className="text-zinc-400">–</span>
                     )}
                   </td>
                   <td className="py-2 pr-4 whitespace-nowrap">
-                    {formatKr(u.campaignPrice) ?? (
+                    {formatListedPrice(u.vertical, u.campaignPrice) ?? (
                       <span className="text-zinc-400">–</span>
                     )}
                   </td>
                   <td className="py-2 pr-4 whitespace-nowrap">
                     {u.monthlyDiff != null ? (
                       <span className="font-medium text-emerald-700">
-                        {formatKr(u.monthlyDiff)}/mån
+                        {formatListedPrice(u.vertical, u.monthlyDiff)}
+                        {u.vertical !== "electricity" ? "/mån" : ""}
                       </span>
                     ) : (
                       <span className="text-zinc-400">–</span>
@@ -1305,7 +1772,7 @@ export default function AdminPage() {
                     {u.savedSoFar != null ? (
                       <div>
                         <span className="font-semibold text-emerald-800">
-                          {formatKr(u.savedSoFar)}
+                          {formatListedPrice(u.vertical, u.savedSoFar)}
                         </span>
                         {u.monthsCounted != null && (
                           <p className="text-xs text-zinc-500">
@@ -1335,7 +1802,8 @@ export default function AdminPage() {
                         ) : (
                           selectable.map((c) => (
                             <option key={c.id} value={c.id}>
-                              {c.operator} – {c.name} ({c.campaignPrice} kr)
+                              {c.operator} – {c.name} ({c.campaignPrice}{" "}
+                              {priceUnit})
                             </option>
                           ))
                         )}
@@ -1357,7 +1825,9 @@ export default function AdminPage() {
                           className={`rounded-lg px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 ${
                             u.vertical === "mobile"
                               ? "bg-emerald-600"
-                              : "bg-orange-600"
+                              : u.vertical === "broadband"
+                                ? "bg-orange-600"
+                                : "bg-blue-600"
                           }`}
                         >
                           {sendingUserId === u.id
@@ -1419,7 +1889,8 @@ export default function AdminPage() {
                     Byter inom 10 dagar ({dueSoon.length})
                   </h3>
                   <p className="mt-1 text-sm text-zinc-500">
-                    Gemensam lista för mobilabonnemang och mobilt bredband.
+                    Gemensam lista för mobilabonnemang, mobilt bredband och
+                    elavtal.
                   </p>
                   {dueSoon.length === 0 ? (
                     <p className="mt-2 text-sm text-zinc-400">
@@ -1456,8 +1927,22 @@ export default function AdminPage() {
                   )}
                 </div>
 
+                <div className="mt-8">
+                  <h3 className="text-base font-semibold text-blue-900">
+                    Övriga aktiva – elavtal ({otherElectricity.length})
+                  </h3>
+                  {otherElectricity.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">
+                      Inga övriga aktiva för elavtal.
+                    </p>
+                  ) : (
+                    renderTable(otherElectricity, false)
+                  )}
+                </div>
+
                 {(unsubscribedMobile.length > 0 ||
-                  unsubscribedBroadband.length > 0) && (
+                  unsubscribedBroadband.length > 0 ||
+                  unsubscribedElectricity.length > 0) && (
                   <div className="mt-8 space-y-6">
                     {unsubscribedMobile.length > 0 && (
                       <div>
@@ -1477,6 +1962,15 @@ export default function AdminPage() {
                         {renderTable(unsubscribedBroadband, false)}
                       </div>
                     )}
+                    {unsubscribedElectricity.length > 0 && (
+                      <div>
+                        <h3 className="text-base font-semibold text-zinc-600">
+                          Avregistrerade – elavtal (
+                          {unsubscribedElectricity.length})
+                        </h3>
+                        {renderTable(unsubscribedElectricity, false)}
+                      </div>
+                    )}
                   </div>
                 )}
               </>
@@ -1487,8 +1981,8 @@ export default function AdminPage() {
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">Mejlhistorik ({notifications.length})</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Senaste skickade mejl (gemensam historik för mobil och mobilt
-            bredband).
+            Senaste skickade mejl (gemensam historik för mobil, mobilt bredband
+            och elavtal).
           </p>
           {notifications.length === 0 ? (
             <p className="mt-4 text-sm text-zinc-400">Inga mejl har skickats ännu.</p>
@@ -1515,12 +2009,16 @@ export default function AdminPage() {
                         className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                           n.vertical === "broadband"
                             ? "bg-orange-50 text-orange-800"
-                            : "bg-emerald-50 text-emerald-800"
+                            : n.vertical === "electricity"
+                              ? "bg-blue-50 text-blue-800"
+                              : "bg-emerald-50 text-emerald-800"
                         }`}
                       >
                         {n.vertical === "broadband"
                           ? "Mobilt bredband"
-                          : "Mobil"}
+                          : n.vertical === "electricity"
+                            ? "Elavtal"
+                            : "Mobil"}
                       </span>
                     </td>
                     <td className="py-2 pr-4">{n.email}</td>
@@ -1534,7 +2032,11 @@ export default function AdminPage() {
                           <p className="font-medium">{n.campaignOperator}</p>
                           <p className="text-xs text-zinc-500">
                             {n.campaignName}
-                            {n.campaignPrice != null ? ` · ${n.campaignPrice} kr/mån` : ""}
+                            {n.campaignPrice != null
+                              ? n.vertical === "electricity"
+                                ? ` · ${n.campaignPrice} öre/kWh`
+                                : ` · ${n.campaignPrice} kr/mån`
+                              : ""}
                           </p>
                         </>
                       ) : (
