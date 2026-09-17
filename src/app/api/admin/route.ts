@@ -4,6 +4,7 @@ import { deleteUser, getAdminStats } from "@/lib/admin";
 import { updateCampaigns } from "@/lib/seed-campaigns";
 import {
   sendManualBroadbandSwitchEmail,
+  sendManualElectricitySwitchEmail,
   sendManualSwitchEmail,
 } from "@/lib/notifications";
 import { getEmailConfigStatus } from "@/lib/email";
@@ -18,65 +19,95 @@ export async function GET(request: NextRequest) {
   }
 
   const stats = await getAdminStats();
-  const [campaigns, broadbandCampaigns, users, broadbandUsers, notificationLogs] =
-    await Promise.all([
-      db.campaign.findMany({
-        orderBy: [{ operator: "asc" }, { dataGB: "asc" }],
-      }),
-      db.broadbandCampaign.findMany({
-        orderBy: [{ operator: "asc" }, { speedMbps: "asc" }],
-      }),
-      db.user.findMany({
-        orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
-        select: {
-          id: true,
-          email: true,
-          active: true,
-          currentOperator: true,
-          contractEndDate: true,
-          campaignStartDate: true,
-          campaignLengthMonths: true,
-          switchedCampaignPrice: true,
-          switchedRegularPrice: true,
-          minDataGB: true,
-          createdAt: true,
-          notifications: {
-            where: { type: "switch_reminder" },
-            orderBy: { sentAt: "desc" },
-            take: 1,
-            select: { sentAt: true, campaignId: true },
-          },
-          _count: { select: { notifications: true } },
+  const [
+    campaigns,
+    broadbandCampaigns,
+    electricityCampaigns,
+    users,
+    broadbandUsers,
+    electricityUsers,
+    notificationLogs,
+  ] = await Promise.all([
+    db.campaign.findMany({
+      orderBy: [{ operator: "asc" }, { dataGB: "asc" }],
+    }),
+    db.broadbandCampaign.findMany({
+      orderBy: [{ operator: "asc" }, { speedMbps: "asc" }],
+    }),
+    db.electricityCampaign.findMany({
+      orderBy: [{ operator: "asc" }, { campaignPrice: "asc" }],
+    }),
+    db.user.findMany({
+      orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+      select: {
+        id: true,
+        email: true,
+        active: true,
+        currentOperator: true,
+        contractEndDate: true,
+        campaignStartDate: true,
+        campaignLengthMonths: true,
+        switchedCampaignPrice: true,
+        switchedRegularPrice: true,
+        minDataGB: true,
+        createdAt: true,
+        notifications: {
+          where: { type: "switch_reminder" },
+          orderBy: { sentAt: "desc" },
+          take: 1,
+          select: { sentAt: true, campaignId: true },
         },
-      }),
-      db.broadbandUser.findMany({
-        orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
-        select: {
-          id: true,
-          email: true,
-          active: true,
-          currentOperator: true,
-          contractEndDate: true,
-          minSpeedMbps: true,
-          technology: true,
-          createdAt: true,
-          notifications: {
-            where: { type: "broadband_switch_reminder" },
-            orderBy: { sentAt: "desc" },
-            take: 1,
-            select: { sentAt: true, broadbandCampaignId: true },
-          },
+        _count: { select: { notifications: true } },
+      },
+    }),
+    db.broadbandUser.findMany({
+      orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+      select: {
+        id: true,
+        email: true,
+        active: true,
+        currentOperator: true,
+        contractEndDate: true,
+        minSpeedMbps: true,
+        technology: true,
+        createdAt: true,
+        notifications: {
+          where: { type: "broadband_switch_reminder" },
+          orderBy: { sentAt: "desc" },
+          take: 1,
+          select: { sentAt: true, broadbandCampaignId: true },
         },
-      }),
-      db.notificationLog.findMany({
-        orderBy: { sentAt: "desc" },
-        take: 50,
-        include: {
-          user: { select: { email: true, currentOperator: true } },
-          broadbandUser: { select: { email: true, currentOperator: true } },
+      },
+    }),
+    db.electricityUser.findMany({
+      orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+      select: {
+        id: true,
+        email: true,
+        active: true,
+        currentOperator: true,
+        contractEndDate: true,
+        priceTypePreference: true,
+        maxBindingMonths: true,
+        createdAt: true,
+        notifications: {
+          where: { type: "electricity_switch_reminder" },
+          orderBy: { sentAt: "desc" },
+          take: 1,
+          select: { sentAt: true, electricityCampaignId: true },
         },
-      }),
-    ]);
+      },
+    }),
+    db.notificationLog.findMany({
+      orderBy: { sentAt: "desc" },
+      take: 50,
+      include: {
+        user: { select: { email: true, currentOperator: true } },
+        broadbandUser: { select: { email: true, currentOperator: true } },
+        electricityUser: { select: { email: true, currentOperator: true } },
+      },
+    }),
+  ]);
 
   const campaignIds = [
     ...new Set(
@@ -96,39 +127,65 @@ export async function GET(request: NextRequest) {
       ].filter((id): id is string => Boolean(id))
     ),
   ];
+  const electricityCampaignIds = [
+    ...new Set(
+      [
+        ...notificationLogs.map((log) => log.electricityCampaignId),
+        ...electricityUsers.map(
+          (user) => user.notifications[0]?.electricityCampaignId
+        ),
+      ].filter((id): id is string => Boolean(id))
+    ),
+  ];
 
-  const [notifiedCampaigns, notifiedBroadbandCampaigns] = await Promise.all([
-    campaignIds.length
-      ? db.campaign.findMany({
-          where: { id: { in: campaignIds } },
-          select: {
-            id: true,
-            operator: true,
-            name: true,
-            campaignPrice: true,
-            regularPrice: true,
-          },
-        })
-      : Promise.resolve([]),
-    broadbandCampaignIds.length
-      ? db.broadbandCampaign.findMany({
-          where: { id: { in: broadbandCampaignIds } },
-          select: {
-            id: true,
-            operator: true,
-            name: true,
-            campaignPrice: true,
-            regularPrice: true,
-          },
-        })
-      : Promise.resolve([]),
-  ]);
+  const [notifiedCampaigns, notifiedBroadbandCampaigns, notifiedElectricityCampaigns] =
+    await Promise.all([
+      campaignIds.length
+        ? db.campaign.findMany({
+            where: { id: { in: campaignIds } },
+            select: {
+              id: true,
+              operator: true,
+              name: true,
+              campaignPrice: true,
+              regularPrice: true,
+            },
+          })
+        : Promise.resolve([]),
+      broadbandCampaignIds.length
+        ? db.broadbandCampaign.findMany({
+            where: { id: { in: broadbandCampaignIds } },
+            select: {
+              id: true,
+              operator: true,
+              name: true,
+              campaignPrice: true,
+              regularPrice: true,
+            },
+          })
+        : Promise.resolve([]),
+      electricityCampaignIds.length
+        ? db.electricityCampaign.findMany({
+            where: { id: { in: electricityCampaignIds } },
+            select: {
+              id: true,
+              operator: true,
+              name: true,
+              campaignPrice: true,
+              regularPrice: true,
+            },
+          })
+        : Promise.resolve([]),
+    ]);
 
   const campaignMap = Object.fromEntries(
     notifiedCampaigns.map((campaign) => [campaign.id, campaign])
   );
   const broadbandCampaignMap = Object.fromEntries(
     notifiedBroadbandCampaigns.map((campaign) => [campaign.id, campaign])
+  );
+  const electricityCampaignMap = Object.fromEntries(
+    notifiedElectricityCampaigns.map((campaign) => [campaign.id, campaign])
   );
 
   const usersWithStatus = users.map((user) => {
@@ -203,13 +260,54 @@ export async function GET(request: NextRequest) {
     };
   });
 
+  const electricityUsersWithStatus = electricityUsers.map((user) => {
+    const lastNotification = user.notifications[0] ?? null;
+    const lastCampaign = lastNotification?.electricityCampaignId
+      ? electricityCampaignMap[lastNotification.electricityCampaignId]
+      : null;
+
+    const campaignPrice = lastCampaign?.campaignPrice ?? null;
+    const regularPrice = lastCampaign?.regularPrice ?? null;
+    const monthlyDiff =
+      campaignPrice != null && regularPrice != null
+        ? Math.max(0, regularPrice - campaignPrice)
+        : null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      active: user.active,
+      currentOperator: user.currentOperator,
+      contractEndDate: user.contractEndDate,
+      priceTypePreference: user.priceTypePreference,
+      maxBindingMonths: user.maxBindingMonths,
+      createdAt: user.createdAt,
+      lastNotificationAt: lastNotification?.sentAt ?? null,
+      lastCampaignOperator: lastCampaign?.operator ?? null,
+      lastCampaignName: lastCampaign?.name ?? null,
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
+    };
+  });
+
   const notifications = notificationLogs.map((log) => {
-    const person = log.user ?? log.broadbandUser;
+    const person = log.user ?? log.broadbandUser ?? log.electricityUser;
     const mobileCampaign = log.campaignId ? campaignMap[log.campaignId] : null;
     const bbCampaign = log.broadbandCampaignId
       ? broadbandCampaignMap[log.broadbandCampaignId]
       : null;
-    const campaign = mobileCampaign ?? bbCampaign;
+    const elCampaign = log.electricityCampaignId
+      ? electricityCampaignMap[log.electricityCampaignId]
+      : null;
+    const campaign = mobileCampaign ?? bbCampaign ?? elCampaign;
+    const vertical = log.electricityUserId
+      ? "electricity"
+      : log.broadbandUserId
+        ? "broadband"
+        : "mobile";
 
     return {
       id: log.id,
@@ -217,7 +315,7 @@ export async function GET(request: NextRequest) {
       sentAt: log.sentAt,
       email: person?.email ?? "–",
       currentOperator: person?.currentOperator ?? "–",
-      vertical: log.broadbandUserId ? "broadband" : "mobile",
+      vertical,
       campaignOperator: campaign?.operator ?? null,
       campaignName: campaign?.name ?? null,
       campaignPrice: campaign?.campaignPrice ?? null,
@@ -228,8 +326,10 @@ export async function GET(request: NextRequest) {
     stats,
     campaigns,
     broadbandCampaigns,
+    electricityCampaigns,
     users: usersWithStatus,
     broadbandUsers: broadbandUsersWithStatus,
+    electricityUsers: electricityUsersWithStatus,
     notifications,
     emailConfig: getEmailConfigStatus(),
   });
@@ -274,6 +374,22 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await sendManualBroadbandSwitchEmail(userId, campaignId);
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
+  }
+
+  if (action === "send_electricity_user_email") {
+    const { userId, campaignId } = body;
+    if (!userId || !campaignId) {
+      return NextResponse.json(
+        { error: "Välj användare och kampanj." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualElectricitySwitchEmail(userId, campaignId);
     return NextResponse.json({
       success: result.success,
       error: result.error,
