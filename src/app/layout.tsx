@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: "Bytesjakten – Byt smartare, betala mindre",
   description:
-    "Gratis tjänst som bevakar mobilkampanjer utan bindningstid och mejlar dig när det är dags att byta operatör.",
+    "Gratis tjänst som bevakar kampanjer och mejlar dig när det är dags att byta till nästa billiga erbjudande.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
