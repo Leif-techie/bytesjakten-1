@@ -188,12 +188,7 @@ export function findTopCampaigns<T extends CampaignInput & { id: string; active?
       ...c,
       ...calculateSavings(c.campaignPrice, c.regularPrice, c.campaignStart, c.campaignEnd),
     }))
-    .sort((a, b) => {
-      if (b.annualSavings !== a.annualSavings) {
-        return b.annualSavings - a.annualSavings;
-      }
-      return a.campaignPrice - b.campaignPrice;
-    })
+    .sort((a, b) => a.campaignPrice - b.campaignPrice)
     .slice(0, limit);
 }
 
@@ -256,12 +251,7 @@ export function findTopBroadbandCampaigns<
       ...c,
       ...calculateSavings(c.campaignPrice, c.regularPrice, c.campaignStart, c.campaignEnd),
     }))
-    .sort((a, b) => {
-      if (b.annualSavings !== a.annualSavings) {
-        return b.annualSavings - a.annualSavings;
-      }
-      return a.campaignPrice - b.campaignPrice;
-    })
+    .sort((a, b) => a.campaignPrice - b.campaignPrice)
     .slice(0, limit);
 }
 
@@ -351,12 +341,7 @@ export function findTopElectricityCampaigns<
         c.campaignEnd
       ),
     }))
-    .sort((a, b) => {
-      if (b.annualSavings !== a.annualSavings) {
-        return b.annualSavings - a.annualSavings;
-      }
-      return a.campaignPrice - b.campaignPrice;
-    })
+    .sort((a, b) => a.campaignPrice - b.campaignPrice)
     .slice(0, limit);
 }
 
