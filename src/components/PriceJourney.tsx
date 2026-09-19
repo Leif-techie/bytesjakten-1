@@ -144,10 +144,16 @@ export function PriceJourney() {
             </span>
             <div className="min-w-0 flex-1 pt-0.5">
               {step.brand && (
-                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-bj-ink px-2 py-0.5 text-[10px] font-semibold tracking-wide text-background">
-                  <TargetIcon className="h-2.5 w-2.5" />
-                  Bytesjakten
-                </span>
+                <div className="mb-1.5 flex flex-col items-start gap-0.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-bj-ink px-2 py-0.5 text-[10px] font-semibold tracking-wide text-background">
+                    <TargetIcon className="h-2.5 w-2.5" />
+                    Bytesjakten
+                  </span>
+                  <span className="ml-5 flex flex-col items-center" aria-hidden>
+                    <span className="h-3 w-0.5 bg-bj-ink" />
+                    <span className="h-0 w-0 border-x-[5px] border-t-[6px] border-x-transparent border-t-bj-ink" />
+                  </span>
+                </div>
               )}
               <p className="font-semibold text-bj-ink">
                 {step.price} kr/mån
