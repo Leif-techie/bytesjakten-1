@@ -99,7 +99,7 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
               onClick={() => update({ isStudent: true })}
               className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                 preferences.isStudent
-                  ? "border-emerald-600 bg-emerald-600 text-white"
+                  ? "border-bj-mobile bg-bj-mobile text-white"
                   : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
               }`}
             >
@@ -110,7 +110,7 @@ export function PreferencesForm({ preferences, onChange }: PreferencesFormProps)
               onClick={() => update({ isStudent: false })}
               className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                 !preferences.isStudent
-                  ? "border-emerald-600 bg-emerald-600 text-white"
+                  ? "border-bj-mobile bg-bj-mobile text-white"
                   : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
               }`}
             >

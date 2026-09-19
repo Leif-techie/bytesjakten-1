@@ -1,21 +1,47 @@
 @import "tailwindcss";
 
+/*
+  Bytesjakten – stilrent skandinaviskt
+  Sten/kol på sajten; gulockra på mobilabonnemang.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #18181b;
+  --background: #f5f4f1;
+  --foreground: #1a1a18;
+  --bj-ink: #1a1a18;
+  --bj-muted: #5c5c57;
+  --bj-line: #e2e1dc;
+  --bj-soft: #eceae4;
+  --bj-mobile: #c4a035;
+  --bj-mobile-soft: #f8f1de;
+  --bj-mobile-deep: #8a7020;
+  --bj-broadband: #c45c26;
+  --bj-broadband-soft: #faf0ea;
+  --bj-electricity: #3d6b8c;
+  --bj-electricity-soft: #eef3f7;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-bj-ink: var(--bj-ink);
+  --color-bj-muted: var(--bj-muted);
+  --color-bj-line: var(--bj-line);
+  --color-bj-soft: var(--bj-soft);
+  --color-bj-mobile: var(--bj-mobile);
+  --color-bj-mobile-soft: var(--bj-mobile-soft);
+  --color-bj-mobile-deep: var(--bj-mobile-deep);
+  --color-bj-broadband: var(--bj-broadband);
+  --color-bj-broadband-soft: var(--bj-broadband-soft);
+  --color-bj-electricity: var(--bj-electricity);
+  --color-bj-electricity-soft: var(--bj-electricity-soft);
+  --font-sans: var(--font-familjen);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-familjen), "Segoe UI", sans-serif;
 }
 
 html {
@@ -39,7 +65,7 @@ html {
   max-width: none;
   padding: 0;
   margin: 0;
-  background: rgba(24, 24, 27, 0.65);
+  background: rgba(26, 26, 24, 0.55);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
@@ -59,12 +85,10 @@ html {
   max-height: 85%;
   margin: 0;
   overflow: hidden;
-  border: 1px solid #e4e4e7;
-  border-radius: 1rem;
+  border: 1px solid var(--bj-line);
+  border-radius: 0.75rem;
   background: #ffffff;
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 16px 40px -12px rgba(26, 26, 24, 0.2);
 }
 
 .bj-cookie-body {
@@ -85,26 +109,26 @@ html {
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.3;
-  color: #18181b;
+  color: var(--bj-ink);
 }
 
 .bj-cookie-text {
   margin: 0.5rem 0 0;
   font-size: 0.875rem;
   line-height: 1.55;
-  color: #52525b;
+  color: var(--bj-muted);
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
 .bj-cookie-link {
   font-weight: 600;
-  color: #047857;
+  color: var(--bj-ink);
   text-decoration: underline;
 }
 
 .bj-cookie-link:hover {
-  color: #065f46;
+  color: var(--bj-mobile-deep);
 }
 
 .bj-cookie-options {
@@ -122,37 +146,37 @@ html {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.625rem 0.75rem;
-  border: 1px solid #e4e4e7;
-  border-radius: 0.75rem;
+  border: 1px solid var(--bj-line);
+  border-radius: 0.5rem;
   background: #ffffff;
 }
 
 .bj-cookie-option--muted {
-  background: #fafafa;
+  background: var(--background);
 }
 
 .bj-cookie-option-title {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #18181b;
+  color: var(--bj-ink);
 }
 
 .bj-cookie-option-desc {
   margin: 0.125rem 0 0;
   font-size: 0.75rem;
   line-height: 1.4;
-  color: #71717a;
+  color: var(--bj-muted);
 }
 
 .bj-cookie-badge {
   flex-shrink: 0;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
-  background: #e4e4e7;
+  background: var(--bj-soft);
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #52525b;
+  color: var(--bj-muted);
 }
 
 .bj-cookie-switch {
@@ -168,7 +192,7 @@ html {
 }
 
 .bj-cookie-switch--on {
-  background: #059669;
+  background: var(--bj-ink);
 }
 
 .bj-cookie-switch-thumb {
@@ -190,7 +214,7 @@ html {
 .bj-cookie-footer {
   flex-shrink: 0;
   padding: 0.75rem 1rem max(1rem, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid #f4f4f5;
+  border-top: 1px solid var(--bj-line);
   background: #ffffff;
 }
 
@@ -207,7 +231,7 @@ html {
   width: 100%;
   margin: 0;
   padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.25;
@@ -222,37 +246,36 @@ html {
 
 .bj-cookie-btn--primary {
   border: none;
-  background: #059669;
+  background: var(--bj-ink);
   color: #ffffff;
 }
 
 .bj-cookie-btn--primary:hover {
-  background: #047857;
+  background: #2e2e2a;
 }
 
 .bj-cookie-btn--secondary {
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--bj-line);
   background: #ffffff;
-  color: #27272a;
+  color: var(--bj-ink);
 }
 
 .bj-cookie-btn--secondary:hover {
-  background: #fafafa;
+  background: var(--background);
 }
 
 .bj-cookie-btn--ghost {
   border: none;
   background: transparent;
-  color: #047857;
+  color: var(--bj-ink);
   padding-top: 0.625rem;
   padding-bottom: 0.625rem;
 }
 
 .bj-cookie-btn--ghost:hover {
-  background: #ecfdf5;
+  background: var(--bj-mobile-soft);
 }
 
-/* ≥480px: wider modal; customize actions can sit in a row */
 @media (min-width: 480px) {
   .bj-cookie-modal {
     width: 460px;
@@ -330,7 +353,7 @@ html {
   }
 }
 
-/* ---- Price journey (hero graphic) ---- */
+/* ---- Price journey ---- */
 @keyframes bj-journey-draw {
   from {
     stroke-dashoffset: 160;

@@ -22,7 +22,7 @@ export function Footer() {
             <Link
               key={link.href}
               href={link.href}
-              className="hover:text-emerald-700 hover:underline"
+              className="hover:text-bj-mobile-deep hover:underline"
             >
               {link.label}
             </Link>

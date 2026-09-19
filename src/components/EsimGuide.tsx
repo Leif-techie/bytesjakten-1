@@ -15,7 +15,7 @@ export function EsimGuide() {
             <li key={step.title} className="flex gap-4 sm:gap-5">
               <span
                 aria-hidden
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bj-mobile text-sm font-bold text-white"
               >
                 {index + 1}
               </span>

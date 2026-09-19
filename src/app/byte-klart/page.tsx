@@ -132,7 +132,7 @@ function SwitchCompleteContent() {
           Länken saknas eller fungerar inte längre. Öppna länken från ditt mejl
           igen.
         </p>
-        <Link href="/" className="mt-8 inline-block text-emerald-600 hover:underline">
+        <Link href="/" className="mt-8 inline-block text-bj-ink hover:underline">
           Tillbaka till Bytesjakten
         </Link>
       </div>
@@ -154,7 +154,7 @@ function SwitchCompleteContent() {
           </strong>
           . Vi mejlar dig innan det är dags att byta igen.
         </p>
-        <Link href="/" className="mt-8 inline-block text-emerald-600 hover:underline">
+        <Link href="/" className="mt-8 inline-block text-bj-ink hover:underline">
           Tillbaka till Bytesjakten
         </Link>
       </div>
@@ -194,7 +194,7 @@ function SwitchCompleteContent() {
           </select>
         </div>
 
-        <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/60 p-4">
+        <div className="rounded-xl border-2 border-bj-line bg-bj-soft/60 p-4">
           <label
             htmlFor="porting-date"
             className="block text-base font-bold text-zinc-900"
@@ -226,7 +226,7 @@ function SwitchCompleteContent() {
                 onClick={() => setCampaignLengthMonths(months)}
                 className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
                   campaignLengthMonths === months
-                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    ? "border-emerald-600 bg-bj-ink text-white"
                     : "border-zinc-300 bg-white text-zinc-700 hover:border-emerald-400"
                 }`}
               >
@@ -246,7 +246,7 @@ function SwitchCompleteContent() {
         <button
           type="submit"
           disabled={submitStatus === "loading"}
-          className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+          className="w-full rounded-xl bg-bj-ink px-4 py-3 font-semibold text-white transition hover:bg-bj-ink/90 disabled:opacity-60"
         >
           {submitStatus === "loading" ? "Sparar..." : "Spara kampanjens slutdatum"}
         </button>

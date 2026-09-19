@@ -17,7 +17,7 @@ export default function IntegritetPage() {
       <main className="flex-1">
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
+            <p className="text-sm font-medium uppercase tracking-wide text-bj-ink">
               Integritet
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
@@ -42,14 +42,14 @@ export default function IntegritetPage() {
                   Kontakta oss på{" "}
                   <a
                     href={`mailto:${CONTACT_EMAIL}`}
-                    className="font-semibold text-emerald-600 hover:underline"
+                    className="font-semibold text-bj-ink hover:underline"
                   >
                     {CONTACT_EMAIL}
                   </a>
                   . Mer kontaktinfo finns på{" "}
                   <Link
                     href="/kontakt"
-                    className="font-semibold text-emerald-600 hover:underline"
+                    className="font-semibold text-bj-ink hover:underline"
                   >
                     kontaktsidan
                   </Link>
@@ -69,7 +69,7 @@ export default function IntegritetPage() {
                   via våra länkar – samma pris som hos operatören. Läs mer på{" "}
                   <Link
                     href="/om"
-                    className="font-semibold text-emerald-600 hover:underline"
+                    className="font-semibold text-bj-ink hover:underline"
                   >
                     Om Bytesjakten
                   </Link>
@@ -238,7 +238,7 @@ export default function IntegritetPage() {
                   (via länken i mejlen eller{" "}
                   <Link
                     href="/avregistrera"
-                    className="font-semibold text-emerald-600 hover:underline"
+                    className="font-semibold text-bj-ink hover:underline"
                   >
                     /avregistrera
                   </Link>
@@ -255,7 +255,7 @@ export default function IntegritetPage() {
                     href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
                       "Radera mitt konto hos Bytesjakten"
                     )}`}
-                    className="font-semibold text-emerald-600 hover:underline"
+                    className="font-semibold text-bj-ink hover:underline"
                   >
                     {CONTACT_EMAIL}
                   </a>{" "}
@@ -280,7 +280,7 @@ export default function IntegritetPage() {
                   invända mot viss behandling. Du kan också lämna klagomål till{" "}
                   <a
                     href="https://www.imy.se/"
-                    className="font-semibold text-emerald-600 hover:underline"
+                    className="font-semibold text-bj-ink hover:underline"
                     rel="noopener noreferrer"
                     target="_blank"
                   >
@@ -319,14 +319,14 @@ export default function IntegritetPage() {
                 Frågor om integritet? Mejla{" "}
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
-                  className="font-semibold text-emerald-600 hover:underline"
+                  className="font-semibold text-bj-ink hover:underline"
                 >
                   {CONTACT_EMAIL}
                 </a>{" "}
                 eller gå till{" "}
                 <Link
                   href="/kontakt"
-                  className="font-semibold text-emerald-600 hover:underline"
+                  className="font-semibold text-bj-ink hover:underline"
                 >
                   kontakten
                 </Link>

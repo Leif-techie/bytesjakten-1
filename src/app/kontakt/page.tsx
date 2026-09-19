@@ -17,7 +17,7 @@ export default function KontaktPage() {
       <main className="flex-1">
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
+            <p className="text-sm font-medium uppercase tracking-wide text-bj-ink">
               Kontakt
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
@@ -34,7 +34,7 @@ export default function KontaktPage() {
                 Skriv till{" "}
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
-                  className="font-semibold text-emerald-600 hover:underline"
+                  className="font-semibold text-bj-ink hover:underline"
                 >
                   {CONTACT_EMAIL}
                 </a>
@@ -46,7 +46,7 @@ export default function KontaktPage() {
                 mejla oss med ämnet ”Radera mitt konto” – se{" "}
                 <Link
                   href="/integritet"
-                  className="font-semibold text-emerald-600 hover:underline"
+                  className="font-semibold text-bj-ink hover:underline"
                 >
                   integritetspolicyn
                 </Link>
@@ -59,7 +59,7 @@ export default function KontaktPage() {
                 Mer om hur byten fungerar finns på{" "}
                 <Link
                   href="/vanliga-fragor#mobilabonnemang"
-                  className="font-semibold text-emerald-600 hover:underline"
+                  className="font-semibold text-bj-ink hover:underline"
                 >
                   sidan med vanliga frågor
                 </Link>
@@ -69,14 +69,14 @@ export default function KontaktPage() {
                 Vill du veta mer om tjänsten? Läs{" "}
                 <Link
                   href="/om"
-                  className="font-semibold text-emerald-600 hover:underline"
+                  className="font-semibold text-bj-ink hover:underline"
                 >
                   om Bytesjakten
                 </Link>
                 . Om personuppgifter:{" "}
                 <Link
                   href="/integritet"
-                  className="font-semibold text-emerald-600 hover:underline"
+                  className="font-semibold text-bj-ink hover:underline"
                 >
                   integritetspolicy
                 </Link>

@@ -30,10 +30,10 @@ function FaqSection({
   tip?: ReactNode;
 }) {
   const eyebrowClass =
-    accent === "orange" ? "text-orange-700" : "text-emerald-700";
+    accent === "orange" ? "text-orange-700" : "text-bj-ink";
   const tipBorderClass =
     accent === "orange" ? "border-orange-500" : "border-emerald-500";
-  const tipBgClass = accent === "orange" ? "bg-orange-50" : "bg-emerald-50";
+  const tipBgClass = accent === "orange" ? "bg-orange-50" : "bg-bj-soft";
   const tipTitleClass =
     accent === "orange" ? "text-orange-800" : "text-emerald-800";
 
@@ -91,7 +91,7 @@ export default function VanligaFragorPage() {
       <main className="flex-1 bg-zinc-50/60">
         <section className="px-4 pb-8 pt-16 sm:px-6">
           <div className="mx-auto max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
+            <p className="text-sm font-medium uppercase tracking-wide text-bj-ink">
               Hjälp
             </p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
@@ -104,7 +104,7 @@ export default function VanligaFragorPage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/mobilabonnemang#registrera"
-                className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
+                className="inline-flex rounded-xl bg-bj-ink px-5 py-3 font-semibold text-white transition hover:bg-bj-ink/90"
               >
                 Till mobilabonnemang →
               </Link>

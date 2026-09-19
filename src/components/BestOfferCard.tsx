@@ -30,23 +30,22 @@ type BestOfferCardProps = {
   lastCampaignUpdate?: string | null;
 };
 
-const RANK_GREEN: Record<number, string> = {
-  1: "bg-emerald-600",
-  2: "bg-emerald-500",
-  3: "bg-emerald-400",
+const RANK_TONE: Record<number, string> = {
+  1: "bg-bj-mobile",
+  2: "bg-bj-mobile/75",
+  3: "bg-bj-mobile-soft",
 };
 
-function rankGreen(rank: number): string {
-  return RANK_GREEN[rank] ?? "bg-emerald-600";
+function rankTone(rank: number): string {
+  return RANK_TONE[rank] ?? "bg-bj-mobile";
 }
 
-function rankPanelText(rank: number): string {
-  // Lighter panels need darker text for contrast.
-  return rank >= 3 ? "text-emerald-950" : "text-white";
+function rankPanelText(_rank: number): string {
+  return "text-bj-ink";
 }
 
-function rankPanelMutedText(rank: number): string {
-  return rank >= 3 ? "text-emerald-950/80" : "text-white/90";
+function rankPanelMutedText(_rank: number): string {
+  return "text-bj-ink/75";
 }
 
 function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
@@ -68,7 +67,7 @@ function LastUpdateBadge({ date }: { date: string | null | undefined }) {
     day: "numeric",
   });
   return (
-    <div className="mb-4 inline-flex max-w-full items-center rounded-xl border-2 border-dashed border-emerald-400 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-900">
+    <div className="mb-4 inline-flex max-w-full items-center rounded-xl border-2 border-dashed border-bj-mobile bg-bj-mobile-soft px-4 py-2.5 text-sm text-bj-ink">
       <span>
         Kampanjer uppdaterade senast:{" "}
         <strong className="font-semibold">{formatted}</strong>
@@ -86,13 +85,13 @@ function FeaturedOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = rankGreen(1);
+  const bgColor = rankTone(1);
   const ready = campaign.readyToSwitch ?? true;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
       {ready && (
-        <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-emerald-600 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white">
+        <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-bj-mobile px-4 py-2 text-sm font-bold uppercase tracking-wide text-bj-ink">
           Klart att byta nu!
         </div>
       )}
@@ -107,7 +106,7 @@ function FeaturedOffer({
         </div>
 
         <div className="p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
+          <p className="text-xs font-semibold uppercase tracking-wider text-bj-mobile">
             1 · Bästa erbjudandet just nu
           </p>
           <h2 className="mt-1 text-2xl font-bold text-zinc-900">
@@ -116,7 +115,7 @@ function FeaturedOffer({
           <div className="mt-1">
             <ActiveCampaignsNote count={activeCount} />
           </div>
-          <p className="mt-2 text-4xl font-extrabold text-emerald-600">
+          <p className="mt-2 text-4xl font-extrabold text-bj-mobile">
             {formatSEK(campaign.campaignPrice)} kr/mån
           </p>
 
@@ -144,7 +143,7 @@ function FeaturedOffer({
                 vertical: "mobile",
               })
             }
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-bj-mobile px-6 py-3.5 font-semibold text-bj-ink transition hover:bg-bj-mobile-deep hover:text-white"
           >
             Beställ nu
             <span aria-hidden>→</span>
@@ -164,7 +163,7 @@ function RunnerUpOffer({
 }) {
   const start = new Date(campaign.campaignStart);
   const end = new Date(campaign.campaignEnd);
-  const bgColor = rankGreen(rank);
+  const bgColor = rankTone(rank);
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
@@ -182,7 +181,7 @@ function RunnerUpOffer({
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-lg font-bold text-zinc-900">{campaign.name}</h3>
-        <p className="mt-2 text-3xl font-extrabold text-emerald-600">
+        <p className="mt-2 text-3xl font-extrabold text-bj-mobile">
           {formatSEK(campaign.campaignPrice)} kr/mån
         </p>
         <ul className="mt-3 space-y-1 text-sm text-zinc-600">
@@ -203,7 +202,7 @@ function RunnerUpOffer({
               vertical: "mobile",
             })
           }
-          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-600 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-bj-mobile px-4 py-2.5 text-sm font-semibold text-bj-mobile-deep transition hover:bg-bj-mobile-soft"
         >
           Beställ nu
           <span aria-hidden>→</span>
