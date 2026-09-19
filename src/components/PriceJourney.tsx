@@ -21,24 +21,22 @@ export function PriceJourney() {
         </p>
       </figcaption>
 
-      {/* Desktop / tablet — flat segments like the sketch */}
-      <div className="bj-journey-panel relative hidden rounded-2xl bg-background px-3 py-8 ring-1 ring-bj-line sm:block sm:px-5 sm:py-10">
+      <div className="bj-journey-panel relative overflow-x-auto rounded-2xl bg-background px-3 py-8 ring-1 ring-bj-line [-webkit-overflow-scrolling:touch] sm:overflow-visible sm:px-5 sm:py-10">
         <div
-          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-bj-soft/60 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-20 hidden h-56 w-56 rounded-full bg-bj-soft/60 blur-3xl sm:block"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-24 -left-10 h-48 w-48 rounded-full bg-zinc-200/40 blur-3xl"
+          className="pointer-events-none absolute -bottom-24 -left-10 hidden h-48 w-48 rounded-full bg-zinc-200/40 blur-3xl sm:block"
           aria-hidden
         />
 
         <svg
           viewBox="0 0 760 210"
-          className="bj-journey-svg relative mx-auto h-auto w-full"
+          className="bj-journey-svg relative mx-auto h-auto w-[640px] max-w-none sm:w-full sm:max-w-3xl"
           role="img"
           aria-label="Pris över tid: 29, 230, 29 och 20 kronor per månad. Utan byte höjs priset; Bytesjakten hjälper dig byta tillbaka."
         >
-          {/* Segment 1: 29 kampanj — ingen Bytesjakten här (visar vad som händer utan byte) */}
           <Segment
             x1={36}
             x2={188}
@@ -47,7 +45,6 @@ export function PriceJourney() {
             price="29"
             label="Kampanjpris"
           />
-          {/* Tyst gap: priset bara går upp */}
           <line
             x1={196}
             y1={118}
@@ -60,7 +57,6 @@ export function PriceJourney() {
             className="bj-journey-path"
           />
 
-          {/* Segment 2: 230 ordinarie — utan Bytesjakten */}
           <Segment
             x1={228}
             x2={360}
@@ -71,7 +67,6 @@ export function PriceJourney() {
           />
           <SwitchMark x={390} />
 
-          {/* Segment 3: 29 ny */}
           <Segment
             x1={420}
             x2={552}
@@ -82,7 +77,6 @@ export function PriceJourney() {
           />
           <SwitchMark x={582} />
 
-          {/* Segment 4: 20 bättre */}
           <Segment
             x1={612}
             x2={744}
@@ -93,79 +87,9 @@ export function PriceJourney() {
           />
         </svg>
       </div>
-
-      {/* Mobile stacked journey */}
-      <ol className="bj-journey-panel relative space-y-0 rounded-2xl bg-background px-4 py-5 ring-1 ring-bj-line sm:hidden">
-        {[
-          {
-            price: "29",
-            label: "Kampanjpris",
-            note: "Du startar på ett lågt erbjudande.",
-            tone: "good" as const,
-          },
-          {
-            price: "230",
-            label: "Ordinarie pris",
-            note: "Utan Bytesjakten höjs månadspriset.",
-            tone: "warn" as const,
-          },
-          {
-            price: "29",
-            label: "Ny kampanj",
-            note: "Bytesjakten mejlar – du byter i tid.",
-            tone: "good" as const,
-            brand: true,
-          },
-          {
-            price: "20",
-            label: "Ännu billigare",
-            note: "Nästa gång hittar vi ett ännu bättre pris.",
-            tone: "best" as const,
-            brand: true,
-          },
-        ].map((step, i) => (
-          <li key={step.label} className="relative flex gap-3 pb-5 last:pb-0">
-            {i < 3 && (
-              <span
-                className="absolute bottom-0 left-[15px] top-8 w-0.5 bg-bj-line"
-                aria-hidden
-              />
-            )}
-            <span
-              className={`relative z-[1] mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold text-white ${
-                step.price.length > 2 ? "text-[9px]" : "text-xs"
-              } ${
-                step.tone === "warn"
-                  ? "bg-zinc-400"
-                  : "bg-bj-ink"
-              }`}
-            >
-              {step.price}
-            </span>
-            <div className="min-w-0 flex-1 pt-0.5">
-              {step.brand && (
-                <div className="mb-1.5 flex flex-col items-start gap-0.5">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-bj-ink px-2 py-0.5 text-[10px] font-semibold tracking-wide text-background">
-                    <TargetIcon className="h-2.5 w-2.5" />
-                    Bytesjakten
-                  </span>
-                  <span className="ml-5 flex flex-col items-center" aria-hidden>
-                    <span className="h-3 w-0.5 bg-bj-ink" />
-                    <span className="h-0 w-0 border-x-[5px] border-t-[6px] border-x-transparent border-t-bj-ink" />
-                  </span>
-                </div>
-              )}
-              <p className="font-semibold text-bj-ink">
-                {step.price} kr/mån
-                <span className="ml-1.5 font-medium text-bj-muted">
-                  · {step.label}
-                </span>
-              </p>
-              <p className="mt-0.5 text-sm text-bj-muted">{step.note}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
+      <p className="mt-2 text-center text-xs text-bj-muted sm:hidden">
+        Svep i sidled för att se hela tidslinjen
+      </p>
     </figure>
   );
 }
@@ -267,7 +191,6 @@ function SwitchMark({ x }: { x: number }) {
       >
         Bytesjakten
       </text>
-      {/* Down arrow into the gap */}
       <line
         x1={0}
         y1={32}
@@ -279,20 +202,5 @@ function SwitchMark({ x }: { x: number }) {
       />
       <polygon points="0,92 -6,78 6,78" fill="#1a1a18" />
     </g>
-  );
-}
-
-function TargetIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
-      <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
-      <path
-        d="M12 2v4M12 18v4M2 12h4M18 12h4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
