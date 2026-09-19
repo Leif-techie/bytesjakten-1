@@ -22,36 +22,36 @@ export function BredbandClient() {
     <>
       <Header />
       <main className="flex-1">
-        <section className="relative overflow-hidden bg-gradient-to-b from-orange-50/80 to-white px-4 pb-12 pt-12 sm:px-6 sm:pb-16 sm:pt-16">
+        <section className="relative overflow-hidden bg-gradient-to-b from-bj-broadband-soft to-background px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
           <div className="mx-auto max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wide text-orange-700">
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-bj-broadband">
               Mobilt bredband
             </p>
-            <h1 className="mt-2 text-4xl font-extrabold leading-tight tracking-tight text-zinc-900 sm:text-5xl">
+            <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-tight text-bj-ink sm:text-5xl lg:text-[3.25rem]">
               Byt smartare.
               <br />
-              <span className="text-orange-600">Betala mindre.</span>
+              <span className="text-bj-broadband">Betala mindre.</span>
             </h1>
 
             <BroadbandSignupForm preferences={preferences} layout="hero" />
 
-            <p className="mt-8 max-w-lg text-lg leading-relaxed text-zinc-600">
+            <p className="mt-8 max-w-lg text-lg leading-relaxed text-bj-muted">
               Berätta vilken operatör du har och när avtalet går ut – vi mejlar
               dig när det är dags att byta till ett bättre kampanjpris på mobilt
               bredband och 5G-hemma.
             </p>
-            <ul className="mt-8 space-y-4">
+            <ul className="mt-8 space-y-3">
               {[
-                { icon: "📅", text: "Vi berättar när det är dags att byta" },
-                { icon: "📡", text: "Utifrån hastighet och nät du vill ha" },
-                { icon: "✉️", text: "Påminnelse innan avtalet tar slut" },
-              ].map((item) => (
-                <li
-                  key={item.text}
-                  className="flex items-center gap-3 text-zinc-700"
-                >
-                  <span className="text-xl">{item.icon}</span>
-                  <span>{item.text}</span>
+                "Vi berättar när det är dags att byta",
+                "Utifrån hastighet och nät du vill ha",
+                "Påminnelse innan avtalet tar slut",
+              ].map((text) => (
+                <li key={text} className="flex items-start gap-3 text-bj-ink">
+                  <span
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-bj-broadband"
+                    aria-hidden
+                  />
+                  <span>{text}</span>
                 </li>
               ))}
             </ul>
@@ -67,33 +67,33 @@ export function BredbandClient() {
 
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">
-            <h2 className="text-2xl font-bold text-zinc-900">
+            <h2 className="text-2xl font-bold tracking-tight text-bj-ink">
               Vanliga frågor om mobilt bredband
             </h2>
-            <p className="mt-4 text-lg leading-relaxed text-zinc-600">
+            <p className="mt-4 text-lg leading-relaxed text-bj-muted">
               Alla frågor och svar om både mobilabonnemang och mobilt bredband
               finns nu samlade på en gemensam sida.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/vanliga-fragor#mobilt-bredband"
-                className="inline-flex rounded-xl bg-orange-600 px-5 py-3 font-semibold text-white transition hover:bg-orange-700"
+                className="inline-flex rounded-md bg-bj-broadband px-5 py-3 font-semibold text-white transition hover:opacity-90"
               >
                 Läs vanliga frågor om mobilt bredband →
               </Link>
               <Link
                 href="/vanliga-fragor#mobilabonnemang"
-                className="inline-flex rounded-xl border border-zinc-300 bg-white px-5 py-3 font-semibold text-zinc-800 transition hover:border-orange-300 hover:text-orange-700"
+                className="inline-flex rounded-md border border-bj-line bg-white px-5 py-3 font-semibold text-bj-ink transition hover:border-bj-broadband hover:text-bj-broadband"
               >
                 Se frågor om mobilabonnemang
               </Link>
             </div>
 
-            <p className="mt-10 text-zinc-600">
+            <p className="mt-10 text-bj-muted">
               Letar du efter mobilabonnemang istället?{" "}
               <Link
                 href="/mobilabonnemang"
-                className="font-semibold text-orange-600 hover:underline"
+                className="font-semibold text-bj-broadband hover:underline"
               >
                 Till mobilabonnemang →
               </Link>

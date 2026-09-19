@@ -44,17 +44,16 @@ export function ElectricityPreferencesForm({
   };
 
   return (
-    <section className="border-y border-zinc-100 bg-zinc-50 px-4 py-6 sm:px-6">
+    <section className="border-y border-bj-line bg-bj-soft/40 px-4 py-6 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <PreferenceCard
-          icon="💡"
           label="Pristyp"
           value={priceTypeLabel(preferences.priceTypePreference)}
         >
           <select
             value={preferences.priceTypePreference}
             onChange={(e) => update({ priceTypePreference: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="mt-2 w-full rounded-lg border border-bj-line bg-white px-3 py-2 text-sm focus:border-bj-electricity focus:outline-none focus:ring-2 focus:ring-bj-electricity/20"
           >
             {ELECTRICITY_PRICE_TYPE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -65,7 +64,6 @@ export function ElectricityPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="🔗"
           label="Max bindningstid"
           value={bindingLabel(preferences.maxBindingMonths)}
         >
@@ -77,7 +75,7 @@ export function ElectricityPreferencesForm({
               );
               update({ maxBindingMonths: opt?.months ?? null });
             }}
-            className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="mt-2 w-full rounded-lg border border-bj-line bg-white px-3 py-2 text-sm focus:border-bj-electricity focus:outline-none focus:ring-2 focus:ring-bj-electricity/20"
           >
             {ELECTRICITY_BINDING_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -88,14 +86,13 @@ export function ElectricityPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="⚡"
           label="Nuvarande elleverantör"
           value={preferences.currentOperator}
         >
           <select
             value={preferences.currentOperator}
             onChange={(e) => update({ currentOperator: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="mt-2 w-full rounded-lg border border-bj-line bg-white px-3 py-2 text-sm focus:border-bj-electricity focus:outline-none focus:ring-2 focus:ring-bj-electricity/20"
           >
             {ELECTRICITY_OPERATORS.map((op) => (
               <option key={op} value={op}>
@@ -106,7 +103,6 @@ export function ElectricityPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="📅"
           label="Avtalet tar slut"
           value={preferences.contractEndDate}
         >
@@ -114,7 +110,7 @@ export function ElectricityPreferencesForm({
             type="date"
             value={preferences.contractEndDate}
             onChange={(e) => update({ contractEndDate: e.target.value })}
-            className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="mt-2 w-full rounded-lg border border-bj-line bg-white px-3 py-2 text-sm focus:border-bj-electricity focus:outline-none focus:ring-2 focus:ring-bj-electricity/20"
           />
         </PreferenceCard>
       </div>
@@ -123,26 +119,21 @@ export function ElectricityPreferencesForm({
 }
 
 function PreferenceCard({
-  icon,
   label,
   value,
   children,
 }: {
-  icon: string;
   label: string;
   value: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-2">
-        <span aria-hidden>{icon}</span>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            {label}
-          </p>
-          <p className="text-sm font-semibold text-zinc-900">{value}</p>
-        </div>
+    <div className="rounded-lg border border-bj-line bg-white p-4">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-bj-muted">
+          {label}
+        </p>
+        <p className="mt-0.5 text-sm font-semibold text-bj-ink">{value}</p>
       </div>
       {children}
     </div>

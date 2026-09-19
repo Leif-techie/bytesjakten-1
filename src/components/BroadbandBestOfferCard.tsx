@@ -29,21 +29,21 @@ type BroadbandBestOfferCardProps = {
 };
 
 const RANK_ORANGE: Record<number, string> = {
-  1: "bg-orange-600",
-  2: "bg-orange-500",
-  3: "bg-orange-400",
+  1: "bg-bj-broadband",
+  2: "bg-bj-broadband/85",
+  3: "bg-bj-broadband-soft",
 };
 
 function rankOrange(rank: number): string {
-  return RANK_ORANGE[rank] ?? "bg-orange-600";
+  return RANK_ORANGE[rank] ?? "bg-bj-broadband";
 }
 
 function rankPanelText(rank: number): string {
-  return rank >= 3 ? "text-orange-950" : "text-white";
+  return rank >= 3 ? "text-bj-ink" : "text-bj-ink";
 }
 
 function rankPanelMutedText(rank: number): string {
-  return rank >= 3 ? "text-orange-950/80" : "text-white/90";
+  return rank >= 3 ? "text-bj-ink/80" : "text-bj-ink/80";
 }
 
 function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
@@ -65,7 +65,7 @@ function LastUpdateBadge({ date }: { date: string | null | undefined }) {
     day: "numeric",
   });
   return (
-    <div className="mb-4 inline-flex max-w-full items-center rounded-xl border-2 border-dashed border-orange-400 bg-orange-50 px-4 py-2.5 text-sm text-orange-900">
+    <div className="mb-4 inline-flex max-w-full items-center rounded-xl border-2 border-dashed border-bj-broadband bg-bj-broadband-soft px-4 py-2.5 text-sm text-bj-ink">
       <span>
         Kampanjer uppdaterade senast:{" "}
         <strong className="font-semibold">{formatted}</strong>
@@ -89,7 +89,7 @@ function FeaturedOffer({
   return (
     <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
       {ready && (
-        <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-orange-600 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white">
+        <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-bj-broadband px-4 py-2 text-sm font-bold uppercase tracking-wide text-white">
           Klart att byta nu!
         </div>
       )}
@@ -104,7 +104,7 @@ function FeaturedOffer({
         </div>
 
         <div className="p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-orange-600">
+          <p className="text-xs font-semibold uppercase tracking-wider text-bj-broadband">
             1 · Bästa erbjudandet just nu
           </p>
           <h2 className="mt-1 text-2xl font-bold text-zinc-900">
@@ -113,7 +113,7 @@ function FeaturedOffer({
           <div className="mt-1">
             <ActiveCampaignsNote count={activeCount} />
           </div>
-          <p className="mt-2 text-4xl font-extrabold text-orange-600">
+          <p className="mt-2 text-4xl font-extrabold text-bj-broadband">
             {formatSEK(campaign.campaignPrice)} kr/mån
           </p>
 
@@ -133,7 +133,7 @@ function FeaturedOffer({
         </div>
 
         <div className="flex flex-col items-center justify-center gap-4 border-t border-zinc-100 p-6 md:border-l md:border-t-0">
-          <span className="text-4xl">📡</span>
+          <span className="block h-10 w-10 rounded-full bg-bj-broadband/15" aria-hidden></span>
           <a
             href={getCampaignAffiliateUrl(campaign)}
             target="_blank"
@@ -145,7 +145,7 @@ function FeaturedOffer({
                 vertical: "broadband",
               })
             }
-            className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-3.5 font-semibold text-white transition hover:bg-orange-700"
+            className="inline-flex items-center gap-2 rounded-md bg-bj-broadband px-6 py-3.5 font-semibold text-white transition hover:opacity-90"
           >
             Beställ nu
             <span aria-hidden>→</span>
@@ -183,7 +183,7 @@ function RunnerUpOffer({
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-lg font-bold text-zinc-900">{campaign.name}</h3>
-        <p className="mt-2 text-3xl font-extrabold text-orange-600">
+        <p className="mt-2 text-3xl font-extrabold text-bj-broadband">
           {formatSEK(campaign.campaignPrice)} kr/mån
         </p>
         <ul className="mt-3 space-y-1 text-sm text-zinc-600">
@@ -207,7 +207,7 @@ function RunnerUpOffer({
               vertical: "broadband",
             })
           }
-          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-orange-600 px-4 py-2.5 text-sm font-semibold text-orange-700 transition hover:bg-orange-50"
+          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-bj-broadband px-4 py-2.5 text-sm font-semibold text-bj-broadband transition hover:bg-bj-broadband-soft"
         >
           Beställ nu
           <span aria-hidden>→</span>

@@ -1,7 +1,7 @@
 function CheckIcon() {
   return (
     <svg
-      className="h-5 w-5 shrink-0 text-blue-600"
+      className="h-5 w-5 shrink-0 text-bj-electricity"
       fill="currentColor"
       viewBox="0 0 20 20"
       aria-hidden
@@ -20,16 +20,16 @@ function CheckIcon() {
  */
 export function ElectricitySignupSection() {
   return (
-    <section className="bg-zinc-50 px-4 py-16 sm:px-6">
+    <section className="border-y border-bj-line bg-white px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-bold text-zinc-900">
+        <h2 className="text-3xl font-bold tracking-tight text-bj-ink">
           Få mejl när det är dags att byta elavtal
         </h2>
-        <p className="mt-4 text-lg text-zinc-600">
+        <p className="mt-4 text-lg text-bj-muted">
           Registrera dig så håller vi koll på när ditt elavtal går ut och mejlar
           dig i tid – innan det är dags att byta.
         </p>
-        <ul className="mx-auto mt-6 inline-block text-left text-zinc-700">
+        <ul className="mx-auto mt-6 inline-block text-left text-bj-ink">
           <li className="flex items-center gap-2">
             <CheckIcon /> Påminnelse via mejl innan avtalet tar slut
           </li>
@@ -46,7 +46,7 @@ export function ElectricitySignupSection() {
 
         <a
           href="#registrera"
-          className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 font-semibold text-white transition hover:bg-blue-700"
+          className="mt-8 inline-flex items-center justify-center gap-2 rounded-md bg-bj-electricity px-6 py-3.5 font-semibold text-white transition hover:opacity-90"
         >
           Registrera dig ↑
         </a>
