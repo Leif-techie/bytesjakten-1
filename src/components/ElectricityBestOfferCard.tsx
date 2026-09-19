@@ -30,21 +30,21 @@ type ElectricityBestOfferCardProps = {
 };
 
 const RANK_BLUE: Record<number, string> = {
-  1: "bg-blue-600",
-  2: "bg-blue-500",
-  3: "bg-blue-400",
+  1: "bg-bj-electricity",
+  2: "bg-bj-electricity/85",
+  3: "bg-bj-electricity-soft",
 };
 
 function rankBlue(rank: number): string {
-  return RANK_BLUE[rank] ?? "bg-blue-600";
+  return RANK_BLUE[rank] ?? "bg-bj-electricity";
 }
 
 function rankPanelText(rank: number): string {
-  return rank >= 3 ? "text-blue-950" : "text-white";
+  return rank >= 3 ? "text-bj-ink" : "text-bj-ink";
 }
 
 function rankPanelMutedText(rank: number): string {
-  return rank >= 3 ? "text-blue-950/80" : "text-white/90";
+  return rank >= 3 ? "text-bj-ink/80" : "text-bj-ink/80";
 }
 
 function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
@@ -66,7 +66,7 @@ function LastUpdateBadge({ date }: { date: string | null | undefined }) {
     day: "numeric",
   });
   return (
-    <div className="mb-4 inline-flex max-w-full items-center rounded-xl border-2 border-dashed border-blue-400 bg-blue-50 px-4 py-2.5 text-sm text-blue-900">
+    <div className="mb-4 inline-flex max-w-full items-center rounded-xl border-2 border-dashed border-bj-electricity bg-bj-electricity-soft px-4 py-2.5 text-sm text-bj-ink">
       <span>
         Kampanjer uppdaterade senast:{" "}
         <strong className="font-semibold">{formatted}</strong>
@@ -90,7 +90,7 @@ function FeaturedOffer({
   return (
     <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
       {ready && (
-        <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-blue-600 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white">
+        <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-bj-electricity px-4 py-2 text-sm font-bold uppercase tracking-wide text-white">
           Klart att byta nu!
         </div>
       )}
@@ -105,7 +105,7 @@ function FeaturedOffer({
         </div>
 
         <div className="p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+          <p className="text-xs font-semibold uppercase tracking-wider text-bj-electricity">
             1 · Bästa erbjudandet just nu
           </p>
           <h2 className="mt-1 text-2xl font-bold text-zinc-900">
@@ -114,7 +114,7 @@ function FeaturedOffer({
           <div className="mt-1">
             <ActiveCampaignsNote count={activeCount} />
           </div>
-          <p className="mt-2 text-4xl font-extrabold text-blue-600">
+          <p className="mt-2 text-4xl font-extrabold text-bj-electricity">
             {formatSEK(campaign.campaignPrice)} öre/kWh
           </p>
 
@@ -132,7 +132,7 @@ function FeaturedOffer({
         </div>
 
         <div className="flex flex-col items-center justify-center gap-4 border-t border-zinc-100 p-6 md:border-l md:border-t-0">
-          <span className="text-4xl">⚡</span>
+          <span className="block h-10 w-10 rounded-full bg-bj-electricity/15" aria-hidden></span>
           <a
             href={getCampaignAffiliateUrl(campaign)}
             target="_blank"
@@ -144,7 +144,7 @@ function FeaturedOffer({
                 vertical: "electricity",
               })
             }
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 font-semibold text-white transition hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-md bg-bj-electricity px-6 py-3.5 font-semibold text-white transition hover:opacity-90"
           >
             Beställ nu
             <span aria-hidden>→</span>
@@ -182,7 +182,7 @@ function RunnerUpOffer({
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-lg font-bold text-zinc-900">{campaign.name}</h3>
-        <p className="mt-2 text-3xl font-extrabold text-blue-600">
+        <p className="mt-2 text-3xl font-extrabold text-bj-electricity">
           {formatSEK(campaign.campaignPrice)} öre/kWh
         </p>
         <ul className="mt-3 space-y-1 text-sm text-zinc-600">
@@ -204,7 +204,7 @@ function RunnerUpOffer({
               vertical: "electricity",
             })
           }
-          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-blue-600 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-bj-electricity px-4 py-2.5 text-sm font-semibold text-bj-electricity transition hover:bg-bj-electricity-soft"
         >
           Beställ nu
           <span aria-hidden>→</span>

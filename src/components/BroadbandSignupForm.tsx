@@ -105,11 +105,11 @@ export function BroadbandSignupForm({
               placeholder="din@epost.se"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-bj-broadband focus:outline-none focus:ring-2 focus:ring-bj-broadband/25"
             />
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-3.5 font-semibold text-white transition hover:bg-orange-700"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-bj-broadband px-6 py-3.5 font-semibold text-white transition hover:opacity-90"
             >
               Kom igång →
             </button>
@@ -117,7 +117,7 @@ export function BroadbandSignupForm({
         </form>
 
         {status === "success" && message && (
-          <p className="mt-4 text-sm text-orange-600">{message}</p>
+          <p className="mt-4 text-sm text-bj-broadband">{message}</p>
         )}
 
         <p
@@ -237,7 +237,7 @@ export function BroadbandSignupForm({
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full rounded-xl bg-orange-600 px-4 py-3 font-semibold text-white transition hover:bg-orange-700 disabled:opacity-60"
+                className="w-full rounded-md bg-bj-broadband px-4 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
               >
                 {status === "loading" ? "Sparar..." : "Spara och registrera"}
               </button>

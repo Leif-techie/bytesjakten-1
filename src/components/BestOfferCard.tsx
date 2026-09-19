@@ -131,7 +131,7 @@ function FeaturedOffer({
         </div>
 
         <div className="flex flex-col items-center justify-center gap-4 border-t border-zinc-100 p-6 md:border-l md:border-t-0">
-          <span className="text-4xl">🏷️</span>
+          <span className="block h-10 w-10 rounded-full bg-bj-mobile/20" aria-hidden></span>
           <a
             href={getCampaignAffiliateUrl(campaign)}
             target="_blank"

@@ -117,11 +117,11 @@ export function ElectricitySignupForm({
               placeholder="din@epost.se"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-bj-electricity focus:outline-none focus:ring-2 focus:ring-bj-electricity/25"
             />
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 font-semibold text-white transition hover:bg-blue-700"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-bj-electricity px-6 py-3.5 font-semibold text-white transition hover:opacity-90"
             >
               Kom igång →
             </button>
@@ -129,7 +129,7 @@ export function ElectricitySignupForm({
         </form>
 
         {status === "success" && message && (
-          <p className="mt-4 text-sm text-blue-600">{message}</p>
+          <p className="mt-4 text-sm text-bj-electricity">{message}</p>
         )}
 
         <p
@@ -254,7 +254,7 @@ export function ElectricitySignupForm({
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+                className="w-full rounded-md bg-bj-electricity px-4 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
               >
                 {status === "loading" ? "Sparar..." : "Spara och registrera"}
               </button>

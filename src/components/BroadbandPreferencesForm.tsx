@@ -34,10 +34,9 @@ export function BroadbandPreferencesForm({
   };
 
   return (
-    <section className="border-y border-zinc-100 bg-zinc-50 px-4 py-6 sm:px-6">
+    <section className="border-y border-bj-line bg-bj-soft/40 px-4 py-6 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <PreferenceCard
-          icon="⚡"
           label="Önskad hastighet"
           value={`${preferences.minSpeedMbps} Mbit/s`}
         >
@@ -55,7 +54,6 @@ export function BroadbandPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="📡"
           label="Nät"
           value={technologyLabel(preferences.technology)}
         >
@@ -73,7 +71,6 @@ export function BroadbandPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="📱"
           label="Nuvarande operatör"
           value={preferences.currentOperator}
         >
@@ -91,7 +88,6 @@ export function BroadbandPreferencesForm({
         </PreferenceCard>
 
         <PreferenceCard
-          icon="📅"
           label="Avtalet tar slut"
           value={preferences.contractEndDate}
         >
@@ -108,26 +104,21 @@ export function BroadbandPreferencesForm({
 }
 
 function PreferenceCard({
-  icon,
   label,
   value,
   children,
 }: {
-  icon: string;
   label: string;
   value: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-2">
-        <span aria-hidden>{icon}</span>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            {label}
-          </p>
-          <p className="text-sm font-semibold text-zinc-900">{value}</p>
-        </div>
+    <div className="rounded-lg border border-bj-line bg-white p-4">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-bj-muted">
+          {label}
+        </p>
+        <p className="mt-0.5 text-sm font-semibold text-bj-ink">{value}</p>
       </div>
       {children}
     </div>

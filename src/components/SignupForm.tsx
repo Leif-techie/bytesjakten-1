@@ -238,9 +238,6 @@ export function SignupForm({
                   onChange={(e) => setIsStudent(e.target.checked)}
                   className="h-5 w-5 rounded border-zinc-300 text-bj-mobile-deep focus:ring-bj-mobile"
                 />
-                <span className="text-lg" aria-hidden>
-                  🎯
-                </span>
                 <span className="text-sm font-semibold text-zinc-900">
                   Studentabonnemang
                 </span>
