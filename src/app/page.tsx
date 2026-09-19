@@ -8,40 +8,40 @@ const VERTICALS = [
     href: "/mobilabonnemang",
     title: "Mobilabonnemang",
     description: "Kampanjer utan bindningstid – byt när priset går upp.",
-    accent: "emerald" as const,
+    accent: "mobile" as const,
   },
   {
     href: "/bredband",
     title: "Mobilt bredband",
     description: "5G-hemma och mobilt bredband till kampanjpris.",
-    accent: "orange" as const,
+    accent: "broadband" as const,
   },
   {
     href: "/elavtal",
     title: "Elavtal",
     description: "Få påminnelse när det är dags att se över elavtalet.",
-    accent: "blue" as const,
+    accent: "electricity" as const,
   },
 ] as const;
 
 const accentStyles = {
-  emerald: {
-    ring: "ring-emerald-200 hover:ring-emerald-400",
-    title: "group-hover:text-emerald-700",
-    arrow: "text-emerald-600",
-    bar: "bg-emerald-600",
+  mobile: {
+    ring: "ring-bj-mobile/40 hover:ring-bj-mobile",
+    title: "group-hover:text-bj-mobile-deep",
+    arrow: "text-bj-mobile-deep",
+    bar: "bg-bj-mobile",
   },
-  orange: {
-    ring: "ring-orange-200 hover:ring-orange-400",
-    title: "group-hover:text-orange-700",
-    arrow: "text-orange-600",
-    bar: "bg-orange-600",
+  broadband: {
+    ring: "ring-bj-broadband/30 hover:ring-bj-broadband",
+    title: "group-hover:text-bj-broadband",
+    arrow: "text-bj-broadband",
+    bar: "bg-bj-broadband",
   },
-  blue: {
-    ring: "ring-blue-200 hover:ring-blue-400",
-    title: "group-hover:text-blue-700",
-    arrow: "text-blue-600",
-    bar: "bg-blue-600",
+  electricity: {
+    ring: "ring-bj-electricity/30 hover:ring-bj-electricity",
+    title: "group-hover:text-bj-electricity",
+    arrow: "text-bj-electricity",
+    bar: "bg-bj-electricity",
   },
 } as const;
 
@@ -50,15 +50,15 @@ export default function HomePage() {
     <>
       <Header />
       <main>
-        <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/80 to-white px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
+        <section className="relative overflow-hidden px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
           <div className="mx-auto max-w-4xl">
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-zinc-900 sm:text-5xl lg:text-[3.25rem]">
+            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-bj-ink sm:text-5xl lg:text-[3.25rem]">
               Byt smartare.
               <br />
-              <span className="text-emerald-600">Betala mindre.</span>
+              <span className="text-bj-muted">Betala mindre.</span>
             </h1>
 
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-zinc-600">
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-bj-muted">
               Gratis tjänst som bevakar kampanjer och mejlar dig när det är dags
               att byta till nästa billiga erbjudande.
             </p>
@@ -66,7 +66,7 @@ export default function HomePage() {
             <PriceJourney />
 
             <div className="mt-12">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-bj-muted">
                 Välj vad du vill bevaka
               </h2>
               <ul className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -76,18 +76,18 @@ export default function HomePage() {
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className={`group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white p-5 ring-1 transition ${styles.ring}`}
+                        className={`group relative flex h-full flex-col overflow-hidden rounded-lg bg-white p-5 ring-1 transition ${styles.ring}`}
                       >
                         <span
                           className={`absolute inset-y-0 left-0 w-1 ${styles.bar}`}
                           aria-hidden
                         />
                         <span
-                          className={`text-lg font-bold text-zinc-900 transition ${styles.title}`}
+                          className={`text-lg font-bold text-bj-ink transition ${styles.title}`}
                         >
                           {item.title}
                         </span>
-                        <span className="mt-1.5 flex-1 text-sm leading-snug text-zinc-600">
+                        <span className="mt-1.5 flex-1 text-sm leading-snug text-bj-muted">
                           {item.description}
                         </span>
                         <span

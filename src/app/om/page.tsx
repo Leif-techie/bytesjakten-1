@@ -16,7 +16,7 @@ export default function OmPage() {
       <main className="flex-1">
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
+            <p className="text-sm font-medium uppercase tracking-wide text-bj-ink">
               Om oss
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
@@ -77,7 +77,7 @@ export default function OmPage() {
             <div className="mt-12 flex flex-wrap gap-4">
               <Link
                 href="/mobilabonnemang#registrera"
-                className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
+                className="inline-flex rounded-xl bg-bj-ink px-5 py-3 font-semibold text-white transition hover:bg-bj-ink/90"
               >
                 Kom igång gratis →
               </Link>

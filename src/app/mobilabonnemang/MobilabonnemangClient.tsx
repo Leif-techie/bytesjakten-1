@@ -112,14 +112,14 @@ export function MobilabonnemangClient() {
               Letar du efter något annat?{" "}
               <Link
                 href="/bredband"
-                className="font-semibold text-emerald-600 hover:underline"
+                className="font-semibold text-bj-mobile hover:underline"
               >
                 Mobilt bredband
               </Link>
               {" · "}
               <Link
                 href="/elavtal"
-                className="font-semibold text-emerald-600 hover:underline"
+                className="font-semibold text-bj-mobile hover:underline"
               >
                 Elavtal
               </Link>

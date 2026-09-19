@@ -106,11 +106,11 @@ export function SignupForm({
               placeholder="din@epost.se"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:border-bj-mobile focus:outline-none focus:ring-2 focus:ring-bj-mobile/25"
             />
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-bj-mobile px-6 py-3.5 font-semibold text-bj-ink transition hover:bg-bj-mobile-deep hover:text-white"
             >
               Kom igång →
             </button>
@@ -118,7 +118,7 @@ export function SignupForm({
         </form>
 
         {status === "success" && message && (
-          <p className="mt-4 text-sm text-emerald-600">{message}</p>
+          <p className="mt-4 text-sm text-bj-mobile-deep">{message}</p>
         )}
 
         <p
@@ -231,12 +231,12 @@ export function SignupForm({
                 </div>
               </div>
 
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 has-[:checked]:border-bj-mobile has-[:checked]:bg-bj-mobile-soft">
                 <input
                   type="checkbox"
                   checked={isStudent}
                   onChange={(e) => setIsStudent(e.target.checked)}
-                  className="h-5 w-5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-5 w-5 rounded border-zinc-300 text-bj-mobile-deep focus:ring-bj-mobile"
                 />
                 <span className="text-lg" aria-hidden>
                   🎯
@@ -253,7 +253,7 @@ export function SignupForm({
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                className="w-full rounded-md bg-bj-mobile px-6 py-3.5 font-semibold text-bj-ink transition hover:bg-bj-mobile-deep hover:text-white disabled:opacity-60"
               >
                 {status === "loading" ? "Registrerar..." : "Registrera"}
               </button>

@@ -11,24 +11,24 @@ export function PriceJourney() {
       <figcaption className="mb-5 max-w-xl">
         <p
           id="bj-journey-title"
-          className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-700"
+          className="text-sm font-semibold uppercase tracking-[0.12em] text-bj-muted"
         >
           Så funkar Bytesjakten
         </p>
-        <p className="mt-1.5 text-base leading-snug text-zinc-600 sm:text-lg">
+        <p className="mt-1.5 text-base leading-snug text-bj-muted sm:text-lg">
           När kampanjen tar slut höjs priset. Vi mejlar dig i tid – så du byter
           till nästa billiga erbjudande.
         </p>
       </figcaption>
 
       {/* Desktop / tablet — flat segments like the sketch */}
-      <div className="bj-journey-panel relative hidden rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-zinc-50 px-3 py-8 ring-1 ring-emerald-100/80 sm:block sm:px-5 sm:py-10">
+      <div className="bj-journey-panel relative hidden rounded-2xl bg-background px-3 py-8 ring-1 ring-bj-line sm:block sm:px-5 sm:py-10">
         <div
-          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-emerald-200/25 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-bj-soft/60 blur-3xl"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-24 -left-10 h-48 w-48 rounded-full bg-emerald-100/40 blur-3xl"
+          className="pointer-events-none absolute -bottom-24 -left-10 h-48 w-48 rounded-full bg-zinc-200/40 blur-3xl"
           aria-hidden
         />
 
@@ -95,7 +95,7 @@ export function PriceJourney() {
       </div>
 
       {/* Mobile stacked journey */}
-      <ol className="bj-journey-panel relative space-y-0 rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-zinc-50 px-4 py-5 ring-1 ring-emerald-100/80 sm:hidden">
+      <ol className="bj-journey-panel relative space-y-0 rounded-2xl bg-background px-4 py-5 ring-1 ring-bj-line sm:hidden">
         {[
           {
             price: "29",
@@ -127,7 +127,7 @@ export function PriceJourney() {
           <li key={step.label} className="relative flex gap-3 pb-5 last:pb-0">
             {i < 3 && (
               <span
-                className="absolute bottom-0 left-[15px] top-8 w-0.5 bg-emerald-200"
+                className="absolute bottom-0 left-[15px] top-8 w-0.5 bg-bj-line"
                 aria-hidden
               />
             )}
@@ -137,27 +137,25 @@ export function PriceJourney() {
               } ${
                 step.tone === "warn"
                   ? "bg-zinc-400"
-                  : step.tone === "best"
-                    ? "bg-emerald-700"
-                    : "bg-emerald-600"
+                  : "bg-bj-ink"
               }`}
             >
               {step.price}
             </span>
             <div className="min-w-0 flex-1 pt-0.5">
               {step.brand && (
-                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white">
+                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-bj-ink px-2 py-0.5 text-[10px] font-semibold tracking-wide text-background">
                   <TargetIcon className="h-2.5 w-2.5" />
                   Bytesjakten
                 </span>
               )}
-              <p className="font-semibold text-zinc-900">
+              <p className="font-semibold text-bj-ink">
                 {step.price} kr/mån
-                <span className="ml-1.5 font-medium text-zinc-500">
+                <span className="ml-1.5 font-medium text-bj-muted">
                   · {step.label}
                 </span>
               </p>
-              <p className="mt-0.5 text-sm text-zinc-600">{step.note}</p>
+              <p className="mt-0.5 text-sm text-bj-muted">{step.note}</p>
             </div>
           </li>
         ))}
@@ -181,10 +179,8 @@ function Segment({
   price: string;
   label: string;
 }) {
-  const stroke =
-    tone === "warn" ? "#a1a1aa" : tone === "best" ? "#047857" : "#059669";
-  const fill =
-    tone === "warn" ? "#d4d4d8" : tone === "best" ? "#047857" : "#059669";
+  const stroke = tone === "warn" ? "#a1a1aa" : "#1a1a18";
+  const fill = tone === "warn" ? "#d4d4d8" : "#1a1a18";
   const mid = (x1 + x2) / 2;
 
   return (
@@ -205,20 +201,20 @@ function Segment({
         cy={y}
         r="12"
         fill="none"
-        stroke={tone === "warn" ? "#e4e4e7" : "#a7f3d0"}
+        stroke={tone === "warn" ? "#e4e4e7" : "#e2e1dc"}
         strokeWidth="3"
       />
       <text
         x={mid}
         y={y + 38}
         textAnchor="middle"
-        fill="#18181b"
+        fill="#1a1a18"
         fontSize={price.length > 2 ? 17 : 20}
         fontWeight="800"
-        fontFamily="var(--font-geist-sans), system-ui, sans-serif"
+        fontFamily="var(--font-familjen), system-ui, sans-serif"
       >
         {price}
-        <tspan fill="#52525b" fontSize="12" fontWeight="600">
+        <tspan fill="#5c5c57" fontSize="12" fontWeight="600">
           {" "}
           kr/mån
         </tspan>
@@ -227,10 +223,10 @@ function Segment({
         x={mid}
         y={y + 58}
         textAnchor="middle"
-        fill="#71717a"
+        fill="#5c5c57"
         fontSize="12"
         fontWeight="500"
-        fontFamily="var(--font-geist-sans), system-ui, sans-serif"
+        fontFamily="var(--font-familjen), system-ui, sans-serif"
       >
         {label}
       </text>
@@ -241,8 +237,8 @@ function Segment({
 function SwitchMark({ x }: { x: number }) {
   return (
     <g transform={`translate(${x}, 22)`} className="bj-journey-brand">
-      <rect x={-56} y={0} width={112} height={28} rx={14} fill="#059669" />
-      <circle cx={-38} cy={14} r={8} fill="#047857" />
+      <rect x={-56} y={0} width={112} height={28} rx={14} fill="#1a1a18" />
+      <circle cx={-38} cy={14} r={8} fill="#2a2a27" />
       <g
         transform="translate(-38, 14)"
         fill="none"
@@ -261,7 +257,7 @@ function SwitchMark({ x }: { x: number }) {
         fill="#ffffff"
         fontSize="11.5"
         fontWeight="700"
-        fontFamily="var(--font-geist-sans), system-ui, sans-serif"
+        fontFamily="var(--font-familjen), system-ui, sans-serif"
       >
         Bytesjakten
       </text>
@@ -271,11 +267,11 @@ function SwitchMark({ x }: { x: number }) {
         y1={32}
         x2={0}
         y2={78}
-        stroke="#059669"
+        stroke="#1a1a18"
         strokeWidth="2.5"
         strokeLinecap="round"
       />
-      <polygon points="0,92 -6,78 6,78" fill="#059669" />
+      <polygon points="0,92 -6,78 6,78" fill="#1a1a18" />
     </g>
   );
 }
