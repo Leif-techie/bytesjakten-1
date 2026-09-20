@@ -10,6 +10,15 @@ import {
 import { getEmailConfigStatus } from "@/lib/email";
 import { calculateSavingsSoFar } from "@/lib/campaigns";
 import { db } from "@/lib/db";
+import {
+  deactivateAllForEmail,
+  deleteAllForEmail,
+  deleteReminderSubscription,
+  listEmailProfiles,
+  listReminderSubscriptions,
+  sendManualSamlingEmail,
+  unsubscribeReminderSubscription,
+} from "@/lib/samling-admin";
 
 export const runtime = "nodejs";
 
@@ -26,6 +35,8 @@ export async function GET(request: NextRequest) {
     users,
     broadbandUsers,
     electricityUsers,
+    reminders,
+    emailProfiles,
     notificationLogs,
   ] = await Promise.all([
     db.campaign.findMany({
@@ -98,6 +109,8 @@ export async function GET(request: NextRequest) {
         },
       },
     }),
+    listReminderSubscriptions(),
+    listEmailProfiles(),
     db.notificationLog.findMany({
       orderBy: { sentAt: "desc" },
       take: 50,
@@ -303,11 +316,14 @@ export async function GET(request: NextRequest) {
       ? electricityCampaignMap[log.electricityCampaignId]
       : null;
     const campaign = mobileCampaign ?? bbCampaign ?? elCampaign;
-    const vertical = log.electricityUserId
-      ? "electricity"
-      : log.broadbandUserId
-        ? "broadband"
-        : "mobile";
+    const vertical =
+      log.type === "samling_reminder"
+        ? "samling"
+        : log.electricityUserId
+          ? "electricity"
+          : log.broadbandUserId
+            ? "broadband"
+            : "mobile";
 
     return {
       id: log.id,
@@ -330,6 +346,8 @@ export async function GET(request: NextRequest) {
     users: usersWithStatus,
     broadbandUsers: broadbandUsersWithStatus,
     electricityUsers: electricityUsersWithStatus,
+    reminders,
+    emailProfiles,
     notifications,
     emailConfig: getEmailConfigStatus(),
   });
@@ -410,6 +428,81 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "send_samling_email") {
+    const { email, primaryKind, primaryId, campaignId } = body;
+    if (!email || !primaryKind || !primaryId) {
+      return NextResponse.json(
+        { error: "Välj e-post och primär tjänst." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualSamlingEmail({
+      email,
+      primaryKind,
+      primaryId,
+      campaignId: campaignId || null,
+    });
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
+  }
+
+  if (action === "delete_reminder") {
+    const { reminderId } = body;
+    if (!reminderId) {
+      return NextResponse.json(
+        { error: "Påminnelse saknas." },
+        { status: 400 }
+      );
+    }
+    const success = await deleteReminderSubscription(reminderId);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Påminnelsen hittades inte." },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "unsubscribe_reminder") {
+    const { reminderId } = body;
+    if (!reminderId) {
+      return NextResponse.json(
+        { error: "Påminnelse saknas." },
+        { status: 400 }
+      );
+    }
+    const success = await unsubscribeReminderSubscription(reminderId);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Påminnelsen hittades inte." },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "deactivate_all_for_email") {
+    const { email } = body;
+    if (!email) {
+      return NextResponse.json({ error: "E-post saknas." }, { status: 400 });
+    }
+    await deactivateAllForEmail(email);
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "delete_all_for_email") {
+    const { email } = body;
+    if (!email) {
+      return NextResponse.json({ error: "E-post saknas." }, { status: 400 });
+    }
+    await deleteAllForEmail(email);
     return NextResponse.json({ success: true });
   }
 

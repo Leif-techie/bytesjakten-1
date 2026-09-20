@@ -88,3 +88,40 @@ export const REMINDER_CATEGORIES = [
 ] as const;
 
 export type ReminderCategory = (typeof REMINDER_CATEGORIES)[number];
+
+export function reminderCategoryLabel(category: string): string {
+  if (category === "insurance") return "Försäkring";
+  if (category === "inspection") return "Besiktning";
+  if (category === "streaming") return "Streaming";
+  return category;
+}
+
+export function reminderSubtypeLabel(
+  category: string,
+  subtype: string,
+): string {
+  const lists = {
+    insurance: INSURANCE_SUBTYPES,
+    inspection: INSPECTION_SUBTYPES,
+    streaming: STREAMING_SUBTYPES,
+  } as const;
+  if (category in lists) {
+    const found = lists[category as ReminderCategory].find(
+      (s) => s.value === subtype,
+    );
+    if (found) return found.label;
+  }
+  return subtype;
+}
+
+export function formatReminderTitle(item: {
+  category: string;
+  subtype: string;
+  provider?: string | null;
+}): string {
+  const type = reminderSubtypeLabel(item.category, item.subtype);
+  const cat = reminderCategoryLabel(item.category);
+  if (item.category === "streaming") return `${cat}: ${type}`;
+  if (item.provider?.trim()) return `${cat}: ${type} · ${item.provider.trim()}`;
+  return `${cat}: ${type}`;
+}

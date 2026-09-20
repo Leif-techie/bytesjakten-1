@@ -16,6 +16,10 @@ function unsubscribeUrl(token: string): string {
   return `${APP_URL}/avregistrera?token=${token}`;
 }
 
+function unsubscribeAllUrl(token: string): string {
+  return `${APP_URL}/avregistrera?token=${token}&all=1`;
+}
+
 function switchCompleteUrl(
   token: string,
   operator?: string,
@@ -805,4 +809,151 @@ export async function sendSamlingConfirmationEmail(params: {
   `;
 
   return sendMailerooEmail({ to: email, subject, html });
+}
+
+export type SamlingReminderPrimary = {
+  kind: "mobile" | "broadband" | "electricity" | "reminder";
+  label: string;
+  provider: string;
+  endDate: Date | null;
+  detail: string;
+  unsubscribeToken: string;
+  category?: string;
+};
+
+export type SamlingReminderSecondary = {
+  label: string;
+  provider: string;
+  endDate: Date | null;
+  detail: string;
+  unsubscribeToken: string;
+};
+
+export type SamlingReminderOffer = {
+  operator: string;
+  campaignName: string;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignUrl: string;
+  network?: string;
+  speedMbps?: number;
+  technology?: string;
+  priceUnit: "kr" | "ore";
+};
+
+function formatOfferPrice(price: number, unit: "kr" | "ore"): string {
+  if (unit === "ore") return `${formatSEK(price)} öre/kWh`;
+  return `${formatSEK(price)} kr/mån`;
+}
+
+export function buildSamlingReminderEmailHtml(params: {
+  primary: SamlingReminderPrimary;
+  secondary: SamlingReminderSecondary[];
+  offer: SamlingReminderOffer | null;
+  unsubscribeAllToken: string;
+}): string {
+  const { primary, secondary, offer, unsubscribeAllToken } = params;
+  const endLabel = primary.endDate
+    ? formatDate(primary.endDate)
+    : "snart";
+
+  const offerBlock = offer
+    ? `
+      <div style="background: ${EMAIL_MOBILE.accentSoft}; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">Tips just nu</p>
+        <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: ${EMAIL_MOBILE.ink};">${offer.campaignName}</h2>
+        <p style="margin: 0; font-size: 28px; font-weight: 700; color: ${EMAIL_MOBILE.accentDeep};">${formatOfferPrice(offer.campaignPrice, offer.priceUnit)}</p>
+        <p style="margin: 8px 0 16px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
+          ${
+            offer.network
+              ? `Nät: ${getNetworkLabel(offer.network)} · `
+              : ""
+          }${
+            offer.speedMbps
+              ? `${offer.speedMbps} Mbit/s · `
+              : ""
+          }Ordinarie: ${formatOfferPrice(offer.regularPrice, offer.priceUnit)}
+        </p>
+        <a href="${offer.campaignUrl}" style="display: inline-block; background: ${EMAIL_MOBILE.accent}; color: ${EMAIL_MOBILE.ink}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;" rel="sponsored">
+          Se erbjudandet hos ${offer.operator} →
+        </a>
+      </div>`
+    : "";
+
+  const secondaryBlock =
+    secondary.length > 0
+      ? `
+      <div style="background: #ffffff; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.muted}; text-transform: uppercase; letter-spacing: 0.14em;">
+          Övriga påminnelser
+        </p>
+        ${secondary
+          .map(
+            (item) => `
+          <div style="padding: 10px 0; border-top: 1px solid ${EMAIL_MOBILE.line};">
+            <p style="margin: 0; font-weight: 600; color: ${EMAIL_MOBILE.ink};">${item.label}</p>
+            <p style="margin: 4px 0 0; color: ${EMAIL_MOBILE.muted}; font-size: 14px;">
+              ${item.provider}${item.detail ? ` · ${item.detail}` : ""}${
+                item.endDate ? ` · ${formatDate(item.endDate)}` : ""
+              }
+            </p>
+            <p style="margin: 6px 0 0;">
+              <a href="${unsubscribeUrl(item.unsubscribeToken)}" style="color: ${EMAIL_MOBILE.muted}; font-size: 12px;">Avregistrera bara den här</a>
+            </p>
+          </div>`
+          )
+          .join("")}
+      </div>`
+      : "";
+
+  return `
+    <div style="font-family: ${EMAIL_MOBILE.font}; max-width: 560px; margin: 0 auto; color: ${EMAIL_MOBILE.ink}; background: ${EMAIL_MOBILE.bg}; padding: 28px 20px;">
+      <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">${primary.label}</p>
+      <h1 style="color: ${EMAIL_MOBILE.ink}; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 12px;">Hej från Bytesjakten!</h1>
+      <p style="margin: 0; color: ${EMAIL_MOBILE.muted}; font-size: 16px; line-height: 1.55;">
+        ${
+          primary.endDate
+            ? `Din påminnelse för <strong style="color: ${EMAIL_MOBILE.ink};">${primary.provider}</strong> gäller <strong style="color: ${EMAIL_MOBILE.ink};">${endLabel}</strong>.`
+            : `Här kommer en påminnelse om <strong style="color: ${EMAIL_MOBILE.ink};">${primary.provider}</strong>.`
+        }
+        ${primary.detail ? ` (${primary.detail})` : ""}
+      </p>
+
+      ${offerBlock}
+      ${secondaryBlock}
+
+      <p style="margin: 24px 0 0;">
+        <a href="${APP_URL}/registrera" style="display: inline-block; background: ${EMAIL_MOBILE.ink}; color: ${EMAIL_MOBILE.bg}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+          Uppdatera dina påminnelser →
+        </a>
+      </p>
+
+      <p style="color: ${EMAIL_MOBILE.muted}; font-size: 12px; margin-top: 32px; line-height: 1.5;">
+        Du får det här mejlet eftersom du registrerat dig på
+        <a href="${APP_URL}" style="color: ${EMAIL_MOBILE.accentDeep};">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(primary.unsubscribeToken)}" style="color: ${EMAIL_MOBILE.muted};">Avregistrera den här tjänsten</a>
+        · <a href="${unsubscribeAllUrl(unsubscribeAllToken)}" style="color: ${EMAIL_MOBILE.muted};">Avregistrera allt</a>
+      </p>
+    </div>
+  `;
+}
+
+export async function sendSamlingReminderEmail(params: {
+  email: string;
+  primary: SamlingReminderPrimary;
+  secondary: SamlingReminderSecondary[];
+  offer: SamlingReminderOffer | null;
+  unsubscribeAllToken: string;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  const subject = params.offer
+    ? `Påminnelse: ${params.primary.label} – tips från ${params.offer.operator}`
+    : `Påminnelse: ${params.primary.label}`;
+  const html = buildSamlingReminderEmailHtml({
+    primary: params.primary,
+    secondary: params.secondary,
+    offer: params.offer,
+    unsubscribeAllToken: params.unsubscribeAllToken,
+  });
+  return sendMailerooEmail({ to: params.email, subject, html });
 }
