@@ -53,9 +53,9 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 20 Sep 2026.
- * Hallon 50 GB: kampanj 39 kr (tidigare 49). Fello: kampanj 30 kr.
- * Vimla 20 kr / Comviq 45 kr oförändrade. Comviq utan bindningstid-URL.
+ * Checked 20 Sep 2026 against hallon.se / vimla.se / comviq.se / fello.se.
+ * Hallon privat: dubbel surf for life → dataGB = effektiv surf (10–200 GB).
+ * Fello: dubbel surf → dataGB = effektiv surf. Vimla/Comviq: oförändrade priser.
  * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
  * Replace `url` with Addrevenue tracking links in admin after refresh.
  */
@@ -63,11 +63,11 @@ function buildCampaigns(now: Date): SeedCampaign[] {
   const { start, end } = campaignWindow(now, 4);
 
   const regular: SeedCampaign[] = [
-    // Hallon – Tres nät, ingen bindningstid (kampanj 19–59 kr i 4 mån)
+    // Hallon – Tres nät, dubbel surf for life (bas 5/10/25/50/100 → effektiv 10–200)
     {
       operator: "Hallon",
-      name: "Hallon – 5 GB",
-      dataGB: 5,
+      name: "Hallon – 10 GB",
+      dataGB: 10,
       campaignPrice: 19,
       regularPrice: 109,
       campaignStart: start,
@@ -78,22 +78,10 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Hallon",
-      name: "Hallon – 10 GB",
-      dataGB: 10,
+      name: "Hallon – 20 GB",
+      dataGB: 20,
       campaignPrice: 29,
       regularPrice: 159,
-      campaignStart: start,
-      campaignEnd: end,
-      url: "https://www.hallon.se/",
-      network: "tre",
-      isStudent: false,
-    },
-    {
-      operator: "Hallon",
-      name: "Hallon – 25 GB",
-      dataGB: 25,
-      campaignPrice: 39,
-      regularPrice: 259,
       campaignStart: start,
       campaignEnd: end,
       url: "https://www.hallon.se/",
@@ -105,7 +93,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       name: "Hallon – 50 GB",
       dataGB: 50,
       campaignPrice: 39,
-      regularPrice: 309,
+      regularPrice: 259,
       campaignStart: start,
       campaignEnd: end,
       url: "https://www.hallon.se/",
@@ -116,6 +104,18 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Hallon",
       name: "Hallon – 100 GB",
       dataGB: 100,
+      campaignPrice: 49,
+      regularPrice: 309,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+      isStudent: false,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 200 GB",
+      dataGB: 200,
       campaignPrice: 59,
       regularPrice: 359,
       campaignStart: start,
@@ -187,7 +187,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       isStudent: false,
     },
 
-    // Comviq – Tele2-nät, 45 kr/mån i 3 mån utan bindningstid
+    // Comviq – Tele2-nät, 45 kr/mån i 3 mån utan bindningstid (ingen dubbelsurf)
     {
       operator: "Comviq",
       name: "Comviq – 5 GB",
@@ -225,25 +225,13 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       isStudent: false,
     },
 
-    // Fello – Telias nät, ingen bindningstid (kampanj 30 kr i 3 mån, sep 2026)
-    {
-      operator: "Fello",
-      name: "Fello – 5 GB",
-      dataGB: 5,
-      campaignPrice: 30,
-      regularPrice: 120,
-      campaignStart: start,
-      campaignEnd: end,
-      url: "https://www.fello.se/mobilabonnemang",
-      network: "telia",
-      isStudent: false,
-    },
+    // Fello – Telias nät, 30 kr i 3 mån + dubbel surf (bas → effektiv)
     {
       operator: "Fello",
       name: "Fello – 10 GB",
       dataGB: 10,
       campaignPrice: 30,
-      regularPrice: 180,
+      regularPrice: 120,
       campaignStart: start,
       campaignEnd: end,
       url: "https://www.fello.se/mobilabonnemang",
@@ -255,7 +243,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       name: "Fello – 20 GB",
       dataGB: 20,
       campaignPrice: 30,
-      regularPrice: 230,
+      regularPrice: 180,
       campaignStart: start,
       campaignEnd: end,
       url: "https://www.fello.se/mobilabonnemang",
@@ -267,6 +255,18 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       name: "Fello – 40 GB",
       dataGB: 40,
       campaignPrice: 30,
+      regularPrice: 230,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: false,
+    },
+    {
+      operator: "Fello",
+      name: "Fello – 80 GB",
+      dataGB: 80,
+      campaignPrice: 30,
       regularPrice: 290,
       campaignStart: start,
       campaignEnd: end,
@@ -276,8 +276,8 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
     {
       operator: "Fello",
-      name: "Fello – 100 GB",
-      dataGB: 100,
+      name: "Fello – 200 GB",
+      dataGB: 200,
       campaignPrice: 30,
       regularPrice: 370,
       campaignStart: start,
@@ -288,9 +288,9 @@ function buildCampaigns(now: Date): SeedCampaign[] {
     },
   ];
 
-  // Student plans — checked 10 Sep 2026
+  // Student plans — checked 20 Sep 2026
   const student: SeedCampaign[] = [
-    // Hallon Student – 4 månader kampanj
+    // Hallon Student – 4 månader kampanj (surf enligt studentnivåerna)
     {
       operator: "Hallon",
       name: "Hallon Student – 10 GB",
@@ -351,7 +351,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       network: "tre",
       isStudent: true,
     },
-    // Vimla student: dubbel surf (10→20, 15→30, …)
+    // Vimla student: nivåer enligt vimla.se/bestall/student
     {
       operator: "Vimla",
       name: "Vimla Student – 20 GB",
@@ -448,51 +448,40 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       network: "tele2",
       isStudent: true,
     },
-    {
-      operator: "Fello",
-      name: "Fello Student – 10 GB",
-      dataGB: 10,
-      campaignPrice: 30,
-      regularPrice: 120,
-      campaignStart: start,
-      campaignEnd: end,
-      url: "https://www.fello.se/student",
-      network: "telia",
-      isStudent: true,
-    },
+    // Fello Student – dubbel surf (bas → effektiv)
     {
       operator: "Fello",
       name: "Fello Student – 20 GB",
       dataGB: 20,
       campaignPrice: 30,
-      regularPrice: 160,
+      regularPrice: 120,
       campaignStart: start,
       campaignEnd: end,
-      url: "https://www.fello.se/student",
+      url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
       isStudent: true,
     },
     {
       operator: "Fello",
-      name: "Fello Student – 30 GB",
-      dataGB: 30,
+      name: "Fello Student – 40 GB",
+      dataGB: 40,
+      campaignPrice: 30,
+      regularPrice: 160,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 60 GB",
+      dataGB: 60,
       campaignPrice: 30,
       regularPrice: 200,
       campaignStart: start,
       campaignEnd: end,
-      url: "https://www.fello.se/student",
-      network: "telia",
-      isStudent: true,
-    },
-    {
-      operator: "Fello",
-      name: "Fello Student – 50 GB",
-      dataGB: 50,
-      campaignPrice: 30,
-      regularPrice: 250,
-      campaignStart: start,
-      campaignEnd: end,
-      url: "https://www.fello.se/student",
+      url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
       isStudent: true,
     },
@@ -501,10 +490,22 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       name: "Fello Student – 100 GB",
       dataGB: 100,
       campaignPrice: 30,
+      regularPrice: 250,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 200 GB",
+      dataGB: 200,
+      campaignPrice: 30,
       regularPrice: 320,
       campaignStart: start,
       campaignEnd: end,
-      url: "https://www.fello.se/student",
+      url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
       isStudent: true,
     },
