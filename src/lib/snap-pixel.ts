@@ -90,7 +90,7 @@ export function trackViewContent(params: {
 
 /** Registrering till påminnelsetjänsten. Snap hashar user_email i SDK. */
 export function trackSignUp(params?: {
-  vertical?: "mobile" | "broadband" | "electricity";
+  vertical?: "mobile" | "broadband" | "electricity" | "samling";
   email?: string;
 }): void {
   const email = params?.email?.trim().toLowerCase();

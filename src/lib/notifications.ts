@@ -139,9 +139,11 @@ export async function registerUser(data: {
   minDataGB: number;
   networkPreference: string;
   isStudent?: boolean;
+  sendEmail?: boolean;
 }): Promise<{ userId: string; isNew: boolean; emailSent: boolean }> {
   const existing = await db.user.findUnique({ where: { email: data.email } });
   const isStudent = Boolean(data.isStudent);
+  const sendEmail = data.sendEmail !== false;
 
   if (existing) {
     const updated = await db.user.update({
@@ -155,6 +157,10 @@ export async function registerUser(data: {
         active: true,
       },
     });
+
+    if (!sendEmail) {
+      return { userId: updated.id, isNew: false, emailSent: false };
+    }
 
     const emailResult = await sendPrefsConfirmationEmail({
       email: updated.email,
@@ -186,6 +192,10 @@ export async function registerUser(data: {
       isStudent,
     },
   });
+
+  if (!sendEmail) {
+    return { userId: user.id, isNew: true, emailSent: false };
+  }
 
   const emailResult = await sendPrefsConfirmationEmail({
     email: user.email,

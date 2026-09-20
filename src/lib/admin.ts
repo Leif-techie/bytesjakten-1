@@ -1,7 +1,22 @@
 import { db } from "./db";
 import { sendPrefsConfirmationEmail } from "./email";
+import {
+  resolveEmailFromUnsubscribeToken,
+  unsubscribeAllForEmail,
+  unsubscribeReminderByToken,
+} from "./samling";
 
-export async function unsubscribeUser(token: string): Promise<boolean> {
+export async function unsubscribeUser(
+  token: string,
+  options?: { all?: boolean },
+): Promise<boolean> {
+  if (options?.all) {
+    const email = await resolveEmailFromUnsubscribeToken(token);
+    if (!email) return false;
+    await unsubscribeAllForEmail(email);
+    return true;
+  }
+
   const user = await db.user.findUnique({ where: { unsubscribeToken: token } });
   if (user) {
     await db.user.update({
@@ -25,13 +40,15 @@ export async function unsubscribeUser(token: string): Promise<boolean> {
   const electricityUser = await db.electricityUser.findUnique({
     where: { unsubscribeToken: token },
   });
-  if (!electricityUser) return false;
+  if (electricityUser) {
+    await db.electricityUser.update({
+      where: { id: electricityUser.id },
+      data: { active: false },
+    });
+    return true;
+  }
 
-  await db.electricityUser.update({
-    where: { id: electricityUser.id },
-    data: { active: false },
-  });
-  return true;
+  return unsubscribeReminderByToken(token);
 }
 
 export async function getUserByToken(token: string) {

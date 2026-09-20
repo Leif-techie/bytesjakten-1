@@ -757,3 +757,52 @@ export async function sendElectricitySwitchReminderEmail(
 
   return sendMailerooEmail({ to: email, subject, html });
 }
+
+export async function sendSamlingConfirmationEmail(params: {
+  email: string;
+  services: string[];
+  kind: "register" | "update";
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  const { email, services, kind } = params;
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten"
+    : "Dina påminnelser är uppdaterade";
+
+  const list = services
+    .map(
+      (s) =>
+        `<li style="margin: 0 0 6px; color: #1a1a18;">${s}</li>`,
+    )
+    .join("");
+
+  const html = `
+    <div style="font-family: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a18; background: #f5f4f1; padding: 28px 20px;">
+      <h1 style="font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 12px;">${
+        isNew ? "Välkommen till Bytesjakten!" : "Uppgifter uppdaterade"
+      }</h1>
+      <p style="margin: 0 0 16px; color: #5c5c57; font-size: 16px; line-height: 1.55;">
+        ${
+          isNew
+            ? "Du är registrerad för följande påminnelser:"
+            : "Vi har sparat följande påminnelser:"
+        }
+      </p>
+      <ul style="margin: 0 0 20px; padding-left: 1.25rem;">
+        ${list}
+      </ul>
+      <p style="margin: 0 0 20px; color: #5c5c57; font-size: 15px; line-height: 1.5;">
+        Vi mejlar dig när det är dags – helt gratis. Affiliate-länkar kan ingå när vi tipsar om erbjudanden.
+      </p>
+      <a href="${APP_URL}/registrera" style="display: inline-block; background: #1a1a18; color: #f5f4f1; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+        Uppdatera dina påminnelser →
+      </a>
+      <p style="color: #5c5c57; font-size: 12px; margin-top: 32px; line-height: 1.5;">
+        Du får det här mejlet eftersom du registrerat dig på
+        <a href="${APP_URL}" style="color: #1a1a18;">Bytesjakten</a>.
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
