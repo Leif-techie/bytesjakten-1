@@ -68,19 +68,32 @@ function getBroadbandTechnologyLabel(value: string): string {
     value
   );
 }
+/** Mobilvertikalens mejlfärger – samma tokens som sajten. */
+const EMAIL_MOBILE = {
+  ink: "#1a1a18",
+  muted: "#5c5c57",
+  line: "#e2e1dc",
+  soft: "#eceae4",
+  accent: "#ddc65e",
+  accentSoft: "#fbf7eb",
+  accentDeep: "#a8882a",
+  bg: "#f5f4f1",
+  font: "'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif",
+} as const;
+
 function renderEsimGuideHtml(): string {
   const steps = ESIM_GUIDE_STEPS.map(
     (step, index) => `
       <tr>
         <td style="vertical-align: top; padding: 0 12px 14px 0; width: 28px;">
-          <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700;">${index + 1}</span>
+          <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: ${EMAIL_MOBILE.accentDeep}; color: #fff; font-size: 12px; font-weight: 700;">${index + 1}</span>
         </td>
         <td style="padding: 0 0 14px 0;">
-          <p style="margin: 0 0 4px; font-weight: 600; color: #18181b;">${step.title}</p>
+          <p style="margin: 0 0 4px; font-weight: 600; color: ${EMAIL_MOBILE.ink};">${step.title}</p>
           ${step.body
             .map(
               (line) =>
-                `<p style="margin: 0 0 4px; color: #52525b; font-size: 14px; line-height: 1.5;">${line}</p>`,
+                `<p style="margin: 0 0 4px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">${line}</p>`,
             )
             .join("")}
         </td>
@@ -88,16 +101,16 @@ function renderEsimGuideHtml(): string {
   ).join("");
 
   return `
-    <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;" />
-    <h3 style="font-size: 16px; margin: 0 0 8px;">Byt med eSIM – så gör du</h3>
-    <p style="color: #666; font-size: 14px; margin: 0 0 16px;">
+    <hr style="border: none; border-top: 1px solid ${EMAIL_MOBILE.line}; margin: 32px 0;" />
+    <h3 style="font-size: 16px; margin: 0 0 8px; color: ${EMAIL_MOBILE.ink};">Byt med eSIM – så gör du</h3>
+    <p style="color: ${EMAIL_MOBILE.muted}; font-size: 14px; margin: 0 0 16px;">
       Med eSIM byter du operatör utan att vänta på ett plastkort:
     </p>
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
       ${steps}
     </table>
     <p style="margin: 8px 0 0;">
-      <a href="${esimGuideUrl()}" style="color: #16a34a; font-weight: 600;">Läs hela eSIM-guiden på Bytesjakten →</a>
+      <a href="${esimGuideUrl()}" style="color: ${EMAIL_MOBILE.accentDeep}; font-weight: 600;">Läs hela eSIM-guiden på Bytesjakten →</a>
     </p>
   `;
 }
@@ -178,11 +191,11 @@ async function sendMailerooEmail(params: {
   }
 }
 
-export async function sendSwitchReminderEmail(
-  params: SwitchEmailParams
-): Promise<{ success: boolean; id?: string; error?: string }> {
+/** HTML för mobilens bytesmejl (stil enligt sajtens gulockra-tokens). */
+export function buildSwitchReminderEmailHtml(
+  params: Omit<SwitchEmailParams, "email">
+): string {
   const {
-    email,
     operator,
     campaignName,
     campaignPrice,
@@ -194,55 +207,54 @@ export async function sendSwitchReminderEmail(
     campaignId,
   } = params;
 
-  const subject = `Dags att byta mobilabonnemang – spara med ${operator}`;
-
-  const html = `
-    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
-      <h1 style="color: #16a34a; font-size: 24px;">Hej från Bytesjakten!</h1>
-      <p>Ditt nuvarande abonnemang går ut <strong>${formatDate(contractEndDate)}</strong>. 
+  return `
+    <div style="font-family: ${EMAIL_MOBILE.font}; max-width: 560px; margin: 0 auto; color: ${EMAIL_MOBILE.ink}; background: ${EMAIL_MOBILE.bg}; padding: 28px 20px;">
+      <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">Mobilabonnemang</p>
+      <h1 style="color: ${EMAIL_MOBILE.ink}; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 12px;">Hej från Bytesjakten!</h1>
+      <p style="margin: 0; color: ${EMAIL_MOBILE.muted}; font-size: 16px; line-height: 1.55;">Ditt nuvarande abonnemang går ut <strong style="color: ${EMAIL_MOBILE.ink};">${formatDate(contractEndDate)}</strong>.
       Nu är det dags att byta till ett kampanjpris utan bindningstid.</p>
-      
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0;">
-        <p style="margin: 0 0 8px; font-size: 13px; color: #15803d; text-transform: uppercase; letter-spacing: 0.05em;">Bästa erbjudande just nu</p>
-        <h2 style="margin: 0 0 8px; font-size: 20px;">${campaignName}</h2>
-        <p style="margin: 0; font-size: 28px; font-weight: bold; color: #16a34a;">${formatSEK(campaignPrice)} kr/mån</p>
-        <p style="margin: 8px 0 0; color: #666; font-size: 14px;">
+
+      <div style="background: ${EMAIL_MOBILE.accentSoft}; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">Bästa erbjudande just nu</p>
+        <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: ${EMAIL_MOBILE.ink};">${campaignName}</h2>
+        <p style="margin: 0; font-size: 28px; font-weight: 700; color: ${EMAIL_MOBILE.accentDeep};">${formatSEK(campaignPrice)} kr/mån</p>
+        <p style="margin: 8px 0 0; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
           Nät: ${getNetworkLabel(network)} · Ingen bindningstid<br>
           Ordinarie pris därefter: ${formatSEK(regularPrice)} kr/mån
         </p>
       </div>
 
-      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 24px 0;">
-        <p style="margin: 0 0 16px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+      <div style="background: #ffffff; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 16px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.muted}; text-transform: uppercase; letter-spacing: 0.14em;">
           Så gör du – två steg
         </p>
 
         <table role="presentation" style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="vertical-align: top; padding: 0 12px 20px 0; width: 28px;">
-              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700;">1</span>
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: ${EMAIL_MOBILE.accentDeep}; color: #fff; font-size: 12px; font-weight: 700;">1</span>
             </td>
             <td style="padding: 0 0 20px 0;">
-              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 1 – Beställ kampanjen</p>
-              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: ${EMAIL_MOBILE.ink}; font-size: 16px;">Steg 1 – Beställ kampanjen</p>
+              <p style="margin: 0 0 12px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
                 Byt till erbjudandet hos ${operator}. Ingen bindningstid.
               </p>
-              <a href="${campaignUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
+              <a href="${campaignUrl}" style="display: inline-block; background: ${EMAIL_MOBILE.accent}; color: ${EMAIL_MOBILE.ink}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;" rel="sponsored">
                 Beställ kampanjen hos ${operator} →
               </a>
             </td>
           </tr>
           <tr>
             <td style="vertical-align: top; padding: 0 12px 0 0; width: 28px;">
-              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700;">2</span>
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: ${EMAIL_MOBILE.accentDeep}; color: #fff; font-size: 12px; font-weight: 700;">2</span>
             </td>
             <td style="padding: 0;">
-              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Ange datum för nummerflytt</p>
-              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: ${EMAIL_MOBILE.ink}; font-size: 16px;">Steg 2 – Ange datum för nummerflytt</p>
+              <p style="margin: 0 0 12px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
                 När bytet har gått igenom: klicka nedan och ange <strong>datumet för nummerflytten</strong>
                 (står oftast i SMS:et från operatören). Då mejlar vi dig i tid innan nästa byte.
               </p>
-              <a href="${switchCompleteUrl(unsubscribeToken, operator, campaignId)}" style="display: inline-block; background: #fff; color: #16a34a; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #16a34a;">
+              <a href="${switchCompleteUrl(unsubscribeToken, operator, campaignId)}" style="display: inline-block; background: #fff; color: ${EMAIL_MOBILE.accentDeep}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600; border: 2px solid ${EMAIL_MOBILE.accentDeep};">
                 Ange datum för nummerflytt →
               </a>
             </td>
@@ -252,25 +264,33 @@ export async function sendSwitchReminderEmail(
 
       ${renderEsimGuideHtml()}
 
-      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;" />
+      <hr style="border: none; border-top: 1px solid ${EMAIL_MOBILE.line}; margin: 32px 0;" />
 
-      <h3 style="font-size: 16px;">Tips: Samla dina mobilfakturor i Kivra</h3>
-      <p style="color: #666; font-size: 14px;">
-        När du byter operatör ofta kan det bli rörigt med fakturor. 
+      <h3 style="font-size: 16px; margin: 0 0 8px; color: ${EMAIL_MOBILE.ink};">Tips: Samla dina mobilfakturor i Kivra</h3>
+      <p style="color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5; margin: 0 0 12px;">
+        När du byter operatör ofta kan det bli rörigt med fakturor.
         Med Kivra får du alla mobilräkningar samlade på ett ställe.
       </p>
-      <p>
-        <a href="${KIVRA_URL}" style="color: #16a34a; font-weight: 600;">Skaffa Kivra gratis →</a>
+      <p style="margin: 0;">
+        <a href="${KIVRA_URL}" style="color: ${EMAIL_MOBILE.accentDeep}; font-weight: 600;">Skaffa Kivra gratis →</a>
       </p>
 
-      <p style="color: #999; font-size: 12px; margin-top: 32px;">
-        Du får det här mejlet eftersom du registrerat dig på 
-        <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>. 
+      <p style="color: ${EMAIL_MOBILE.muted}; font-size: 12px; margin-top: 32px; line-height: 1.5;">
+        Du får det här mejlet eftersom du registrerat dig på
+        <a href="${APP_URL}" style="color: ${EMAIL_MOBILE.accentDeep};">Bytesjakten</a>.
         Tjänsten är alltid gratis.
-        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: ${EMAIL_MOBILE.muted};">Avregistrera</a>
       </p>
     </div>
   `;
+}
+
+export async function sendSwitchReminderEmail(
+  params: SwitchEmailParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const subject = `Dags att byta mobilabonnemang – spara med ${params.operator}`;
+  const { email, ...htmlParams } = params;
+  const html = buildSwitchReminderEmailHtml(htmlParams);
 
   return sendMailerooEmail({ to: email, subject, html });
 }
