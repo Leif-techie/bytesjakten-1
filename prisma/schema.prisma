@@ -169,3 +169,27 @@ model ElectricityCampaign {
   @@index([active, priceType])
   @@index([active, bindingMonths])
 }
+
+/** Påminnelser för försäkring, besiktning, streaming m.m. (samlingsregistrering). */
+model ReminderSubscription {
+  id               String    @id @default(cuid())
+  email            String
+  /** insurance | inspection | streaming */
+  category         String
+  /** t.ex. bil, husvagn, netflix */
+  subtype          String
+  /** Bolag / leverantör (fritext) */
+  provider         String    @default("")
+  renewalDate      DateTime?
+  /** t.ex. regnr, djurnamn */
+  objectLabel      String?
+  notes            String?
+  unsubscribeToken String    @unique @default(cuid())
+  active           Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([email, category, subtype])
+  @@index([email, active])
+  @@index([renewalDate, active])
+}

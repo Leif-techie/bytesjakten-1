@@ -7,10 +7,12 @@ export async function registerElectricityUser(data: {
   contractEndDate: Date;
   priceTypePreference: string;
   maxBindingMonths: number | null;
+  sendEmail?: boolean;
 }): Promise<{ userId: string; isNew: boolean; emailSent: boolean }> {
   const existing = await db.electricityUser.findUnique({
     where: { email: data.email },
   });
+  const sendEmail = data.sendEmail !== false;
 
   if (existing) {
     const updated = await db.electricityUser.update({
@@ -23,6 +25,10 @@ export async function registerElectricityUser(data: {
         active: true,
       },
     });
+
+    if (!sendEmail) {
+      return { userId: updated.id, isNew: false, emailSent: false };
+    }
 
     const emailResult = await sendElectricityPrefsConfirmationEmail({
       email: updated.email,
@@ -50,6 +56,10 @@ export async function registerElectricityUser(data: {
       maxBindingMonths: data.maxBindingMonths,
     },
   });
+
+  if (!sendEmail) {
+    return { userId: user.id, isNew: true, emailSent: false };
+  }
 
   const emailResult = await sendElectricityPrefsConfirmationEmail({
     email: user.email,

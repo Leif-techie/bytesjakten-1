@@ -7,10 +7,12 @@ export async function registerBroadbandUser(data: {
   contractEndDate: Date;
   minSpeedMbps: number;
   technology: string;
+  sendEmail?: boolean;
 }): Promise<{ userId: string; isNew: boolean; emailSent: boolean }> {
   const existing = await db.broadbandUser.findUnique({
     where: { email: data.email },
   });
+  const sendEmail = data.sendEmail !== false;
 
   if (existing) {
     const updated = await db.broadbandUser.update({
@@ -23,6 +25,10 @@ export async function registerBroadbandUser(data: {
         active: true,
       },
     });
+
+    if (!sendEmail) {
+      return { userId: updated.id, isNew: false, emailSent: false };
+    }
 
     const emailResult = await sendBroadbandPrefsConfirmationEmail({
       email: updated.email,
@@ -50,6 +56,10 @@ export async function registerBroadbandUser(data: {
       technology: data.technology,
     },
   });
+
+  if (!sendEmail) {
+    return { userId: user.id, isNew: true, emailSent: false };
+  }
 
   const emailResult = await sendBroadbandPrefsConfirmationEmail({
     email: user.email,
