@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { href: "/registrera", label: "Registrera" },
   { href: "/mobilabonnemang", label: "Mobilabonnemang" },
   { href: "/bredband", label: "Mobilt bredband" },
   { href: "/elavtal", label: "Elavtal" },

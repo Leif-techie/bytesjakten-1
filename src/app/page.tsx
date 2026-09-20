@@ -63,15 +63,6 @@ export default function HomePage() {
               att byta till nästa billiga erbjudande.
             </p>
 
-            <div className="mt-8">
-              <Link
-                href="/registrera"
-                className="inline-flex rounded-md bg-bj-ink px-6 py-3.5 font-semibold text-background transition hover:opacity-90"
-              >
-                Registrera påminnelser →
-              </Link>
-            </div>
-
             <PriceJourney />
 
             <div className="mt-12">
