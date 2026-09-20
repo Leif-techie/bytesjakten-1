@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import {
+  AdminSamlingSection,
+  type SamlingEmailProfile,
+} from "@/components/AdminSamlingSection";
+import {
   OPERATORS,
   DATA_OPTIONS,
   NETWORK_OPTIONS,
@@ -26,6 +30,8 @@ type Stats = {
   activeBroadbandUsers?: number;
   electricityUserCount?: number;
   activeElectricityUsers?: number;
+  reminderCount?: number;
+  activeReminders?: number;
   campaignCount: number;
   activeCampaigns: number;
   broadbandCampaignCount?: number;
@@ -161,7 +167,7 @@ type NotificationEntry = {
   sentAt: string;
   email: string;
   currentOperator: string;
-  vertical?: "mobile" | "broadband" | "electricity";
+  vertical?: "mobile" | "broadband" | "electricity" | "samling";
   campaignOperator: string | null;
   campaignName: string | null;
   campaignPrice: number | null;
@@ -178,6 +184,7 @@ const NOTIFICATION_LABELS: Record<string, string> = {
   switch_reminder: "Påminnelse om byte (mobil)",
   broadband_switch_reminder: "Påminnelse om byte (bredband)",
   electricity_switch_reminder: "Påminnelse om byte (elavtal)",
+  samling_reminder: "Samlingspåminnelse",
 };
 
 /** Antal hela dagar kvar till slutdatum (0 = idag, negativt = passerat). */
@@ -358,6 +365,9 @@ export default function AdminPage() {
   const [electricityUsers, setElectricityUsers] = useState<ElectricityUser[]>(
     []
   );
+  const [emailProfiles, setEmailProfiles] = useState<SamlingEmailProfile[]>(
+    []
+  );
   const [notifications, setNotifications] = useState<NotificationEntry[]>([]);
   const [emailConfig, setEmailConfig] = useState<EmailConfig | null>(null);
   const [message, setMessage] = useState("");
@@ -375,6 +385,7 @@ export default function AdminPage() {
   );
   const [sendingUserId, setSendingUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [samlingBusyKey, setSamlingBusyKey] = useState<string | null>(null);
   const [affiliateDrafts, setAffiliateDrafts] = useState<
     Record<string, string>
   >({});
@@ -403,6 +414,7 @@ export default function AdminPage() {
     setUsers(data.users);
     setBroadbandUsers(data.broadbandUsers ?? []);
     setElectricityUsers(data.electricityUsers ?? []);
+    setEmailProfiles(data.emailProfiles ?? []);
     setNotifications(data.notifications ?? []);
     setEmailConfig(data.emailConfig ?? null);
     setAffiliateDrafts(
@@ -498,7 +510,8 @@ export default function AdminPage() {
     if (
       action === "send_user_email" ||
       action === "send_broadband_user_email" ||
-      action === "send_electricity_user_email"
+      action === "send_electricity_user_email" ||
+      action === "send_samling_email"
     ) {
       if (data.success) {
         setMessage("Mejl skickat till användaren.");
@@ -512,6 +525,30 @@ export default function AdminPage() {
     }
 
     if (res.ok || data.success) loadData();
+  }
+
+  async function runSamlingAction(
+    action: string,
+    extra?: Record<string, string>
+  ) {
+    const busy =
+      action === "send_samling_email"
+        ? `send:${extra?.email ?? ""}`
+        : action === "unsubscribe_reminder"
+          ? `unsub:${extra?.reminderId ?? ""}`
+          : action === "delete_reminder"
+            ? `del:${extra?.reminderId ?? ""}`
+            : action === "deactivate_all_for_email"
+              ? `off:${extra?.email ?? ""}`
+              : action === "delete_all_for_email"
+                ? `wipe:${extra?.email ?? ""}`
+                : action;
+    setSamlingBusyKey(busy);
+    try {
+      await runAction(action, extra);
+    } finally {
+      setSamlingBusyKey(null);
+    }
   }
 
   async function sendEmailToUser(
@@ -869,7 +906,7 @@ export default function AdminPage() {
             {[
               [
                 "Registrerade",
-                `${stats.activeUsers} mobil · ${stats.activeBroadbandUsers ?? 0} bredband · ${stats.activeElectricityUsers ?? 0} elavtal`,
+                `${stats.activeUsers} mobil · ${stats.activeBroadbandUsers ?? 0} bredband · ${stats.activeElectricityUsers ?? 0} elavtal · ${stats.activeReminders ?? 0} påminnelser`,
               ],
               [
                 "Erbjudanden aktiva",
@@ -1557,6 +1594,36 @@ export default function AdminPage() {
           )}
         </section>
 
+        <AdminSamlingSection
+          profiles={emailProfiles}
+          mobileCampaigns={campaigns
+            .filter((c) => c.active)
+            .map((c) => ({
+              id: c.id,
+              operator: c.operator,
+              name: c.name,
+              campaignPrice: c.campaignPrice,
+            }))}
+          broadbandCampaigns={broadbandCampaigns
+            .filter((c) => c.active)
+            .map((c) => ({
+              id: c.id,
+              operator: c.operator,
+              name: c.name,
+              campaignPrice: c.campaignPrice,
+            }))}
+          electricityCampaigns={electricityCampaigns
+            .filter((c) => c.active)
+            .map((c) => ({
+              id: c.id,
+              operator: c.operator,
+              name: c.name,
+              campaignPrice: c.campaignPrice,
+            }))}
+          onAction={runSamlingAction}
+          busyKey={samlingBusyKey}
+        />
+
         <section className="mt-10 overflow-x-auto">
           <h2 className="text-lg font-bold">
             Användare (
@@ -2011,14 +2078,18 @@ export default function AdminPage() {
                             ? "bg-orange-50 text-orange-800"
                             : n.vertical === "electricity"
                               ? "bg-blue-50 text-blue-800"
-                              : "bg-emerald-50 text-emerald-800"
+                              : n.vertical === "samling"
+                                ? "bg-violet-50 text-violet-800"
+                                : "bg-emerald-50 text-emerald-800"
                         }`}
                       >
                         {n.vertical === "broadband"
                           ? "Mobilt bredband"
                           : n.vertical === "electricity"
                             ? "Elavtal"
-                            : "Mobil"}
+                            : n.vertical === "samling"
+                              ? "Samling"
+                              : "Mobil"}
                       </span>
                     </td>
                     <td className="py-2 pr-4">{n.email}</td>
