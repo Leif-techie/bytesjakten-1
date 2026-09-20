@@ -53,8 +53,8 @@ function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date
 
 /**
  * Current no-binding campaigns from operator sites (snapshot).
- * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 10 Sep 2026.
- * Hallon: kampanj från 19 kr (tidigare 9). Fello: kampanj 30 kr (tidigare 20).
+ * Regular + student plans (Hallon, Vimla, Comviq, Fello) — checked 20 Sep 2026.
+ * Hallon 50 GB: kampanj 39 kr (tidigare 49). Fello: kampanj 30 kr.
  * Vimla 20 kr / Comviq 45 kr oförändrade. Comviq utan bindningstid-URL.
  * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
  * Replace `url` with Addrevenue tracking links in admin after refresh.
@@ -63,7 +63,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
   const { start, end } = campaignWindow(now, 4);
 
   const regular: SeedCampaign[] = [
-    // Hallon – Tres nät, ingen bindningstid (kampanj 19–59 kr i 4 mån, sep 2026)
+    // Hallon – Tres nät, ingen bindningstid (kampanj 19–59 kr i 4 mån)
     {
       operator: "Hallon",
       name: "Hallon – 5 GB",
@@ -104,7 +104,7 @@ function buildCampaigns(now: Date): SeedCampaign[] {
       operator: "Hallon",
       name: "Hallon – 50 GB",
       dataGB: 50,
-      campaignPrice: 49,
+      campaignPrice: 39,
       regularPrice: 309,
       campaignStart: start,
       campaignEnd: end,
