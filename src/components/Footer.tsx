@@ -1,7 +1,33 @@
+import Link from "next/link";
+
+const FOOTER_LINKS = [
+  { href: "/mobilabonnemang", label: "Mobilabonnemang" },
+  { href: "/bredband", label: "Mobilt bredband" },
+  { href: "/elavtal", label: "Elavtal" },
+  { href: "/vanliga-fragor", label: "Vanliga frågor" },
+  { href: "/om", label: "Om" },
+  { href: "/kontakt", label: "Kontakt" },
+  { href: "/integritet", label: "Integritet" },
+] as const;
+
 export function Footer() {
   return (
     <footer className="mt-auto">
       <div className="px-4 py-8 sm:px-6">
+        <nav
+          aria-label="Sidfot"
+          className="mx-auto mb-6 flex max-w-4xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-medium text-zinc-600"
+        >
+          {FOOTER_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="hover:text-bj-mobile-deep hover:underline"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
         <p className="mx-auto max-w-4xl text-center text-xs leading-relaxed text-zinc-400">
           Priserna uppdateras löpande baserat på aktuella kampanjer hos operatörerna.
           Kontrollera alltid villkor och aktuellt pris hos respektive operatör innan du beställer.

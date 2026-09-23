@@ -1,23 +1,411 @@
 @import "tailwindcss";
 
+/*
+  Bytesjakten – stilrent skandinaviskt
+  Sten/kol på sajten; gulockra på mobilabonnemang.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #18181b;
+  --background: #f5f4f1;
+  --foreground: #1a1a18;
+  --bj-ink: #1a1a18;
+  --bj-muted: #5c5c57;
+  --bj-line: #e2e1dc;
+  --bj-soft: #eceae4;
+  --bj-mobile: #ddc65e;
+  --bj-mobile-soft: #fbf7eb;
+  --bj-mobile-deep: #a8882a;
+  --bj-broadband: #c45c26;
+  --bj-broadband-soft: #faf0ea;
+  --bj-electricity: #3d6b8c;
+  --bj-electricity-soft: #eef3f7;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-bj-ink: var(--bj-ink);
+  --color-bj-muted: var(--bj-muted);
+  --color-bj-line: var(--bj-line);
+  --color-bj-soft: var(--bj-soft);
+  --color-bj-mobile: var(--bj-mobile);
+  --color-bj-mobile-soft: var(--bj-mobile-soft);
+  --color-bj-mobile-deep: var(--bj-mobile-deep);
+  --color-bj-broadband: var(--bj-broadband);
+  --color-bj-broadband-soft: var(--bj-broadband-soft);
+  --color-bj-electricity: var(--bj-electricity);
+  --color-bj-electricity-soft: var(--bj-electricity-soft);
+  --font-sans: var(--font-familjen);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-familjen), "Segoe UI", sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* ---- Cookie consent modal (Android + iOS safe) ---- */
+/* Do NOT use 100vw/100dvw — on Android Chrome that is often wider than
+   the visual viewport, which pushes a "centered" dialog into the right edge. */
+.bj-cookie-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(26, 26, 24, 0.55);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bj-cookie-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  max-width: 90%;
+  height: auto;
+  max-height: 85%;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--bj-line);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 16px 40px -12px rgba(26, 26, 24, 0.2);
+}
+
+.bj-cookie-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 1rem 1rem 0.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bj-cookie-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+  color: var(--bj-ink);
+}
+
+.bj-cookie-text {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--bj-muted);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bj-cookie-link {
+  font-weight: 600;
+  color: var(--bj-ink);
+  text-decoration: underline;
+}
+
+.bj-cookie-link:hover {
+  color: var(--bj-mobile-deep);
+}
+
+.bj-cookie-options {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bj-cookie-option {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--bj-line);
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+.bj-cookie-option--muted {
+  background: var(--background);
+}
+
+.bj-cookie-option-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bj-ink);
+}
+
+.bj-cookie-option-desc {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--bj-muted);
+}
+
+.bj-cookie-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background: var(--bj-soft);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--bj-muted);
+}
+
+.bj-cookie-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 9999px;
+  background: #d4d4d8;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bj-cookie-switch--on {
+  background: var(--bj-ink);
+}
+
+.bj-cookie-switch-thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.bj-cookie-switch--on .bj-cookie-switch-thumb {
+  transform: translateX(1.25rem);
+}
+
+.bj-cookie-footer {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem max(1rem, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--bj-line);
+  background: #ffffff;
+}
+
+.bj-cookie-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.bj-cookie-btn {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bj-cookie-btn--primary {
+  border: none;
+  background: var(--bj-ink);
+  color: #ffffff;
+}
+
+.bj-cookie-btn--primary:hover {
+  background: #2e2e2a;
+}
+
+.bj-cookie-btn--secondary {
+  border: 1px solid var(--bj-line);
+  background: #ffffff;
+  color: var(--bj-ink);
+}
+
+.bj-cookie-btn--secondary:hover {
+  background: var(--background);
+}
+
+.bj-cookie-btn--ghost {
+  border: none;
+  background: transparent;
+  color: var(--bj-ink);
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+.bj-cookie-btn--ghost:hover {
+  background: var(--bj-mobile-soft);
+}
+
+@media (min-width: 480px) {
+  .bj-cookie-modal {
+    width: 460px;
+    max-width: 460px;
+  }
+
+  .bj-cookie-body {
+    padding: 2rem 2rem 0.75rem;
+  }
+
+  .bj-cookie-title {
+    font-size: 1.5rem;
+  }
+
+  .bj-cookie-text {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .bj-cookie-options {
+    margin-top: 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .bj-cookie-option {
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .bj-cookie-option-title {
+    font-size: 1rem;
+  }
+
+  .bj-cookie-option-desc {
+    font-size: 0.875rem;
+  }
+
+  .bj-cookie-badge {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .bj-cookie-footer {
+    padding: 1rem 2rem max(2rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .bj-cookie-actions {
+    gap: 0.75rem;
+  }
+
+  .bj-cookie-actions--row {
+    flex-direction: row-reverse;
+  }
+
+  .bj-cookie-actions--row .bj-cookie-btn {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .bj-cookie-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  .bj-cookie-btn--ghost {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .bj-cookie-modal {
+    width: 500px;
+    max-width: 500px;
+  }
+}
+
+/* ---- Price journey ---- */
+@keyframes bj-journey-draw {
+  from {
+    stroke-dashoffset: 160;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes bj-journey-fade-up {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bj-journey-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.88;
+  }
+}
+
+.bj-journey-path {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: bj-journey-draw 0.7s ease-out 0.1s forwards;
+}
+
+.bj-journey-node {
+  opacity: 0;
+  animation: bj-journey-fade-up 0.5s ease-out 0.25s forwards;
+}
+
+.bj-journey-brand {
+  opacity: 0;
+  animation:
+    bj-journey-fade-up 0.55s ease-out 0.55s forwards,
+    bj-journey-pulse 2.6s ease-in-out 1.3s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bj-journey-path,
+  .bj-journey-node,
+  .bj-journey-brand {
+    animation: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
 }

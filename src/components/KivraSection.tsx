@@ -20,7 +20,7 @@ export function KivraSection() {
           href={KIVRA_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 rounded-xl border-2 border-emerald-600 px-6 py-3 font-semibold text-emerald-600 transition hover:bg-emerald-50"
+          className="shrink-0 rounded-xl border-2 border-bj-mobile px-6 py-3 font-semibold text-bj-mobile transition hover:bg-bj-mobile-soft"
         >
           Skaffa Kivra gratis →
         </a>

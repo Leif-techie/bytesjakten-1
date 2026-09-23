@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
-import { getAdminStats } from "@/lib/admin";
+import { deleteUser, getAdminStats } from "@/lib/admin";
 import { updateCampaigns } from "@/lib/seed-campaigns";
-import { processUserNotifications } from "@/lib/notifications";
-import { sendSwitchReminderEmail, getEmailConfigStatus } from "@/lib/email";
+import {
+  sendManualBroadbandSwitchEmail,
+  sendManualElectricitySwitchEmail,
+  sendManualSwitchEmail,
+} from "@/lib/notifications";
+import { getEmailConfigStatus } from "@/lib/email";
+import { calculateSavingsSoFar } from "@/lib/campaigns";
 import { db } from "@/lib/db";
+import {
+  deactivateAllForEmail,
+  deleteAllForEmail,
+  deleteReminderSubscription,
+  listEmailProfiles,
+  listReminderSubscriptions,
+  sendManualSamlingEmail,
+  unsubscribeReminderSubscription,
+} from "@/lib/samling-admin";
 
 export const runtime = "nodejs";
 
@@ -14,54 +28,177 @@ export async function GET(request: NextRequest) {
   }
 
   const stats = await getAdminStats();
-  const campaigns = await db.campaign.findMany({ orderBy: [{ operator: "asc" }, { dataGB: "asc" }] });
-  const users = await db.user.findMany({
-    where: { active: true },
-    orderBy: { contractEndDate: "asc" },
-    select: {
-      id: true,
-      email: true,
-      currentOperator: true,
-      contractEndDate: true,
-      minDataGB: true,
-      createdAt: true,
-      notifications: {
-        where: { type: "switch_reminder" },
-        orderBy: { sentAt: "desc" },
-        take: 1,
-        select: { sentAt: true, campaignId: true },
+  const [
+    campaigns,
+    broadbandCampaigns,
+    electricityCampaigns,
+    users,
+    broadbandUsers,
+    electricityUsers,
+    reminders,
+    emailProfiles,
+    notificationLogs,
+  ] = await Promise.all([
+    db.campaign.findMany({
+      orderBy: [{ operator: "asc" }, { dataGB: "asc" }],
+    }),
+    db.broadbandCampaign.findMany({
+      orderBy: [{ operator: "asc" }, { speedMbps: "asc" }],
+    }),
+    db.electricityCampaign.findMany({
+      orderBy: [{ operator: "asc" }, { campaignPrice: "asc" }],
+    }),
+    db.user.findMany({
+      orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+      select: {
+        id: true,
+        email: true,
+        active: true,
+        currentOperator: true,
+        contractEndDate: true,
+        campaignStartDate: true,
+        campaignLengthMonths: true,
+        switchedCampaignPrice: true,
+        switchedRegularPrice: true,
+        minDataGB: true,
+        createdAt: true,
+        notifications: {
+          where: { type: "switch_reminder" },
+          orderBy: { sentAt: "desc" },
+          take: 1,
+          select: { sentAt: true, campaignId: true },
+        },
+        _count: { select: { notifications: true } },
       },
-      _count: { select: { notifications: true } },
-    },
-  });
-
-  const notificationLogs = await db.notificationLog.findMany({
-    orderBy: { sentAt: "desc" },
-    take: 50,
-    include: {
-      user: {
-        select: { email: true, currentOperator: true },
+    }),
+    db.broadbandUser.findMany({
+      orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+      select: {
+        id: true,
+        email: true,
+        active: true,
+        currentOperator: true,
+        contractEndDate: true,
+        minSpeedMbps: true,
+        technology: true,
+        createdAt: true,
+        notifications: {
+          where: { type: "broadband_switch_reminder" },
+          orderBy: { sentAt: "desc" },
+          take: 1,
+          select: { sentAt: true, broadbandCampaignId: true },
+        },
       },
-    },
-  });
+    }),
+    db.electricityUser.findMany({
+      orderBy: [{ active: "desc" }, { contractEndDate: "asc" }],
+      select: {
+        id: true,
+        email: true,
+        active: true,
+        currentOperator: true,
+        contractEndDate: true,
+        priceTypePreference: true,
+        maxBindingMonths: true,
+        createdAt: true,
+        notifications: {
+          where: { type: "electricity_switch_reminder" },
+          orderBy: { sentAt: "desc" },
+          take: 1,
+          select: { sentAt: true, electricityCampaignId: true },
+        },
+      },
+    }),
+    listReminderSubscriptions(),
+    listEmailProfiles(),
+    db.notificationLog.findMany({
+      orderBy: { sentAt: "desc" },
+      take: 50,
+      include: {
+        user: { select: { email: true, currentOperator: true } },
+        broadbandUser: { select: { email: true, currentOperator: true } },
+        electricityUser: { select: { email: true, currentOperator: true } },
+      },
+    }),
+  ]);
 
   const campaignIds = [
     ...new Set(
-      notificationLogs
-        .map((log) => log.campaignId)
-        .filter((id): id is string => Boolean(id))
+      [
+        ...notificationLogs.map((log) => log.campaignId),
+        ...users.map((user) => user.notifications[0]?.campaignId),
+      ].filter((id): id is string => Boolean(id))
+    ),
+  ];
+  const broadbandCampaignIds = [
+    ...new Set(
+      [
+        ...notificationLogs.map((log) => log.broadbandCampaignId),
+        ...broadbandUsers.map(
+          (user) => user.notifications[0]?.broadbandCampaignId
+        ),
+      ].filter((id): id is string => Boolean(id))
+    ),
+  ];
+  const electricityCampaignIds = [
+    ...new Set(
+      [
+        ...notificationLogs.map((log) => log.electricityCampaignId),
+        ...electricityUsers.map(
+          (user) => user.notifications[0]?.electricityCampaignId
+        ),
+      ].filter((id): id is string => Boolean(id))
     ),
   ];
 
-  const notifiedCampaigns = campaignIds.length
-    ? await db.campaign.findMany({
-        where: { id: { in: campaignIds } },
-        select: { id: true, operator: true, name: true, campaignPrice: true },
-      })
-    : [];
+  const [notifiedCampaigns, notifiedBroadbandCampaigns, notifiedElectricityCampaigns] =
+    await Promise.all([
+      campaignIds.length
+        ? db.campaign.findMany({
+            where: { id: { in: campaignIds } },
+            select: {
+              id: true,
+              operator: true,
+              name: true,
+              campaignPrice: true,
+              regularPrice: true,
+            },
+          })
+        : Promise.resolve([]),
+      broadbandCampaignIds.length
+        ? db.broadbandCampaign.findMany({
+            where: { id: { in: broadbandCampaignIds } },
+            select: {
+              id: true,
+              operator: true,
+              name: true,
+              campaignPrice: true,
+              regularPrice: true,
+            },
+          })
+        : Promise.resolve([]),
+      electricityCampaignIds.length
+        ? db.electricityCampaign.findMany({
+            where: { id: { in: electricityCampaignIds } },
+            select: {
+              id: true,
+              operator: true,
+              name: true,
+              campaignPrice: true,
+              regularPrice: true,
+            },
+          })
+        : Promise.resolve([]),
+    ]);
 
   const campaignMap = Object.fromEntries(
     notifiedCampaigns.map((campaign) => [campaign.id, campaign])
+  );
+  const broadbandCampaignMap = Object.fromEntries(
+    notifiedBroadbandCampaigns.map((campaign) => [campaign.id, campaign])
+  );
+  const electricityCampaignMap = Object.fromEntries(
+    notifiedElectricityCampaigns.map((campaign) => [campaign.id, campaign])
   );
 
   const usersWithStatus = users.map((user) => {
@@ -70,28 +207,131 @@ export async function GET(request: NextRequest) {
       ? campaignMap[lastNotification.campaignId]
       : null;
 
+    const campaignPrice =
+      user.switchedCampaignPrice ?? lastCampaign?.campaignPrice ?? null;
+    const regularPrice =
+      user.switchedRegularPrice ?? lastCampaign?.regularPrice ?? null;
+    const savings = calculateSavingsSoFar({
+      campaignPrice,
+      regularPrice,
+      campaignStartDate: user.campaignStartDate,
+      campaignLengthMonths: user.campaignLengthMonths,
+    });
+
     return {
       id: user.id,
       email: user.email,
+      active: user.active,
       currentOperator: user.currentOperator,
       contractEndDate: user.contractEndDate,
+      campaignStartDate: user.campaignStartDate,
+      campaignLengthMonths: user.campaignLengthMonths,
       minDataGB: user.minDataGB,
       createdAt: user.createdAt,
       notificationCount: user._count.notifications,
       lastNotificationAt: lastNotification?.sentAt ?? null,
       lastCampaignOperator: lastCampaign?.operator ?? null,
       lastCampaignName: lastCampaign?.name ?? null,
+      campaignPrice: savings.campaignPrice,
+      regularPrice: savings.regularPrice,
+      monthlyDiff: savings.monthlyDiff,
+      monthsCounted: savings.monthsCounted,
+      savedSoFar: savings.savedSoFar,
+    };
+  });
+
+  const broadbandUsersWithStatus = broadbandUsers.map((user) => {
+    const lastNotification = user.notifications[0] ?? null;
+    const lastCampaign = lastNotification?.broadbandCampaignId
+      ? broadbandCampaignMap[lastNotification.broadbandCampaignId]
+      : null;
+
+    const campaignPrice = lastCampaign?.campaignPrice ?? null;
+    const regularPrice = lastCampaign?.regularPrice ?? null;
+    const monthlyDiff =
+      campaignPrice != null && regularPrice != null
+        ? Math.max(0, regularPrice - campaignPrice)
+        : null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      active: user.active,
+      currentOperator: user.currentOperator,
+      contractEndDate: user.contractEndDate,
+      minSpeedMbps: user.minSpeedMbps,
+      technology: user.technology,
+      createdAt: user.createdAt,
+      lastNotificationAt: lastNotification?.sentAt ?? null,
+      lastCampaignOperator: lastCampaign?.operator ?? null,
+      lastCampaignName: lastCampaign?.name ?? null,
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
+    };
+  });
+
+  const electricityUsersWithStatus = electricityUsers.map((user) => {
+    const lastNotification = user.notifications[0] ?? null;
+    const lastCampaign = lastNotification?.electricityCampaignId
+      ? electricityCampaignMap[lastNotification.electricityCampaignId]
+      : null;
+
+    const campaignPrice = lastCampaign?.campaignPrice ?? null;
+    const regularPrice = lastCampaign?.regularPrice ?? null;
+    const monthlyDiff =
+      campaignPrice != null && regularPrice != null
+        ? Math.max(0, regularPrice - campaignPrice)
+        : null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      active: user.active,
+      currentOperator: user.currentOperator,
+      contractEndDate: user.contractEndDate,
+      priceTypePreference: user.priceTypePreference,
+      maxBindingMonths: user.maxBindingMonths,
+      createdAt: user.createdAt,
+      lastNotificationAt: lastNotification?.sentAt ?? null,
+      lastCampaignOperator: lastCampaign?.operator ?? null,
+      lastCampaignName: lastCampaign?.name ?? null,
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
     };
   });
 
   const notifications = notificationLogs.map((log) => {
-    const campaign = log.campaignId ? campaignMap[log.campaignId] : null;
+    const person = log.user ?? log.broadbandUser ?? log.electricityUser;
+    const mobileCampaign = log.campaignId ? campaignMap[log.campaignId] : null;
+    const bbCampaign = log.broadbandCampaignId
+      ? broadbandCampaignMap[log.broadbandCampaignId]
+      : null;
+    const elCampaign = log.electricityCampaignId
+      ? electricityCampaignMap[log.electricityCampaignId]
+      : null;
+    const campaign = mobileCampaign ?? bbCampaign ?? elCampaign;
+    const vertical =
+      log.type === "samling_reminder"
+        ? "samling"
+        : log.electricityUserId
+          ? "electricity"
+          : log.broadbandUserId
+            ? "broadband"
+            : "mobile";
+
     return {
       id: log.id,
       type: log.type,
       sentAt: log.sentAt,
-      email: log.user.email,
-      currentOperator: log.user.currentOperator,
+      email: person?.email ?? "–",
+      currentOperator: person?.currentOperator ?? "–",
+      vertical,
       campaignOperator: campaign?.operator ?? null,
       campaignName: campaign?.name ?? null,
       campaignPrice: campaign?.campaignPrice ?? null,
@@ -101,7 +341,13 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     stats,
     campaigns,
+    broadbandCampaigns,
+    electricityCampaigns,
     users: usersWithStatus,
+    broadbandUsers: broadbandUsersWithStatus,
+    electricityUsers: electricityUsersWithStatus,
+    reminders,
+    emailProfiles,
     notifications,
     emailConfig: getEmailConfigStatus(),
   });
@@ -120,30 +366,144 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, result });
   }
 
-  if (action === "run_notifications") {
-    const result = await processUserNotifications();
-    return NextResponse.json({ success: true, result });
+  if (action === "send_user_email") {
+    const { userId, campaignId } = body;
+    if (!userId || !campaignId) {
+      return NextResponse.json(
+        { error: "Välj användare och kampanj." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualSwitchEmail(userId, campaignId);
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
   }
 
-  if (action === "test_email") {
+  if (action === "send_broadband_user_email") {
+    const { userId, campaignId } = body;
+    if (!userId || !campaignId) {
+      return NextResponse.json(
+        { error: "Välj användare och kampanj." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualBroadbandSwitchEmail(userId, campaignId);
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
+  }
+
+  if (action === "send_electricity_user_email") {
+    const { userId, campaignId } = body;
+    if (!userId || !campaignId) {
+      return NextResponse.json(
+        { error: "Välj användare och kampanj." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualElectricitySwitchEmail(userId, campaignId);
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
+  }
+
+  if (action === "delete_user") {
+    const { userId } = body;
+    if (!userId) {
+      return NextResponse.json({ error: "Användare saknas." }, { status: 400 });
+    }
+
+    const success = await deleteUser(userId);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Användaren hittades inte." },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "send_samling_email") {
+    const { email, primaryKind, primaryId, campaignId } = body;
+    if (!email || !primaryKind || !primaryId) {
+      return NextResponse.json(
+        { error: "Välj e-post och primär tjänst." },
+        { status: 400 }
+      );
+    }
+
+    const result = await sendManualSamlingEmail({
+      email,
+      primaryKind,
+      primaryId,
+      campaignId: campaignId || null,
+    });
+    return NextResponse.json({
+      success: result.success,
+      error: result.error,
+    });
+  }
+
+  if (action === "delete_reminder") {
+    const { reminderId } = body;
+    if (!reminderId) {
+      return NextResponse.json(
+        { error: "Påminnelse saknas." },
+        { status: 400 }
+      );
+    }
+    const success = await deleteReminderSubscription(reminderId);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Påminnelsen hittades inte." },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "unsubscribe_reminder") {
+    const { reminderId } = body;
+    if (!reminderId) {
+      return NextResponse.json(
+        { error: "Påminnelse saknas." },
+        { status: 400 }
+      );
+    }
+    const success = await unsubscribeReminderSubscription(reminderId);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Påminnelsen hittades inte." },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === "deactivate_all_for_email") {
     const { email } = body;
     if (!email) {
       return NextResponse.json({ error: "E-post saknas." }, { status: 400 });
     }
+    await deactivateAllForEmail(email);
+    return NextResponse.json({ success: true });
+  }
 
-    const result = await sendSwitchReminderEmail({
-      email,
-      operator: "Hallon",
-      campaignName: "Hallon – 25 GB (test)",
-      campaignPrice: 49,
-      regularPrice: 199,
-      campaignUrl: "https://www.hallon.se/",
-      contractEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      network: "tre",
-      unsubscribeToken: "test-token",
-    });
-
-    return NextResponse.json({ success: result.success, error: result.error });
+  if (action === "delete_all_for_email") {
+    const { email } = body;
+    if (!email) {
+      return NextResponse.json({ error: "E-post saknas." }, { status: 400 });
+    }
+    await deleteAllForEmail(email);
+    return NextResponse.json({ success: true });
   }
 
   return NextResponse.json({ error: "Okänd action." }, { status: 400 });

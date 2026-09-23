@@ -1,30 +1,135 @@
-import { Resend } from "resend";
-import { APP_URL, KIVRA_URL } from "./constants";
-import { formatDate, formatSEK, getNetworkLabel } from "./campaigns";
+import { APP_URL, KIVRA_URL, BROADBAND_TECHNOLOGY_OPTIONS } from "./constants";
+import {
+  formatDate,
+  formatSEK,
+  getNetworkLabel,
+  getElectricityPriceTypeLabel,
+  getElectricityBindingLabel,
+} from "./campaigns";
+import { ESIM_GUIDE_STEPS } from "./esim-guide";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-
-const FROM_EMAIL = process.env.EMAIL_FROM ?? "Bytesjakten <onboarding@resend.dev>";
+const MAILEROO_API_URL = "https://smtp.maileroo.com/api/v2/emails";
+const API_KEY = process.env.MAILEROO_API_KEY?.trim() || "";
+const FROM_EMAIL = process.env.EMAIL_FROM ?? "Bytesjakten <hej@bytesjakten.se>";
 
 function unsubscribeUrl(token: string): string {
   return `${APP_URL}/avregistrera?token=${token}`;
 }
 
+function unsubscribeAllUrl(token: string): string {
+  return `${APP_URL}/avregistrera?token=${token}&all=1`;
+}
+
+function switchCompleteUrl(
+  token: string,
+  operator?: string,
+  campaignId?: string
+): string {
+  const url = new URL(`${APP_URL}/byte-klart`);
+  url.searchParams.set("token", token);
+  if (operator) {
+    url.searchParams.set("operator", operator);
+  }
+  if (campaignId) {
+    url.searchParams.set("campaignId", campaignId);
+  }
+  return url.toString();
+}
+
+function esimGuideUrl(): string {
+  return `${APP_URL}/mobilabonnemang#esim`;
+}
+
+function parseFromAddress(raw: string): { address: string; display_name?: string } {
+  const match = raw.match(/^(.*?)\s*<([^>]+)>\s*$/);
+  if (match) {
+    const displayName = match[1].replace(/^["']|["']$/g, "").trim();
+    return {
+      address: match[2].trim(),
+      ...(displayName ? { display_name: displayName } : {}),
+    };
+  }
+  return { address: raw.trim() };
+}
+
+function htmlToPlain(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+
+function getBroadbandTechnologyLabel(value: string): string {
+  return (
+    BROADBAND_TECHNOLOGY_OPTIONS.find((opt) => opt.value === value)?.label ??
+    value
+  );
+}
+/** Mobilvertikalens mejlfärger – samma tokens som sajten. */
+const EMAIL_MOBILE = {
+  ink: "#1a1a18",
+  muted: "#5c5c57",
+  line: "#e2e1dc",
+  soft: "#eceae4",
+  accent: "#ddc65e",
+  accentSoft: "#fbf7eb",
+  accentDeep: "#a8882a",
+  bg: "#f5f4f1",
+  font: "'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif",
+} as const;
+
+function renderEsimGuideHtml(): string {
+  const steps = ESIM_GUIDE_STEPS.map(
+    (step, index) => `
+      <tr>
+        <td style="vertical-align: top; padding: 0 12px 14px 0; width: 28px;">
+          <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: ${EMAIL_MOBILE.accentDeep}; color: #fff; font-size: 12px; font-weight: 700;">${index + 1}</span>
+        </td>
+        <td style="padding: 0 0 14px 0;">
+          <p style="margin: 0 0 4px; font-weight: 600; color: ${EMAIL_MOBILE.ink};">${step.title}</p>
+          ${step.body
+            .map(
+              (line) =>
+                `<p style="margin: 0 0 4px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">${line}</p>`,
+            )
+            .join("")}
+        </td>
+      </tr>`
+  ).join("");
+
+  return `
+    <hr style="border: none; border-top: 1px solid ${EMAIL_MOBILE.line}; margin: 32px 0;" />
+    <h3 style="font-size: 16px; margin: 0 0 8px; color: ${EMAIL_MOBILE.ink};">Byt med eSIM – så gör du</h3>
+    <p style="color: ${EMAIL_MOBILE.muted}; font-size: 14px; margin: 0 0 16px;">
+      Med eSIM byter du operatör utan att vänta på ett plastkort:
+    </p>
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+      ${steps}
+    </table>
+    <p style="margin: 8px 0 0;">
+      <a href="${esimGuideUrl()}" style="color: ${EMAIL_MOBILE.accentDeep}; font-weight: 600;">Läs hela eSIM-guiden på Bytesjakten →</a>
+    </p>
+  `;
+}
+
 export function getEmailConfigStatus() {
   const fromEmail = FROM_EMAIL;
-  const testModeOnly = fromEmail.includes("@resend.dev");
+  const configured = Boolean(API_KEY);
 
   return {
-    resendConfigured: Boolean(process.env.RESEND_API_KEY),
+    emailConfigured: configured,
     fromEmail,
-    testModeOnly,
-    note: !process.env.RESEND_API_KEY
-      ? "RESEND_API_KEY saknas – inga mejl skickas."
-      : testModeOnly
-        ? "Testläge: med onboarding@resend.dev kan mejl bara skickas till e-postadressen du registrerade Resend med. Verifiera en egen domän för att skicka till alla användare."
-        : "Mejl är konfigurerade för produktion.",
+    testModeOnly: false,
+    note: !configured
+      ? "MAILEROO_API_KEY saknas – inga mejl skickas."
+      : "Mejl skickas via Maileroo. Verifiera din domän (t.ex. bytesjakten.se) i Maileroo-dashboarden och sätt EMAIL_FROM till en adress på den domänen.",
   };
 }
 
@@ -38,10 +143,177 @@ type SwitchEmailParams = {
   contractEndDate: Date;
   network: string;
   unsubscribeToken: string;
+  campaignId?: string;
 };
+
+async function sendMailerooEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  if (!API_KEY) {
+    const message = "MAILEROO_API_KEY saknas – mejlet skickades inte.";
+    console.error("[email]", message, params.to);
+    return { success: false, error: message };
+  }
+
+  try {
+    const response = await fetch(MAILEROO_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: parseFromAddress(FROM_EMAIL),
+        to: [{ address: params.to }],
+        subject: params.subject,
+        html: params.html,
+        plain: htmlToPlain(params.html),
+      }),
+    });
+
+    const data = (await response.json()) as {
+      success?: boolean;
+      message?: string;
+      data?: { reference_id?: string; id?: string };
+    };
+
+    if (!response.ok || !data.success) {
+      const message = data.message ?? `Maileroo HTTP ${response.status}`;
+      console.error("[email] Maileroo-fel:", message, "till:", params.to);
+      return { success: false, error: message };
+    }
+
+    const id = data.data?.reference_id ?? data.data?.id;
+    console.log("[email] Skickat till", params.to, "id:", id);
+    return { success: true, id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Okänt fel";
+    console.error("[email] Undantag:", message, "till:", params.to);
+    return { success: false, error: message };
+  }
+}
+
+/** HTML för mobilens bytesmejl (stil enligt sajtens gulockra-tokens). */
+export function buildSwitchReminderEmailHtml(
+  params: Omit<SwitchEmailParams, "email">
+): string {
+  const {
+    operator,
+    campaignName,
+    campaignPrice,
+    regularPrice,
+    campaignUrl,
+    contractEndDate,
+    network,
+    unsubscribeToken,
+    campaignId,
+  } = params;
+
+  return `
+    <div style="font-family: ${EMAIL_MOBILE.font}; max-width: 560px; margin: 0 auto; color: ${EMAIL_MOBILE.ink}; background: ${EMAIL_MOBILE.bg}; padding: 28px 20px;">
+      <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">Mobilabonnemang</p>
+      <h1 style="color: ${EMAIL_MOBILE.ink}; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 12px;">Hej från Bytesjakten!</h1>
+      <p style="margin: 0; color: ${EMAIL_MOBILE.muted}; font-size: 16px; line-height: 1.55;">Ditt nuvarande abonnemang går ut <strong style="color: ${EMAIL_MOBILE.ink};">${formatDate(contractEndDate)}</strong>.
+      Nu är det dags att byta till ett kampanjpris utan bindningstid.</p>
+
+      <div style="background: ${EMAIL_MOBILE.accentSoft}; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">Bästa erbjudande just nu</p>
+        <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: ${EMAIL_MOBILE.ink};">${campaignName}</h2>
+        <p style="margin: 0; font-size: 28px; font-weight: 700; color: ${EMAIL_MOBILE.accentDeep};">${formatSEK(campaignPrice)} kr/mån</p>
+        <p style="margin: 8px 0 0; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
+          Nät: ${getNetworkLabel(network)} · Ingen bindningstid<br>
+          Ordinarie pris därefter: ${formatSEK(regularPrice)} kr/mån
+        </p>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 16px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.muted}; text-transform: uppercase; letter-spacing: 0.14em;">
+          Så gör du – två steg
+        </p>
+
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 20px 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: ${EMAIL_MOBILE.accentDeep}; color: #fff; font-size: 12px; font-weight: 700;">1</span>
+            </td>
+            <td style="padding: 0 0 20px 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: ${EMAIL_MOBILE.ink}; font-size: 16px;">Steg 1 – Beställ kampanjen</p>
+              <p style="margin: 0 0 12px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
+                Byt till erbjudandet hos ${operator}. Ingen bindningstid.
+              </p>
+              <a href="${campaignUrl}" style="display: inline-block; background: ${EMAIL_MOBILE.accent}; color: ${EMAIL_MOBILE.ink}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;" rel="sponsored">
+                Beställ kampanjen hos ${operator} →
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 0 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: ${EMAIL_MOBILE.accentDeep}; color: #fff; font-size: 12px; font-weight: 700;">2</span>
+            </td>
+            <td style="padding: 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: ${EMAIL_MOBILE.ink}; font-size: 16px;">Steg 2 – Ange datum för nummerflytt</p>
+              <p style="margin: 0 0 12px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
+                När bytet har gått igenom: klicka nedan och ange <strong>datumet för nummerflytten</strong>
+                (står oftast i SMS:et från operatören). Då mejlar vi dig i tid innan nästa byte.
+              </p>
+              <a href="${switchCompleteUrl(unsubscribeToken, operator, campaignId)}" style="display: inline-block; background: #fff; color: ${EMAIL_MOBILE.accentDeep}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600; border: 2px solid ${EMAIL_MOBILE.accentDeep};">
+                Ange datum för nummerflytt →
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      ${renderEsimGuideHtml()}
+
+      <hr style="border: none; border-top: 1px solid ${EMAIL_MOBILE.line}; margin: 32px 0;" />
+
+      <h3 style="font-size: 16px; margin: 0 0 8px; color: ${EMAIL_MOBILE.ink};">Tips: Samla dina mobilfakturor i Kivra</h3>
+      <p style="color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5; margin: 0 0 12px;">
+        När du byter operatör ofta kan det bli rörigt med fakturor.
+        Med Kivra får du alla mobilräkningar samlade på ett ställe.
+      </p>
+      <p style="margin: 0;">
+        <a href="${KIVRA_URL}" style="color: ${EMAIL_MOBILE.accentDeep}; font-weight: 600;">Skaffa Kivra gratis →</a>
+      </p>
+
+      <p style="color: ${EMAIL_MOBILE.muted}; font-size: 12px; margin-top: 32px; line-height: 1.5;">
+        Du får det här mejlet eftersom du registrerat dig på
+        <a href="${APP_URL}" style="color: ${EMAIL_MOBILE.accentDeep};">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: ${EMAIL_MOBILE.muted};">Avregistrera</a>
+      </p>
+    </div>
+  `;
+}
 
 export async function sendSwitchReminderEmail(
   params: SwitchEmailParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const subject = `Dags att byta mobilabonnemang – spara med ${params.operator}`;
+  const { email, ...htmlParams } = params;
+  const html = buildSwitchReminderEmailHtml(htmlParams);
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+type BroadbandSwitchEmailParams = {
+  email: string;
+  operator: string;
+  campaignName: string;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignUrl: string;
+  contractEndDate: Date;
+  speedMbps: number;
+  technology: string;
+  unsubscribeToken: string;
+};
+
+export async function sendBroadbandSwitchReminderEmail(
+  params: BroadbandSwitchEmailParams
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   const {
     email,
@@ -51,116 +323,637 @@ export async function sendSwitchReminderEmail(
     regularPrice,
     campaignUrl,
     contractEndDate,
-    network,
+    speedMbps,
+    technology,
     unsubscribeToken,
   } = params;
 
-  const subject = `Dags att byta mobilabonnemang – spara med ${operator}`;
+  const subject = `Dags att byta mobilt bredband – spara med ${operator}`;
+  const techLabel = getBroadbandTechnologyLabel(technology);
 
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
-      <h1 style="color: #16a34a; font-size: 24px;">Hej från Bytesjakten!</h1>
-      <p>Ditt nuvarande abonnemang går ut <strong>${formatDate(contractEndDate)}</strong>. 
+      <h1 style="color: #ea580c; font-size: 24px;">Hej från Bytesjakten!</h1>
+      <p>Ditt mobila bredband går ut <strong>${formatDate(contractEndDate)}</strong>.
       Nu är det dags att byta till ett kampanjpris utan bindningstid.</p>
-      
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0;">
-        <p style="margin: 0 0 8px; font-size: 13px; color: #15803d; text-transform: uppercase; letter-spacing: 0.05em;">Bästa erbjudande just nu</p>
+
+      <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 13px; color: #c2410c; text-transform: uppercase; letter-spacing: 0.05em;">Bästa erbjudande just nu</p>
         <h2 style="margin: 0 0 8px; font-size: 20px;">${campaignName}</h2>
-        <p style="margin: 0; font-size: 28px; font-weight: bold; color: #16a34a;">${formatSEK(campaignPrice)} kr/mån</p>
+        <p style="margin: 0; font-size: 28px; font-weight: bold; color: #ea580c;">${formatSEK(campaignPrice)} kr/mån</p>
         <p style="margin: 8px 0 0; color: #666; font-size: 14px;">
-          Nät: ${getNetworkLabel(network)} · Ingen bindningstid<br>
+          ${speedMbps} Mbit/s · ${techLabel} · Ingen bindningstid<br>
           Ordinarie pris därefter: ${formatSEK(regularPrice)} kr/mån
         </p>
       </div>
 
-      <p style="margin: 24px 0;">
-        <a href="${campaignUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-          Beställ kampanjen hos ${operator} →
-        </a>
-      </p>
-
-      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;" />
-
-      <h3 style="font-size: 16px;">Tips: Samla dina mobilfakturor i Kivra</h3>
-      <p style="color: #666; font-size: 14px;">
-        När du byter operatör ofta kan det bli rörigt med fakturor. 
-        Med Kivra får du alla mobilräkningar samlade på ett ställe.
-      </p>
-      <p>
-        <a href="${KIVRA_URL}" style="color: #16a34a; font-weight: 600;">Skaffa Kivra gratis →</a>
-      </p>
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 16px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Så gör du – två steg
+        </p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 20px 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #ea580c; color: #fff; font-size: 12px; font-weight: 700;">1</span>
+            </td>
+            <td style="padding: 0 0 20px 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 1 – Beställ kampanjen</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                Byt till erbjudandet hos ${operator}. Ingen bindningstid.
+              </p>
+              <a href="${campaignUrl}" style="display: inline-block; background: #ea580c; color: white; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
+                Beställ kampanjen hos ${operator} →
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 0 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #ea580c; color: #fff; font-size: 12px; font-weight: 700;">2</span>
+            </td>
+            <td style="padding: 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Uppdatera dina uppgifter</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                När bytet är klart: gå till Bytesjakten och uppdatera operatör och slutdatum så mejlar vi dig i tid innan nästa byte.
+              </p>
+              <a href="${APP_URL}/bredband#registrera" style="display: inline-block; background: #fff; color: #ea580c; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #ea580c;">
+                Uppdatera uppgifter →
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
 
       <p style="color: #999; font-size: 12px; margin-top: 32px;">
-        Du får det här mejlet eftersom du registrerat dig på 
-        <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>. 
+        Du får det här mejlet eftersom du registrerat dig för mobilt bredband på
+        <a href="${APP_URL}/bredband" style="color: #ea580c;">Bytesjakten</a>.
         Tjänsten är alltid gratis.
         <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
       </p>
     </div>
   `;
 
-  if (!resend) {
-    const message = "RESEND_API_KEY saknas – mejlet skickades inte.";
-    console.error("[email]", message, email);
-    if (process.env.NODE_ENV === "production") {
-      return { success: false, error: message };
-    }
-    console.log("[email] Dev-läge – ämne:", subject);
-    return { success: false, error: message };
-  }
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: email,
-      subject,
-      html,
-    });
-
-    if (error) {
-      console.error("[email] Resend-fel:", error.message, "till:", email);
-      return { success: false, error: error.message };
-    }
-
-    console.log("[email] Skickat till", email, "id:", data?.id);
-    return { success: true, id: data?.id };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Okänt fel";
-    console.error("[email] Undantag:", message, "till:", email);
-    return { success: false, error: message };
-  }
+  return sendMailerooEmail({ to: email, subject, html });
 }
 
-export async function sendWelcomeEmail(
-  email: string,
-  contractEndDate: Date,
-  unsubscribeToken: string
-): Promise<{ success: boolean; error?: string }> {
-  if (!resend) {
-    const message = "RESEND_API_KEY saknas – välkomstmejl skickades inte.";
-    console.error("[email]", message, email);
-    return { success: false, error: message };
-  }
+type PrefsConfirmationParams = {
+  email: string;
+  currentOperator: string;
+  contractEndDate: Date;
+  minDataGB: number;
+  networkPreference: string;
+  isStudent?: boolean;
+  unsubscribeToken: string;
+  kind: "register" | "update";
+};
 
-  const { error } = await resend.emails.send({
-    from: FROM_EMAIL,
-    to: email,
-    subject: "Välkommen till Bytesjakten – vi håller koll åt dig",
-    html: `
-      <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
-        <h1 style="color: #16a34a;">Välkommen!</h1>
-        <p>Du är nu registrerad på Bytesjakten. Vi bevakar kampanjer utan bindningstid 
-        och mejlar dig en vecka innan ditt abonnemang går ut (${formatDate(contractEndDate)}).</p>
-        <p>Du behöver inte göra något mer – vi hörs när det är dags att byta.</p>
-        <p style="color: #666; font-size: 14px;">Alltid gratis. 
-        <a href="${unsubscribeUrl(unsubscribeToken)}">Avregistrera</a> när som helst.</p>
+export async function sendPrefsConfirmationEmail(
+  params: PrefsConfirmationParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    currentOperator,
+    contractEndDate,
+    minDataGB,
+    networkPreference,
+    isStudent = false,
+    unsubscribeToken,
+    kind,
+  } = params;
+
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten – din registrering är klar"
+    : "Dina uppgifter på Bytesjakten är uppdaterade";
+
+  const intro = isNew
+    ? "Tack för att du registrerade dig! Vi har sparat dina uppgifter och håller koll åt dig."
+    : "Vi har uppdaterat dina uppgifter. Så här ser de ut nu:";
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #16a34a; font-size: 24px;">${isNew ? "Välkommen till Bytesjakten!" : "Uppgifter uppdaterade"}</h1>
+      <p>${intro}</p>
+
+      <div style="background: #f4f4f5; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Dina uppgifter</p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">E-post</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nuvarande operatör</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${currentOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Abonnemanget går ut</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${formatDate(contractEndDate)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Minsta data</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${minDataGB} GB</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nätpreferens</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getNetworkLabel(networkPreference)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Studentabonnemang</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${isStudent ? "Ja" : "Nej"}</td>
+          </tr>
+        </table>
       </div>
-    `,
+
+      <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
+        Du får ett mejl en vecka innan ditt mobilabonnemang går ut – så att du hela tiden har det billigaste mobilabonnemanget. Om du behöver ändra uppgifter så fyll i sidan igen så uppdateras din profil.
+      </p>
+      <p style="color: #18181b; font-size: 15px; font-weight: 600; line-height: 1.5;">
+        Byt smartare - Betala mindre - Bytesjakten
+      </p>
+
+      <p style="margin: 24px 0;">
+        <a href="${APP_URL}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+          Till Bytesjakten →
+        </a>
+      </p>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} på
+        <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+type BroadbandPrefsConfirmationParams = {
+  email: string;
+  currentOperator: string;
+  contractEndDate: Date;
+  minSpeedMbps: number;
+  technology: string;
+  unsubscribeToken: string;
+  kind: "register" | "update";
+};
+
+export async function sendBroadbandPrefsConfirmationEmail(
+  params: BroadbandPrefsConfirmationParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    currentOperator,
+    contractEndDate,
+    minSpeedMbps,
+    technology,
+    unsubscribeToken,
+    kind,
+  } = params;
+
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten Mobilt bredband – din registrering är klar"
+    : "Dina uppgifter för mobilt bredband är uppdaterade";
+
+  const intro = isNew
+    ? "Tack för att du registrerade dig för mobilt bredband! Vi har sparat dina uppgifter och håller koll åt dig."
+    : "Vi har uppdaterat dina uppgifter för mobilt bredband. Så här ser de ut nu:";
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #16a34a; font-size: 24px;">${isNew ? "Välkommen till Bytesjakten Mobilt bredband!" : "Uppgifter uppdaterade"}</h1>
+      <p>${intro}</p>
+
+      <div style="background: #f4f4f5; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Dina uppgifter</p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">E-post</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nuvarande operatör</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${currentOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Avtalet går ut</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${formatDate(contractEndDate)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Önskad hastighet</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${minSpeedMbps} Mbit/s</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nät</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getBroadbandTechnologyLabel(technology)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
+        Du får ett mejl innan ditt avtal för mobilt bredband går ut – så att du kan byta till ett bättre kampanjpris i rätt tid. Om du behöver ändra uppgifter fyller du i sidan igen.
+      </p>
+      <p style="color: #18181b; font-size: 15px; font-weight: 600; line-height: 1.5;">
+        Byt smartare - Betala mindre - Bytesjakten
+      </p>
+
+      <p style="margin: 24px 0;">
+        <a href="${APP_URL}/bredband" style="display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+          Till Bytesjakten Mobilt bredband →
+        </a>
+      </p>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} för mobilt bredband på
+        <a href="${APP_URL}" style="color: #16a34a;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+type ElectricityPrefsConfirmationParams = {
+  email: string;
+  currentOperator: string;
+  contractEndDate: Date;
+  priceTypePreference: string;
+  maxBindingMonths: number | null;
+  unsubscribeToken: string;
+  kind: "register" | "update";
+};
+
+export async function sendElectricityPrefsConfirmationEmail(
+  params: ElectricityPrefsConfirmationParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    currentOperator,
+    contractEndDate,
+    priceTypePreference,
+    maxBindingMonths,
+    unsubscribeToken,
+    kind,
+  } = params;
+
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten Elavtal – din registrering är klar"
+    : "Dina uppgifter för elavtal är uppdaterade";
+
+  const intro = isNew
+    ? "Tack för att du registrerade dig för elavtal! Vi har sparat dina uppgifter och håller koll åt dig."
+    : "Vi har uppdaterat dina uppgifter för elavtal. Så här ser de ut nu:";
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #2563eb; font-size: 24px;">${isNew ? "Välkommen till Bytesjakten Elavtal!" : "Uppgifter uppdaterade"}</h1>
+      <p>${intro}</p>
+
+      <div style="background: #f4f4f5; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Dina uppgifter</p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">E-post</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Nuvarande elleverantör</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${currentOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Avtalet går ut</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${formatDate(contractEndDate)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Pristyp</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getElectricityPriceTypeLabel(priceTypePreference)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #71717a;">Max bindningstid</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 600;">${getElectricityBindingLabel(maxBindingMonths)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #52525b; font-size: 15px; line-height: 1.5;">
+        Du får ett mejl innan ditt elavtal går ut – så att du kan byta till ett bättre erbjudande i rätt tid. Om du behöver ändra uppgifter fyller du i sidan igen.
+      </p>
+      <p style="color: #18181b; font-size: 15px; font-weight: 600; line-height: 1.5;">
+        Byt smartare - Betala mindre - Bytesjakten
+      </p>
+
+      <p style="margin: 24px 0;">
+        <a href="${APP_URL}/elavtal" style="display: inline-block; background: #2563eb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+          Till Bytesjakten Elavtal →
+        </a>
+      </p>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du ${isNew ? "registrerat dig" : "uppdaterat dina uppgifter"} för elavtal på
+        <a href="${APP_URL}" style="color: #2563eb;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+type ElectricitySwitchEmailParams = {
+  email: string;
+  operator: string;
+  campaignName: string;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignUrl: string;
+  contractEndDate: Date;
+  priceType: string;
+  bindingMonths: number;
+  unsubscribeToken: string;
+};
+
+export async function sendElectricitySwitchReminderEmail(
+  params: ElectricitySwitchEmailParams
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const {
+    email,
+    operator,
+    campaignName,
+    campaignPrice,
+    regularPrice,
+    campaignUrl,
+    contractEndDate,
+    priceType,
+    bindingMonths,
+    unsubscribeToken,
+  } = params;
+
+  const subject = `Dags att byta elavtal – spara med ${operator}`;
+  const priceLabel = getElectricityPriceTypeLabel(priceType);
+  const bindingLabel = getElectricityBindingLabel(bindingMonths);
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <h1 style="color: #2563eb; font-size: 24px;">Hej från Bytesjakten!</h1>
+      <p>Ditt elavtal går ut <strong>${formatDate(contractEndDate)}</strong>.
+      Nu är det dags att byta till ett bättre erbjudande.</p>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 13px; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.05em;">Bästa erbjudande just nu</p>
+        <h2 style="margin: 0 0 8px; font-size: 20px;">${campaignName}</h2>
+        <p style="margin: 0; font-size: 28px; font-weight: bold; color: #2563eb;">${formatSEK(campaignPrice)} öre/kWh</p>
+        <p style="margin: 8px 0 0; color: #666; font-size: 14px;">
+          ${priceLabel} · ${bindingLabel}<br>
+          Jämförelsepris: ${formatSEK(regularPrice)} öre/kWh
+        </p>
+      </div>
+
+      <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 16px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Så gör du – två steg
+        </p>
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 20px 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 700;">1</span>
+            </td>
+            <td style="padding: 0 0 20px 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 1 – Beställ erbjudandet</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                Byt till erbjudandet hos ${operator}.
+              </p>
+              <a href="${campaignUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600;" rel="sponsored">
+                Beställ hos ${operator} →
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; padding: 0 12px 0 0; width: 28px;">
+              <span style="display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 999px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 700;">2</span>
+            </td>
+            <td style="padding: 0;">
+              <p style="margin: 0 0 4px; font-weight: 700; color: #18181b; font-size: 16px;">Steg 2 – Uppdatera dina uppgifter</p>
+              <p style="margin: 0 0 12px; color: #52525b; font-size: 14px; line-height: 1.5;">
+                När bytet är klart: uppdatera elleverantör och slutdatum så mejlar vi dig i tid innan nästa byte.
+              </p>
+              <a href="${APP_URL}/elavtal#registrera" style="display: inline-block; background: #fff; color: #2563eb; padding: 12px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 2px solid #2563eb;">
+                Uppdatera uppgifter →
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color: #999; font-size: 12px; margin-top: 32px;">
+        Du får det här mejlet eftersom du registrerat dig för elavtal på
+        <a href="${APP_URL}/elavtal" style="color: #2563eb;">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(unsubscribeToken)}" style="color: #999;">Avregistrera</a>
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+export async function sendSamlingConfirmationEmail(params: {
+  email: string;
+  services: string[];
+  kind: "register" | "update";
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  const { email, services, kind } = params;
+  const isNew = kind === "register";
+  const subject = isNew
+    ? "Välkommen till Bytesjakten"
+    : "Dina påminnelser är uppdaterade";
+
+  const list = services
+    .map(
+      (s) =>
+        `<li style="margin: 0 0 6px; color: #1a1a18;">${s}</li>`,
+    )
+    .join("");
+
+  const html = `
+    <div style="font-family: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a18; background: #f5f4f1; padding: 28px 20px;">
+      <h1 style="font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 12px;">${
+        isNew ? "Välkommen till Bytesjakten!" : "Uppgifter uppdaterade"
+      }</h1>
+      <p style="margin: 0 0 16px; color: #5c5c57; font-size: 16px; line-height: 1.55;">
+        ${
+          isNew
+            ? "Du är registrerad för följande påminnelser:"
+            : "Vi har sparat följande påminnelser:"
+        }
+      </p>
+      <ul style="margin: 0 0 20px; padding-left: 1.25rem;">
+        ${list}
+      </ul>
+      <p style="margin: 0 0 20px; color: #5c5c57; font-size: 15px; line-height: 1.5;">
+        Vi mejlar dig när det är dags – helt gratis. Affiliate-länkar kan ingå när vi tipsar om erbjudanden.
+      </p>
+      <a href="${APP_URL}/registrera" style="display: inline-block; background: #1a1a18; color: #f5f4f1; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+        Uppdatera dina påminnelser →
+      </a>
+      <p style="color: #5c5c57; font-size: 12px; margin-top: 32px; line-height: 1.5;">
+        Du får det här mejlet eftersom du registrerat dig på
+        <a href="${APP_URL}" style="color: #1a1a18;">Bytesjakten</a>.
+      </p>
+    </div>
+  `;
+
+  return sendMailerooEmail({ to: email, subject, html });
+}
+
+export type SamlingReminderPrimary = {
+  kind: "mobile" | "broadband" | "electricity" | "reminder";
+  label: string;
+  provider: string;
+  endDate: Date | null;
+  detail: string;
+  unsubscribeToken: string;
+  category?: string;
+};
+
+export type SamlingReminderSecondary = {
+  label: string;
+  provider: string;
+  endDate: Date | null;
+  detail: string;
+  unsubscribeToken: string;
+};
+
+export type SamlingReminderOffer = {
+  operator: string;
+  campaignName: string;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignUrl: string;
+  network?: string;
+  speedMbps?: number;
+  technology?: string;
+  priceUnit: "kr" | "ore";
+};
+
+function formatOfferPrice(price: number, unit: "kr" | "ore"): string {
+  if (unit === "ore") return `${formatSEK(price)} öre/kWh`;
+  return `${formatSEK(price)} kr/mån`;
+}
+
+export function buildSamlingReminderEmailHtml(params: {
+  primary: SamlingReminderPrimary;
+  secondary: SamlingReminderSecondary[];
+  offer: SamlingReminderOffer | null;
+  unsubscribeAllToken: string;
+}): string {
+  const { primary, secondary, offer, unsubscribeAllToken } = params;
+  const endLabel = primary.endDate
+    ? formatDate(primary.endDate)
+    : "snart";
+
+  const offerBlock = offer
+    ? `
+      <div style="background: ${EMAIL_MOBILE.accentSoft}; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">Tips just nu</p>
+        <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: ${EMAIL_MOBILE.ink};">${offer.campaignName}</h2>
+        <p style="margin: 0; font-size: 28px; font-weight: 700; color: ${EMAIL_MOBILE.accentDeep};">${formatOfferPrice(offer.campaignPrice, offer.priceUnit)}</p>
+        <p style="margin: 8px 0 16px; color: ${EMAIL_MOBILE.muted}; font-size: 14px; line-height: 1.5;">
+          ${
+            offer.network
+              ? `Nät: ${getNetworkLabel(offer.network)} · `
+              : ""
+          }${
+            offer.speedMbps
+              ? `${offer.speedMbps} Mbit/s · `
+              : ""
+          }Ordinarie: ${formatOfferPrice(offer.regularPrice, offer.priceUnit)}
+        </p>
+        <a href="${offer.campaignUrl}" style="display: inline-block; background: ${EMAIL_MOBILE.accent}; color: ${EMAIL_MOBILE.ink}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;" rel="sponsored">
+          Se erbjudandet hos ${offer.operator} →
+        </a>
+      </div>`
+    : "";
+
+  const secondaryBlock =
+    secondary.length > 0
+      ? `
+      <div style="background: #ffffff; border: 1px solid ${EMAIL_MOBILE.line}; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.muted}; text-transform: uppercase; letter-spacing: 0.14em;">
+          Övriga påminnelser
+        </p>
+        ${secondary
+          .map(
+            (item) => `
+          <div style="padding: 10px 0; border-top: 1px solid ${EMAIL_MOBILE.line};">
+            <p style="margin: 0; font-weight: 600; color: ${EMAIL_MOBILE.ink};">${item.label}</p>
+            <p style="margin: 4px 0 0; color: ${EMAIL_MOBILE.muted}; font-size: 14px;">
+              ${item.provider}${item.detail ? ` · ${item.detail}` : ""}${
+                item.endDate ? ` · ${formatDate(item.endDate)}` : ""
+              }
+            </p>
+            <p style="margin: 6px 0 0;">
+              <a href="${unsubscribeUrl(item.unsubscribeToken)}" style="color: ${EMAIL_MOBILE.muted}; font-size: 12px;">Avregistrera bara den här</a>
+            </p>
+          </div>`
+          )
+          .join("")}
+      </div>`
+      : "";
+
+  return `
+    <div style="font-family: ${EMAIL_MOBILE.font}; max-width: 560px; margin: 0 auto; color: ${EMAIL_MOBILE.ink}; background: ${EMAIL_MOBILE.bg}; padding: 28px 20px;">
+      <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: ${EMAIL_MOBILE.accentDeep}; text-transform: uppercase; letter-spacing: 0.14em;">${primary.label}</p>
+      <h1 style="color: ${EMAIL_MOBILE.ink}; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 12px;">Hej från Bytesjakten!</h1>
+      <p style="margin: 0; color: ${EMAIL_MOBILE.muted}; font-size: 16px; line-height: 1.55;">
+        ${
+          primary.endDate
+            ? `Din påminnelse för <strong style="color: ${EMAIL_MOBILE.ink};">${primary.provider}</strong> gäller <strong style="color: ${EMAIL_MOBILE.ink};">${endLabel}</strong>.`
+            : `Här kommer en påminnelse om <strong style="color: ${EMAIL_MOBILE.ink};">${primary.provider}</strong>.`
+        }
+        ${primary.detail ? ` (${primary.detail})` : ""}
+      </p>
+
+      ${offerBlock}
+      ${secondaryBlock}
+
+      <p style="margin: 24px 0 0;">
+        <a href="${APP_URL}/registrera" style="display: inline-block; background: ${EMAIL_MOBILE.ink}; color: ${EMAIL_MOBILE.bg}; padding: 12px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+          Uppdatera dina påminnelser →
+        </a>
+      </p>
+
+      <p style="color: ${EMAIL_MOBILE.muted}; font-size: 12px; margin-top: 32px; line-height: 1.5;">
+        Du får det här mejlet eftersom du registrerat dig på
+        <a href="${APP_URL}" style="color: ${EMAIL_MOBILE.accentDeep};">Bytesjakten</a>.
+        Tjänsten är alltid gratis.
+        <br><a href="${unsubscribeUrl(primary.unsubscribeToken)}" style="color: ${EMAIL_MOBILE.muted};">Avregistrera den här tjänsten</a>
+        · <a href="${unsubscribeAllUrl(unsubscribeAllToken)}" style="color: ${EMAIL_MOBILE.muted};">Avregistrera allt</a>
+      </p>
+    </div>
+  `;
+}
+
+export async function sendSamlingReminderEmail(params: {
+  email: string;
+  primary: SamlingReminderPrimary;
+  secondary: SamlingReminderSecondary[];
+  offer: SamlingReminderOffer | null;
+  unsubscribeAllToken: string;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  const subject = params.offer
+    ? `Påminnelse: ${params.primary.label} – tips från ${params.offer.operator}`
+    : `Påminnelse: ${params.primary.label}`;
+  const html = buildSamlingReminderEmailHtml({
+    primary: params.primary,
+    secondary: params.secondary,
+    offer: params.offer,
+    unsubscribeAllToken: params.unsubscribeAllToken,
   });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  return { success: true };
+  return sendMailerooEmail({ to: params.email, subject, html });
 }

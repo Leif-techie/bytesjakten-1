@@ -1,8 +1,13 @@
+"use client";
+
+import { useEffect } from "react";
 import {
   formatSEK,
+  getCampaignAffiliateUrl,
   getCampaignPeriodLabel,
   getNetworkLabel,
 } from "@/lib/campaigns";
+import { trackOfferClick, trackViewContent } from "@/lib/snap-pixel";
 
 type CampaignOffer = {
   operator: string;
@@ -17,23 +22,228 @@ type CampaignOffer = {
 };
 
 type BestOfferCardProps = {
+  /** Top ranked offers (best first). Falls back to single `campaign` if empty. */
+  campaigns?: CampaignOffer[];
   campaign: CampaignOffer | null;
   loading?: boolean;
+  activeCount?: number | null;
+  lastCampaignUpdate?: string | null;
 };
 
-const OPERATOR_COLORS: Record<string, string> = {
-  Telia: "bg-purple-900",
-  Telenor: "bg-blue-600",
-  Tre: "bg-pink-600",
-  Hallon: "bg-orange-500",
-  Comviq: "bg-yellow-500",
-  Vimla: "bg-teal-600",
-  Halebop: "bg-indigo-600",
-  Fello: "bg-cyan-600",
-  Chilimobil: "bg-red-600",
+const RANK_TONE: Record<number, string> = {
+  1: "bg-bj-mobile",
+  2: "bg-bj-mobile/75",
+  3: "bg-bj-mobile-soft",
 };
 
-export function BestOfferCard({ campaign, loading }: BestOfferCardProps) {
+function rankTone(rank: number): string {
+  return RANK_TONE[rank] ?? "bg-bj-mobile";
+}
+
+function rankPanelText(_rank: number): string {
+  return "text-bj-ink";
+}
+
+function rankPanelMutedText(_rank: number): string {
+  return "text-bj-ink/75";
+}
+
+function ActiveCampaignsNote({ count }: { count: number | null | undefined }) {
+  if (count == null) return null;
+  return (
+    <p className="text-sm text-zinc-500">
+      {count === 1
+        ? "baserat på dina val. Vi har nu 1 aktiv kampanj i databasen."
+        : `baserat på dina val. Vi har nu ${count} aktiva kampanjer i databasen.`}
+    </p>
+  );
+}
+
+function LastUpdateBadge({ date }: { date: string | null | undefined }) {
+  if (!date) return null;
+  const formatted = new Date(date).toLocaleDateString("sv-SE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return (
+    <div className="mb-4 inline-flex max-w-full items-center rounded-xl border-2 border-dashed border-bj-mobile bg-bj-mobile-soft px-4 py-2.5 text-sm text-bj-ink">
+      <span>
+        Kampanjer uppdaterade senast:{" "}
+        <strong className="font-semibold">{formatted}</strong>
+      </span>
+    </div>
+  );
+}
+
+function FeaturedOffer({
+  campaign,
+  activeCount,
+}: {
+  campaign: CampaignOffer;
+  activeCount?: number | null;
+}) {
+  const start = new Date(campaign.campaignStart);
+  const end = new Date(campaign.campaignEnd);
+  const bgColor = rankTone(1);
+  const ready = campaign.readyToSwitch ?? true;
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
+      {ready && (
+        <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-bj-mobile px-4 py-2 text-sm font-bold uppercase tracking-wide text-bj-ink">
+          Klart att byta nu!
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-[140px_1fr_auto]">
+        <div
+          className={`flex items-center justify-center ${bgColor} p-8 md:min-h-[200px]`}
+        >
+          <span className={`text-center text-2xl font-bold ${rankPanelText(1)}`}>
+            {campaign.operator}
+          </span>
+        </div>
+
+        <div className="p-6 md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-bj-mobile">
+            1 · Bästa erbjudandet just nu
+          </p>
+          <h2 className="mt-1 text-2xl font-bold text-zinc-900">
+            {campaign.name}
+          </h2>
+          <div className="mt-1">
+            <ActiveCampaignsNote count={activeCount} />
+          </div>
+          <p className="mt-2 text-4xl font-extrabold text-bj-mobile">
+            {formatSEK(campaign.campaignPrice)} kr/mån
+          </p>
+
+          <ul className="mt-4 space-y-1.5 text-sm text-zinc-600">
+            <li>• Nät: {getNetworkLabel(campaign.network ?? "any")}</li>
+            <li>• Ingen bindningstid</li>
+            <li>• {getCampaignPeriodLabel(start, end)}</li>
+          </ul>
+
+          <p className="mt-4 inline-block rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-600">
+            Ordinarie pris därefter: {formatSEK(campaign.regularPrice)} kr/mån
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center justify-center gap-4 border-t border-zinc-100 p-6 md:border-l md:border-t-0">
+          <span className="block h-10 w-10 rounded-full bg-bj-mobile/20" aria-hidden></span>
+          <a
+            href={getCampaignAffiliateUrl(campaign)}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            onClick={() =>
+              trackOfferClick({
+                operator: campaign.operator,
+                campaignName: campaign.name,
+                vertical: "mobile",
+              })
+            }
+            className="inline-flex items-center gap-2 rounded-xl bg-bj-mobile px-6 py-3.5 font-semibold text-bj-ink transition hover:bg-bj-mobile-deep hover:text-white"
+          >
+            Beställ nu
+            <span aria-hidden>→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RunnerUpOffer({
+  campaign,
+  rank,
+}: {
+  campaign: CampaignOffer;
+  rank: number;
+}) {
+  const start = new Date(campaign.campaignStart);
+  const end = new Date(campaign.campaignEnd);
+  const bgColor = rankTone(rank);
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+      <div className={`px-4 py-3 ${bgColor}`}>
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className={`text-sm font-bold uppercase tracking-wide ${rankPanelMutedText(rank)}`}
+          >
+            Alternativ {rank}
+          </span>
+          <span className={`text-lg font-bold ${rankPanelText(rank)}`}>
+            {campaign.operator}
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="text-lg font-bold text-zinc-900">{campaign.name}</h3>
+        <p className="mt-2 text-3xl font-extrabold text-bj-mobile">
+          {formatSEK(campaign.campaignPrice)} kr/mån
+        </p>
+        <ul className="mt-3 space-y-1 text-sm text-zinc-600">
+          <li>• Nät: {getNetworkLabel(campaign.network ?? "any")}</li>
+          <li>• {getCampaignPeriodLabel(start, end)}</li>
+        </ul>
+        <p className="mt-3 text-sm text-zinc-500">
+          Därefter {formatSEK(campaign.regularPrice)} kr/mån
+        </p>
+        <a
+          href={getCampaignAffiliateUrl(campaign)}
+          target="_blank"
+          rel="sponsored noopener noreferrer"
+          onClick={() =>
+            trackOfferClick({
+              operator: campaign.operator,
+              campaignName: campaign.name,
+              vertical: "mobile",
+            })
+          }
+          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-bj-mobile px-4 py-2.5 text-sm font-semibold text-bj-mobile-deep transition hover:bg-bj-mobile-soft"
+        >
+          Beställ nu
+          <span aria-hidden>→</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+export function BestOfferCard({
+  campaigns,
+  campaign,
+  loading,
+  activeCount,
+  lastCampaignUpdate,
+}: BestOfferCardProps) {
+  const offers =
+    campaigns && campaigns.length > 0
+      ? campaigns
+      : campaign
+        ? [campaign]
+        : [];
+
+  const viewKey = offers
+    .slice(0, 3)
+    .map((o) => `${o.operator}:${o.name}:${o.campaignPrice}`)
+    .join("|");
+
+  useEffect(() => {
+    if (loading || !viewKey) return;
+    for (const offer of offers.slice(0, 3)) {
+      trackViewContent({
+        price: offer.campaignPrice,
+        operator: offer.operator,
+        campaignName: offer.name,
+        vertical: "mobile",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [loading, viewKey]);
+
   if (loading) {
     return (
       <section className="px-4 py-10 sm:px-6">
@@ -45,75 +255,58 @@ export function BestOfferCard({ campaign, loading }: BestOfferCardProps) {
     );
   }
 
-  if (!campaign) {
+  if (offers.length === 0) {
     return (
       <section className="px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-6xl rounded-2xl border border-zinc-200 bg-white p-8 text-center">
-          <p className="text-lg text-zinc-600">
-            Inga aktiva kampanjer utan bindningstid matchar dina val just nu.
-          </p>
-          <p className="mt-2 text-sm text-zinc-400">
-            Registrera dig så mejlar vi dig när något bra dyker upp.
-          </p>
+        <div className="mx-auto max-w-6xl">
+          <LastUpdateBadge date={lastCampaignUpdate} />
+          <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center">
+            <p className="text-lg text-zinc-600">
+              Inga aktiva kampanjer utan bindningstid matchar dina val just nu.
+            </p>
+            <div className="mt-2">
+              <ActiveCampaignsNote count={activeCount} />
+            </div>
+            <p className="mt-2 text-sm text-zinc-400">
+              Prova att ändra data/nät, eller bocka i/ur studentabonnemang.
+              Registrera dig så mejlar vi dig när något bra dyker upp.
+            </p>
+          </div>
         </div>
       </section>
     );
   }
 
-  const start = new Date(campaign.campaignStart);
-  const end = new Date(campaign.campaignEnd);
-  const bgColor = OPERATOR_COLORS[campaign.operator] ?? "bg-zinc-800";
-  const ready = campaign.readyToSwitch ?? true;
+  const [best, ...rest] = offers;
+  const runnersUp = rest.slice(0, 2);
 
   return (
     <section className="px-4 py-10 sm:px-6">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
-        {ready && (
-          <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-emerald-600 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white">
-            Klart att byta nu!
-          </div>
-        )}
-
-        <div className="grid md:grid-cols-[140px_1fr_auto]">
-          <div className={`flex items-center justify-center ${bgColor} p-8 md:min-h-[200px]`}>
-            <span className="text-center text-2xl font-bold text-white">
-              {campaign.operator}
-            </span>
-          </div>
-
-          <div className="p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
-              Bästa erbjudandet just nu
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-zinc-900">{campaign.name}</h2>
-            <p className="mt-2 text-4xl font-extrabold text-emerald-600">
-              {formatSEK(campaign.campaignPrice)} kr/mån
-            </p>
-
-            <ul className="mt-4 space-y-1.5 text-sm text-zinc-600">
-              <li>• Nät: {getNetworkLabel(campaign.network ?? "any")}</li>
-              <li>• Ingen bindningstid</li>
-              <li>• {getCampaignPeriodLabel(start, end)}</li>
-            </ul>
-
-            <p className="mt-4 inline-block rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-600">
-              Ordinarie pris därefter: {formatSEK(campaign.regularPrice)} kr/mån
+      <div className="mx-auto max-w-6xl">
+        <LastUpdateBadge date={lastCampaignUpdate} />
+        {runnersUp.length > 0 ? (
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-zinc-900 sm:text-2xl">
+              De bästa erbjudandena just nu
+            </h2>
+            <p className="mt-1 text-sm text-zinc-500">
+              Rankade efter sparpotential utifrån dina val – ett huvudalternativ
+              och två starka challengers.
             </p>
           </div>
-
-          <div className="flex flex-col items-center justify-center gap-4 border-t border-zinc-100 p-6 md:border-l md:border-t-0">
-            <span className="text-4xl">🏷️</span>
-            <a
-              href={campaign.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Beställ nu
-              <span aria-hidden>→</span>
-            </a>
+        ) : null}
+        <FeaturedOffer campaign={best} activeCount={activeCount} />
+        {runnersUp.length > 0 ? (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {runnersUp.map((offer, index) => (
+              <RunnerUpOffer
+                key={`${offer.operator}-${offer.name}-${index}`}
+                campaign={offer}
+                rank={index + 2}
+              />
+            ))}
           </div>
-        </div>
+        ) : null}
       </div>
     </section>
   );

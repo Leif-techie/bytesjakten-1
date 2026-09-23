@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findBestCampaign } from "@/lib/campaigns";
+import { findTopCampaigns } from "@/lib/campaigns";
 import { ensureCampaignsSeeded, getActiveCampaigns } from "@/lib/seed-campaigns";
+import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -12,21 +13,38 @@ export async function GET(request: NextRequest) {
     const minDataGB = Number(searchParams.get("minDataGB") ?? 25);
     const networkPreference = searchParams.get("network") ?? "any";
     const currentOperator = searchParams.get("currentOperator") ?? "";
+    const isStudent = searchParams.get("isStudent") === "true";
     const bestOnly = searchParams.get("best") === "true";
+    const topLimit = Math.min(
+      10,
+      Math.max(1, Number(searchParams.get("top") ?? 3) || 3)
+    );
 
-    const campaigns = await getActiveCampaigns();
+    const [campaigns, meta] = await Promise.all([
+      getActiveCampaigns(),
+      db.systemMeta.findUnique({ where: { id: "singleton" } }),
+    ]);
+    const activeCount = campaigns.length;
+    const lastCampaignUpdate = meta?.lastCampaignUpdate?.toISOString() ?? null;
 
     if (bestOnly) {
-      const best = findBestCampaign(
+      const top = findTopCampaigns(
         campaigns,
         minDataGB,
         networkPreference,
-        currentOperator || undefined
+        currentOperator || undefined,
+        { isStudent, limit: topLimit }
       );
-      return NextResponse.json({ campaign: best });
+      const best = top[0] ?? null;
+      return NextResponse.json({
+        campaign: best,
+        campaigns: top,
+        activeCount,
+        lastCampaignUpdate,
+      });
     }
 
-    return NextResponse.json({ campaigns });
+    return NextResponse.json({ campaigns, activeCount, lastCampaignUpdate });
   } catch (error) {
     console.error("Campaigns error:", error);
     return NextResponse.json({ error: "Kunde inte hämta kampanjer." }, { status: 500 });

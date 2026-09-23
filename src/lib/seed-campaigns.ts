@@ -1,4 +1,8 @@
-import type { Campaign } from "@/generated/prisma/client";
+import type {
+  Campaign,
+  BroadbandCampaign,
+  ElectricityCampaign,
+} from "@/generated/prisma/client";
 import { db } from "./db";
 
 type SeedCampaign = {
@@ -11,186 +15,724 @@ type SeedCampaign = {
   campaignEnd: Date;
   url: string;
   network: string;
+  isStudent: boolean;
 };
 
-function buildCampaigns(now: Date): SeedCampaign[] {
-  const year = now.getFullYear();
-  const julyStart = new Date(year, 6, 1);
-  const novEnd = new Date(year, 10, 30);
-  const springStart = new Date(year, 2, 1);
-  const springEnd = new Date(year, 5, 30);
+type SeedBroadbandCampaign = {
+  operator: string;
+  name: string;
+  speedMbps: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
+  technology: string;
+};
 
-  return [
-    {
-      operator: "Telia",
-      name: "Telia – 25 GB",
-      dataGB: 25,
-      campaignPrice: 39,
-      regularPrice: 259,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.telia.se/privat/mobil/mobilabonnemang/",
-      network: "telia",
-    },
-    {
-      operator: "Hallon",
-      name: "Hallon – 25 GB",
-      dataGB: 25,
-      campaignPrice: 49,
-      regularPrice: 199,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.hallon.se/",
-      network: "tre",
-    },
-    {
-      operator: "Comviq",
-      name: "Comviq – 25 GB",
-      dataGB: 25,
-      campaignPrice: 59,
-      regularPrice: 229,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.comviq.se/",
-      network: "telenor",
-    },
-    {
-      operator: "Telenor",
-      name: "Telenor – 25 GB",
-      dataGB: 25,
-      campaignPrice: 69,
-      regularPrice: 249,
-      campaignStart: springStart,
-      campaignEnd: springEnd,
-      url: "https://www.telenor.se/privat/mobil/mobilabonnemang/",
-      network: "telenor",
-    },
-    {
-      operator: "Tre",
-      name: "Tre – 25 GB",
-      dataGB: 25,
-      campaignPrice: 79,
-      regularPrice: 269,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.tre.se/privat/mobil/mobilabonnemang/",
-      network: "tre",
-    },
-    {
-      operator: "Vimla",
-      name: "Vimla – 25 GB",
-      dataGB: 25,
-      campaignPrice: 55,
-      regularPrice: 189,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.vimla.se/",
-      network: "telenor",
-    },
-    {
-      operator: "Fello",
-      name: "Fello – 25 GB",
-      dataGB: 25,
-      campaignPrice: 45,
-      regularPrice: 179,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.fello.se/",
-      network: "telenor",
-    },
-    {
-      operator: "Telia",
-      name: "Telia – 10 GB",
-      dataGB: 10,
-      campaignPrice: 29,
-      regularPrice: 199,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.telia.se/privat/mobil/mobilabonnemang/",
-      network: "telia",
-    },
+type SeedElectricityCampaign = {
+  operator: string;
+  name: string;
+  priceType: string;
+  bindingMonths: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
+};
+
+/** Rolling window so refreshed seed campaigns stay active after "Uppdatera kampanjer". */
+function campaignWindow(now: Date, monthsOpen: number): { start: Date; end: Date } {
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + monthsOpen);
+  end.setDate(0); // last day of the final open month
+  return { start, end };
+}
+
+/**
+ * Current no-binding campaigns from operator sites (snapshot).
+ * Checked 20 Sep 2026 against hallon.se / vimla.se / comviq.se / fello.se.
+ * Hallon privat: dubbel surf for life → dataGB = effektiv surf (10–200 GB).
+ * Fello: dubbel surf → dataGB = effektiv surf. Vimla/Comviq: oförändrade priser.
+ * `dataGB` = effective surf during campaign (dubbel surf / extra pott).
+ * Replace `url` with Addrevenue tracking links in admin after refresh.
+ */
+function buildCampaigns(now: Date): SeedCampaign[] {
+  const { start, end } = campaignWindow(now, 4);
+
+  const regular: SeedCampaign[] = [
+    // Hallon – Tres nät, dubbel surf for life (bas 5/10/25/50/100 → effektiv 10–200)
     {
       operator: "Hallon",
       name: "Hallon – 10 GB",
       dataGB: 10,
-      campaignPrice: 39,
-      regularPrice: 149,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
+      campaignPrice: 19,
+      regularPrice: 109,
+      campaignStart: start,
+      campaignEnd: end,
       url: "https://www.hallon.se/",
       network: "tre",
+      isStudent: false,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 20 GB",
+      dataGB: 20,
+      campaignPrice: 29,
+      regularPrice: 159,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+      isStudent: false,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 50 GB",
+      dataGB: 50,
+      campaignPrice: 39,
+      regularPrice: 259,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+      isStudent: false,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 100 GB",
+      dataGB: 100,
+      campaignPrice: 49,
+      regularPrice: 309,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+      isStudent: false,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – 200 GB",
+      dataGB: 200,
+      campaignPrice: 59,
+      regularPrice: 359,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/",
+      network: "tre",
+      isStudent: false,
+    },
+
+    // Vimla – Telenors nät, 20 kr/mån i 3 mån + dubbel surf i 24 mån
+    {
+      operator: "Vimla",
+      name: "Vimla – 10 GB",
+      dataGB: 10,
+      campaignPrice: 20,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+      isStudent: false,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla – 20 GB",
+      dataGB: 20,
+      campaignPrice: 20,
+      regularPrice: 170,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+      isStudent: false,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla – 30 GB",
+      dataGB: 30,
+      campaignPrice: 20,
+      regularPrice: 210,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+      isStudent: false,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla – 50 GB",
+      dataGB: 50,
+      campaignPrice: 20,
+      regularPrice: 260,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+      isStudent: false,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla – 200 GB",
+      dataGB: 200,
+      campaignPrice: 20,
+      regularPrice: 370,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vimla.se/bestall/",
+      network: "telenor",
+      isStudent: false,
+    },
+
+    // Comviq – Tele2-nät, 45 kr/mån i 3 mån utan bindningstid (ingen dubbelsurf)
+    {
+      operator: "Comviq",
+      name: "Comviq – 5 GB",
+      dataGB: 5,
+      campaignPrice: 45,
+      regularPrice: 129,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
+      network: "tele2",
+      isStudent: false,
     },
     {
       operator: "Comviq",
-      name: "Comviq – 40 GB",
-      dataGB: 40,
-      campaignPrice: 79,
-      regularPrice: 279,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.comviq.se/",
-      network: "telenor",
+      name: "Comviq – 20 GB",
+      dataGB: 20,
+      campaignPrice: 45,
+      regularPrice: 229,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
+      network: "tele2",
+      isStudent: false,
     },
     {
-      operator: "Halebop",
-      name: "Halebop – 25 GB",
-      dataGB: 25,
-      campaignPrice: 52,
-      regularPrice: 219,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.halebop.se/",
+      operator: "Comviq",
+      name: "Comviq – 100 GB",
+      dataGB: 100,
+      campaignPrice: 45,
+      regularPrice: 359,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang-utan-bindning",
+      network: "tele2",
+      isStudent: false,
+    },
+
+    // Fello – Telias nät, 30 kr i 3 mån + dubbel surf (bas → effektiv)
+    {
+      operator: "Fello",
+      name: "Fello – 10 GB",
+      dataGB: 10,
+      campaignPrice: 30,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
       network: "telia",
+      isStudent: false,
     },
     {
-      operator: "Chilimobil",
-      name: "Chilimobil – 25 GB",
-      dataGB: 25,
-      campaignPrice: 42,
-      regularPrice: 169,
-      campaignStart: julyStart,
-      campaignEnd: novEnd,
-      url: "https://www.chilimobil.se/",
+      operator: "Fello",
+      name: "Fello – 20 GB",
+      dataGB: 20,
+      campaignPrice: 30,
+      regularPrice: 180,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: false,
+    },
+    {
+      operator: "Fello",
+      name: "Fello – 40 GB",
+      dataGB: 40,
+      campaignPrice: 30,
+      regularPrice: 230,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: false,
+    },
+    {
+      operator: "Fello",
+      name: "Fello – 80 GB",
+      dataGB: 80,
+      campaignPrice: 30,
+      regularPrice: 290,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: false,
+    },
+    {
+      operator: "Fello",
+      name: "Fello – 200 GB",
+      dataGB: 200,
+      campaignPrice: 30,
+      regularPrice: 370,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: false,
+    },
+  ];
+
+  // Student plans — checked 20 Sep 2026
+  const student: SeedCampaign[] = [
+    // Hallon Student – 4 månader kampanj (surf enligt studentnivåerna)
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 10 GB",
+      dataGB: 10,
+      campaignPrice: 19,
+      regularPrice: 109,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 20 GB",
+      dataGB: 20,
+      campaignPrice: 29,
+      regularPrice: 159,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 50 GB",
+      dataGB: 50,
+      campaignPrice: 39,
+      regularPrice: 259,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 100 GB",
+      dataGB: 100,
+      campaignPrice: 49,
+      regularPrice: 309,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon Student – 200 GB",
+      dataGB: 200,
+      campaignPrice: 59,
+      regularPrice: 359,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/student",
+      network: "tre",
+      isStudent: true,
+    },
+    // Vimla student: nivåer enligt vimla.se/bestall/student
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 20 GB",
+      dataGB: 20,
+      campaignPrice: 20,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://vimla.se/bestall/student/",
       network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 30 GB",
+      dataGB: 30,
+      campaignPrice: 20,
+      regularPrice: 160,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://vimla.se/bestall/student/",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 50 GB",
+      dataGB: 50,
+      campaignPrice: 20,
+      regularPrice: 200,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://vimla.se/bestall/student/",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 80 GB",
+      dataGB: 80,
+      campaignPrice: 20,
+      regularPrice: 240,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://vimla.se/bestall/student/",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Vimla",
+      name: "Vimla Student – 160 GB",
+      dataGB: 160,
+      campaignPrice: 20,
+      regularPrice: 320,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://vimla.se/bestall/student/",
+      network: "telenor",
+      isStudent: true,
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq Student – 14 GB",
+      dataGB: 14,
+      campaignPrice: 45,
+      regularPrice: 129,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang/student",
+      network: "tele2",
+      isStudent: true,
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq Student – 40 GB",
+      dataGB: 40,
+      campaignPrice: 45,
+      regularPrice: 209,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang/student",
+      network: "tele2",
+      isStudent: true,
+    },
+    {
+      operator: "Comviq",
+      name: "Comviq Student – 100 GB",
+      dataGB: 100,
+      campaignPrice: 45,
+      regularPrice: 309,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.comviq.se/mobilabonnemang/student",
+      network: "tele2",
+      isStudent: true,
+    },
+    // Fello Student – dubbel surf (bas → effektiv)
+    {
+      operator: "Fello",
+      name: "Fello Student – 20 GB",
+      dataGB: 20,
+      campaignPrice: 30,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 40 GB",
+      dataGB: 40,
+      campaignPrice: 30,
+      regularPrice: 160,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 60 GB",
+      dataGB: 60,
+      campaignPrice: 30,
+      regularPrice: 200,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 100 GB",
+      dataGB: 100,
+      campaignPrice: 30,
+      regularPrice: 250,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: true,
+    },
+    {
+      operator: "Fello",
+      name: "Fello Student – 200 GB",
+      dataGB: 200,
+      campaignPrice: 30,
+      regularPrice: 320,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fello.se/mobilabonnemang",
+      network: "telia",
+      isStudent: true,
+    },
+  ];
+
+  return [...regular, ...student];
+}
+
+function buildBroadbandCampaigns(now: Date): SeedBroadbandCampaign[] {
+  const { start, end } = campaignWindow(now, 3);
+
+  return [
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 5 GB",
+      speedMbps: 100,
+      campaignPrice: 29,
+      regularPrice: 89,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 20 GB",
+      speedMbps: 100,
+      campaignPrice: 39,
+      regularPrice: 149,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 100 GB",
+      speedMbps: 150,
+      campaignPrice: 69,
+      regularPrice: 249,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Mobilt bredband 200 GB",
+      speedMbps: 150,
+      campaignPrice: 79,
+      regularPrice: 299,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Hallon",
+      name: "Hallon – Obegränsat 5G-bredband",
+      speedMbps: 150,
+      campaignPrice: 99,
+      regularPrice: 399,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.hallon.se/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Tre",
+      name: "Tre – Bredband Max 150",
+      speedMbps: 150,
+      campaignPrice: 399,
+      regularPrice: 399,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.tre.se/handla/bredband",
+      technology: "5g",
+    },
+    {
+      operator: "Tre",
+      name: "Tre – Bredband Max 1000",
+      speedMbps: 1000,
+      campaignPrice: 499,
+      regularPrice: 499,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.tre.se/handla/bredband",
+      technology: "5g",
     },
   ];
 }
 
-export async function updateCampaigns(): Promise<{ updated: number; active: number }> {
+function buildElectricityCampaigns(now: Date): SeedElectricityCampaign[] {
+  const { start, end } = campaignWindow(now, 6);
+
+  return [
+    {
+      operator: "Tibber",
+      name: "Tibber – Rörligt (spot)",
+      priceType: "variable",
+      bindingMonths: 0,
+      campaignPrice: 0,
+      regularPrice: 0,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://tibber.com/se",
+    },
+    {
+      operator: "GodEl",
+      name: "GodEl – Fastpris 1 år",
+      priceType: "fixed",
+      bindingMonths: 12,
+      campaignPrice: 89,
+      regularPrice: 110,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.godel.se/",
+    },
+    {
+      operator: "Greenely",
+      name: "Greenely – Rörligt",
+      priceType: "variable",
+      bindingMonths: 0,
+      campaignPrice: 4,
+      regularPrice: 8,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.greenely.com/se",
+    },
+    {
+      operator: "Fortum",
+      name: "Fortum – Fastpris 12 mån",
+      priceType: "fixed",
+      bindingMonths: 12,
+      campaignPrice: 95,
+      regularPrice: 120,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.fortum.se/",
+    },
+    {
+      operator: "Vattenfall",
+      name: "Vattenfall – Fastpris 24 mån",
+      priceType: "fixed",
+      bindingMonths: 24,
+      campaignPrice: 92,
+      regularPrice: 115,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.vattenfall.se/",
+    },
+    {
+      operator: "Bixia",
+      name: "Bixia – Fastpris 36 mån",
+      priceType: "fixed",
+      bindingMonths: 36,
+      campaignPrice: 88,
+      regularPrice: 112,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.bixia.se/",
+    },
+    {
+      operator: "Cheap Energy",
+      name: "Cheap Energy – Rörligt",
+      priceType: "variable",
+      bindingMonths: 0,
+      campaignPrice: 2,
+      regularPrice: 6,
+      campaignStart: start,
+      campaignEnd: end,
+      url: "https://www.cheapenergy.se/",
+    },
+  ];
+}
+
+export async function updateCampaigns(): Promise<{
+  updated: number;
+  broadbandUpdated: number;
+  electricityUpdated: number;
+  active: number;
+  activeBroadband: number;
+  activeElectricity: number;
+}> {
   const now = new Date();
   const seedData = buildCampaigns(now);
+  const broadbandSeedData = buildBroadbandCampaigns(now);
+  const electricitySeedData = buildElectricityCampaigns(now);
 
-  await db.campaign.updateMany({ data: { active: false } });
+  // Full replace so old demo rows do not linger as inactive clutter.
+  await db.campaign.deleteMany({});
+  await db.broadbandCampaign.deleteMany({});
+  await db.electricityCampaign.deleteMany({});
 
   let updated = 0;
   for (const item of seedData) {
-    const existing = await db.campaign.findFirst({
-      where: {
-        operator: item.operator,
-        name: item.name,
-        dataGB: item.dataGB,
+    await db.campaign.create({
+      data: {
+        ...item,
+        noBinding: true,
+        active: now >= item.campaignStart && now <= item.campaignEnd,
       },
     });
-
-    if (existing) {
-      await db.campaign.update({
-        where: { id: existing.id },
-        data: {
-          ...item,
-          noBinding: true,
-          active: now >= item.campaignStart && now <= item.campaignEnd,
-        },
-      });
-    } else {
-      await db.campaign.create({
-        data: {
-          ...item,
-          noBinding: true,
-          active: now >= item.campaignStart && now <= item.campaignEnd,
-        },
-      });
-    }
     updated++;
+  }
+
+  let broadbandUpdated = 0;
+  for (const item of broadbandSeedData) {
+    await db.broadbandCampaign.create({
+      data: {
+        ...item,
+        noBinding: true,
+        active: now >= item.campaignStart && now <= item.campaignEnd,
+      },
+    });
+    broadbandUpdated++;
+  }
+
+  let electricityUpdated = 0;
+  for (const item of electricitySeedData) {
+    await db.electricityCampaign.create({
+      data: {
+        ...item,
+        active: now >= item.campaignStart && now <= item.campaignEnd,
+      },
+    });
+    electricityUpdated++;
   }
 
   await db.systemMeta.upsert({
@@ -199,8 +741,19 @@ export async function updateCampaigns(): Promise<{ updated: number; active: numb
     update: { lastCampaignUpdate: now },
   });
 
-  const active = await db.campaign.count({ where: { active: true } });
-  return { updated, active };
+  const [active, activeBroadband, activeElectricity] = await Promise.all([
+    db.campaign.count({ where: { active: true } }),
+    db.broadbandCampaign.count({ where: { active: true } }),
+    db.electricityCampaign.count({ where: { active: true } }),
+  ]);
+  return {
+    updated,
+    broadbandUpdated,
+    electricityUpdated,
+    active,
+    activeBroadband,
+    activeElectricity,
+  };
 }
 
 export async function getActiveCampaigns(): Promise<Campaign[]> {
@@ -210,8 +763,38 @@ export async function getActiveCampaigns(): Promise<Campaign[]> {
   });
 }
 
+export async function getActiveBroadbandCampaigns(): Promise<BroadbandCampaign[]> {
+  return db.broadbandCampaign.findMany({
+    where: { active: true, noBinding: true },
+    orderBy: [{ campaignPrice: "asc" }],
+  });
+}
+
+export async function getActiveElectricityCampaigns(): Promise<
+  ElectricityCampaign[]
+> {
+  return db.electricityCampaign.findMany({
+    where: { active: true },
+    orderBy: [{ campaignPrice: "asc" }],
+  });
+}
+
 export async function ensureCampaignsSeeded(): Promise<void> {
   const count = await db.campaign.count();
+  if (count === 0) {
+    await updateCampaigns();
+  }
+}
+
+export async function ensureBroadbandCampaignsSeeded(): Promise<void> {
+  const count = await db.broadbandCampaign.count();
+  if (count === 0) {
+    await updateCampaigns();
+  }
+}
+
+export async function ensureElectricityCampaignsSeeded(): Promise<void> {
+  const count = await db.electricityCampaign.count();
   if (count === 0) {
     await updateCampaigns();
   }

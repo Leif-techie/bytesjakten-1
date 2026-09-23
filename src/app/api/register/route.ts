@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, currentOperator, contractEndDate, minDataGB, networkPreference } = body;
+    const { email, currentOperator, contractEndDate, minDataGB, networkPreference, isStudent } =
+      body;
 
     if (!email || !currentOperator || !contractEndDate || !minDataGB) {
       return NextResponse.json(
@@ -48,15 +49,21 @@ export async function POST(request: NextRequest) {
       contractEndDate: endDate,
       minDataGB: Number(minDataGB),
       networkPreference: networkPreference ?? "any",
+      isStudent: Boolean(isStudent),
     });
 
     return NextResponse.json({
       success: true,
       userId: result.userId,
       isNew: result.isNew,
+      emailSent: result.emailSent,
       message: result.isNew
-        ? "Registrerad! Vi mejlar dig en vecka innan det är dags att byta."
-        : "Dina uppgifter är uppdaterade.",
+        ? result.emailSent
+          ? "Registrerad! Vi har skickat en bekräftelse till din e-post."
+          : "Registrerad! Vi mejlar dig när det är dags att byta."
+        : result.emailSent
+          ? "Dina uppgifter är uppdaterade. Vi har skickat en bekräftelse till din e-post."
+          : "Dina uppgifter är uppdaterade.",
     });
   } catch (error) {
     console.error("Register error:", error);

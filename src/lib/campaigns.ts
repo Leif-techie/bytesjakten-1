@@ -8,7 +8,13 @@ export type CampaignInput = {
   campaignEnd: Date;
   url: string;
   network?: string;
+  isStudent?: boolean;
 };
+
+/** CTA-länk för erbjudandet (affiliatelänk) – används på sajten och i mejl. */
+export function getCampaignAffiliateUrl(campaign: { url: string }): string {
+  return campaign.url.trim();
+}
 
 export type CampaignWithSavings = CampaignInput & {
   id: string;
@@ -59,6 +65,89 @@ export function calculateSavings(
   return { annualSavings, averageMonthlyCost: campaignPrice, campaignMonths };
 }
 
+/** Antal hela månader mellan två datum (kalendermånader). */
+export function wholeMonthsBetween(start: Date, end: Date = new Date()): number {
+  let months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth());
+  if (end.getDate() < start.getDate()) {
+    months -= 1;
+  }
+  return Math.max(0, months);
+}
+
+/**
+ * Sparande hittills under en pågående kampanjperiod.
+ * monthlyDiff = ordinarie − kampanjpris; kumulativ = diff × månader hittills (max längd).
+ */
+export function calculateSavingsSoFar(params: {
+  campaignPrice: number | null | undefined;
+  regularPrice: number | null | undefined;
+  campaignStartDate: Date | string | null | undefined;
+  campaignLengthMonths: number | null | undefined;
+  now?: Date;
+}): {
+  campaignPrice: number | null;
+  regularPrice: number | null;
+  monthlyDiff: number | null;
+  monthsCounted: number | null;
+  savedSoFar: number | null;
+} {
+  const campaignPrice =
+    params.campaignPrice != null && Number.isFinite(params.campaignPrice)
+      ? Number(params.campaignPrice)
+      : null;
+  const regularPrice =
+    params.regularPrice != null && Number.isFinite(params.regularPrice)
+      ? Number(params.regularPrice)
+      : null;
+
+  const monthlyDiff =
+    campaignPrice != null && regularPrice != null
+      ? Math.max(0, regularPrice - campaignPrice)
+      : null;
+
+  if (
+    monthlyDiff == null ||
+    !params.campaignStartDate ||
+    params.campaignLengthMonths == null ||
+    params.campaignLengthMonths <= 0
+  ) {
+    return {
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
+    };
+  }
+
+  const start = new Date(params.campaignStartDate);
+  if (Number.isNaN(start.getTime())) {
+    return {
+      campaignPrice,
+      regularPrice,
+      monthlyDiff,
+      monthsCounted: null,
+      savedSoFar: null,
+    };
+  }
+
+  const now = params.now ?? new Date();
+  const monthsCounted = Math.min(
+    params.campaignLengthMonths,
+    wholeMonthsBetween(start, now)
+  );
+
+  return {
+    campaignPrice,
+    regularPrice,
+    monthlyDiff,
+    monthsCounted,
+    savedSoFar: monthlyDiff * monthsCounted,
+  };
+}
+
 export function isCampaignActive(
   campaign: { campaignStart: Date; campaignEnd: Date; active?: boolean },
   now = new Date()
@@ -75,17 +164,22 @@ export function matchesNetwork(
   return campaignNetwork === preference;
 }
 
-export function findBestCampaign<T extends CampaignInput & { id: string; active?: boolean }>(
+export function findTopCampaigns<T extends CampaignInput & { id: string; active?: boolean }>(
   campaigns: T[],
   minDataGB: number,
   networkPreference: string,
   excludeOperator?: string,
-  now = new Date()
-): (T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }) | null {
-  const eligible = campaigns
+  options: { isStudent?: boolean; now?: Date; limit?: number } = {}
+): Array<T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }> {
+  const now = options.now ?? new Date();
+  const wantStudent = Boolean(options.isStudent);
+  const limit = options.limit ?? 3;
+
+  return campaigns
     .filter(
       (c) =>
         isCampaignActive(c, now) &&
+        Boolean(c.isStudent) === wantStudent &&
         c.dataGB >= minDataGB &&
         matchesNetwork(c.network ?? "any", networkPreference) &&
         (!excludeOperator || c.operator.toLowerCase() !== excludeOperator.toLowerCase())
@@ -94,14 +188,161 @@ export function findBestCampaign<T extends CampaignInput & { id: string; active?
       ...c,
       ...calculateSavings(c.campaignPrice, c.regularPrice, c.campaignStart, c.campaignEnd),
     }))
-    .sort((a, b) => {
-      if (b.annualSavings !== a.annualSavings) {
-        return b.annualSavings - a.annualSavings;
-      }
-      return a.campaignPrice - b.campaignPrice;
-    });
+    .sort((a, b) => a.campaignPrice - b.campaignPrice)
+    .slice(0, limit);
+}
 
-  return eligible[0] ?? null;
+export function findBestCampaign<T extends CampaignInput & { id: string; active?: boolean }>(
+  campaigns: T[],
+  minDataGB: number,
+  networkPreference: string,
+  excludeOperator?: string,
+  options: { isStudent?: boolean; now?: Date } = {}
+): (T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }) | null {
+  return (
+    findTopCampaigns(campaigns, minDataGB, networkPreference, excludeOperator, {
+      ...options,
+      limit: 1,
+    })[0] ?? null
+  );
+}
+
+export type BroadbandCampaignInput = {
+  operator: string;
+  name: string;
+  speedMbps: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
+  technology?: string;
+};
+
+export function matchesBroadbandTechnology(
+  campaignTechnology: string,
+  preference: string
+): boolean {
+  if (preference === "any" || campaignTechnology === "any") return true;
+  return campaignTechnology === preference;
+}
+
+export function findTopBroadbandCampaigns<
+  T extends BroadbandCampaignInput & { id: string; active?: boolean },
+>(
+  campaigns: T[],
+  minSpeedMbps: number,
+  technologyPreference: string,
+  excludeOperator?: string,
+  options: { now?: Date; limit?: number } = {}
+): Array<T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }> {
+  const now = options.now ?? new Date();
+  const limit = options.limit ?? 3;
+
+  return campaigns
+    .filter(
+      (c) =>
+        isCampaignActive(c, now) &&
+        c.speedMbps >= minSpeedMbps &&
+        matchesBroadbandTechnology(c.technology ?? "any", technologyPreference) &&
+        (!excludeOperator || c.operator.toLowerCase() !== excludeOperator.toLowerCase())
+    )
+    .map((c) => ({
+      ...c,
+      ...calculateSavings(c.campaignPrice, c.regularPrice, c.campaignStart, c.campaignEnd),
+    }))
+    .sort((a, b) => a.campaignPrice - b.campaignPrice)
+    .slice(0, limit);
+}
+
+export function getBroadbandTechnologyLabel(value: string): string {
+  const labels: Record<string, string> = {
+    any: "Spelar ingen roll",
+    "5g": "5G",
+    "4g": "4G/LTE",
+  };
+  return labels[value] ?? value;
+}
+
+export function getElectricityPriceTypeLabel(value: string): string {
+  const labels: Record<string, string> = {
+    any: "Spelar ingen roll",
+    fixed: "Fastpris",
+    variable: "Rörligt",
+  };
+  return labels[value] ?? value;
+}
+
+/** Display binding for an offer: 0 → "Ingen bindningstid", else "Bindningstid: N mån". */
+export function getElectricityBindingLabel(months: number | null | undefined): string {
+  if (months == null) return "Spelar ingen roll";
+  if (months === 0) return "Ingen bindningstid";
+  return `Bindningstid: ${months} mån`;
+}
+
+export type ElectricityCampaignInput = {
+  operator: string;
+  name: string;
+  priceType: string;
+  bindingMonths: number;
+  campaignPrice: number;
+  regularPrice: number;
+  campaignStart: Date;
+  campaignEnd: Date;
+  url: string;
+};
+
+export function matchesElectricityPriceType(
+  campaignPriceType: string,
+  preference: string
+): boolean {
+  if (preference === "any") return true;
+  return campaignPriceType === preference;
+}
+
+export function matchesElectricityBinding(
+  campaignBindingMonths: number,
+  maxBindingMonths: number | null | undefined
+): boolean {
+  if (maxBindingMonths == null) return true;
+  return campaignBindingMonths <= maxBindingMonths;
+}
+
+export function findTopElectricityCampaigns<
+  T extends ElectricityCampaignInput & { id: string; active?: boolean },
+>(
+  campaigns: T[],
+  priceTypePreference: string,
+  maxBindingMonths: number | null | undefined,
+  excludeOperator?: string,
+  options: { now?: Date; limit?: number } = {}
+): Array<
+  T & { annualSavings: number; averageMonthlyCost: number; campaignMonths: number }
+> {
+  const now = options.now ?? new Date();
+  const limit = options.limit ?? 3;
+
+  return campaigns
+    .filter(
+      (c) =>
+        isCampaignActive(c, now) &&
+        matchesElectricityPriceType(c.priceType, priceTypePreference) &&
+        matchesElectricityBinding(c.bindingMonths, maxBindingMonths) &&
+        (!excludeOperator ||
+          c.operator.toLowerCase() !== excludeOperator.toLowerCase())
+    )
+    .map((c) => ({
+      ...c,
+      // Reuse savings helpers: öre/kWh treated like "monthly" units for ranking
+      ...calculateSavings(
+        c.campaignPrice,
+        c.regularPrice,
+        c.campaignStart,
+        c.campaignEnd
+      ),
+    }))
+    .sort((a, b) => a.campaignPrice - b.campaignPrice)
+    .slice(0, limit);
 }
 
 export function daysUntil(date: Date, from = new Date()): number {
@@ -119,6 +360,7 @@ export function getNetworkLabel(value: string): string {
     any: "Spelar ingen roll",
     telia: "Telia",
     telenor: "Telenor",
+    tele2: "Tele2",
     tre: "Tre",
   };
   return labels[value] ?? value;
